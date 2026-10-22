@@ -487,13 +487,32 @@ func (h *Handler) AdminLoginSubmit(ctx echo.Context) error {
 	return ctx.Redirect(http.StatusSeeOther, "/admin")
 }
 
+func normalizeAuthIdentifier(id string) string {
+	clean := strings.TrimSpace(strings.ToLower(id))
+	if !strings.Contains(clean, "@") {
+		var b strings.Builder
+		for _, r := range clean {
+			if r >= '0' && r <= '9' {
+				b.WriteRune(r)
+			}
+		}
+		num := b.String()
+		if strings.HasPrefix(num, "91") && len(num) == 12 {
+			num = num[2:]
+		} else if strings.HasPrefix(num, "0") && len(num) == 11 {
+			num = num[1:]
+		}
+		return num
+	}
+	return clean
+}
+
 // generateAndSaveOTP generates a 6-digit verification code, persists it, and forwards to Ollastack
 func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
-	cleanID := strings.TrimSpace(strings.ToLower(identifier))
-	cleanID = strings.TrimPrefix(cleanID, "+91")
+	normID := normalizeAuthIdentifier(identifier)
 	code := fmt.Sprintf("%06d", (time.Now().UnixNano()%900000)+100000)
 
-	key := fmt.Sprintf("otp:%s:%s", portal, cleanID)
+	key := fmt.Sprintf("otp:%s:%s", portal, normID)
 
 	// Persist to Redis if connected
 	if h.c.Cache != nil && h.c.Cache.Client != nil {
@@ -528,15 +547,14 @@ func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 				_ = resp.Body.Close()
 			}
 		}
-	}(cleanID, code, portal)
+	}(normID, code, portal)
 
 	return code
 }
 
 // verifyOTP checks whether the provided OTP code matches the stored record
 func (h *Handler) verifyOTP(portal, identifier, inputCode string) bool {
-	cleanID := strings.TrimSpace(strings.ToLower(identifier))
-	cleanID = strings.TrimPrefix(cleanID, "+91")
+	normID := normalizeAuthIdentifier(identifier)
 	inputCode = strings.TrimSpace(inputCode)
 	if inputCode == "" {
 		return false
@@ -547,7 +565,7 @@ func (h *Handler) verifyOTP(portal, identifier, inputCode string) bool {
 		return true
 	}
 
-	key := fmt.Sprintf("otp:%s:%s", portal, cleanID)
+	key := fmt.Sprintf("otp:%s:%s", portal, normID)
 
 	// Check Redis
 	if h.c.Cache != nil && h.c.Cache.Client != nil {
@@ -585,19 +603,28 @@ func (h *Handler) SendAuthOTP(ctx echo.Context) error {
 		portal = "customer"
 	}
 
-	if identifier == "" {
+	normID := normalizeAuthIdentifier(identifier)
+	if normID == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
 			"success": false,
 			"error":   "Please enter your email address or mobile number.",
 		})
 	}
 
-	otp := h.generateAndSaveOTP(portal, identifier)
+	otp := h.generateAndSaveOTP(portal, normID)
+
+	var displayTarget string
+	if !strings.Contains(normID, "@") {
+		displayTarget = "+91 " + normID
+	} else {
+		displayTarget = normID
+	}
 
 	return ctx.JSON(http.StatusOK, map[string]interface{}{
 		"success":  true,
-		"message":  fmt.Sprintf("Verification code sent to %s", identifier),
+		"message":  fmt.Sprintf("SMS verification code dispatched to %s: %s", displayTarget, otp),
 		"demo_otp": otp,
+		"target":   displayTarget,
 	})
 }
 
@@ -616,32 +643,44 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 	}
 	otp := strings.TrimSpace(ctx.FormValue("otp"))
 
-	if identifier == "" || otp == "" {
+	normID := normalizeAuthIdentifier(identifier)
+	if normID == "" || otp == "" {
 		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
 			"success": false,
 			"error":   "Identifier (phone/email) and OTP code are required.",
 		})
 	}
 
-	if !h.verifyOTP(portal, identifier, otp) {
+	if !h.verifyOTP(portal, normID, otp) {
 		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"success": false,
 			"error":   "Invalid or expired OTP code. Please try again.",
 		})
 	}
 
-	cleanID := strings.TrimPrefix(strings.TrimSpace(identifier), "+91")
 	var targetEmail string
-	if strings.Contains(cleanID, "@") {
-		targetEmail = strings.ToLower(cleanID)
+	if strings.Contains(normID, "@") {
+		targetEmail = strings.ToLower(normID)
 	} else {
-		targetEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", cleanID)
+		targetEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", normID)
 	}
 
 	ctxReq := ctx.Request().Context()
 	usr, err := h.c.ORM.User.Query().
 		Where(user.EmailEQ(targetEmail)).
 		Only(ctxReq)
+
+	// If not found by email and it's a phone number, check if a restaurant has this phone
+	if err != nil && !strings.Contains(normID, "@") {
+		rest, rErr := h.c.ORM.Restaurant.Query().
+			Where(restaurant.PhoneContains(normID)).
+			WithOwner().
+			First(ctxReq)
+		if rErr == nil && rest != nil && rest.Edges.Owner != nil {
+			usr = rest.Edges.Owner
+			err = nil
+		}
+	}
 
 	if portal == "admin" {
 		if err != nil || (!usr.IsAdmin && usr.Role != user.RoleAdmin) {
@@ -665,10 +704,47 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 			if targetEmail == "merchant.ctr@fooddiscovery.com" {
 				usr, _ = h.c.ORM.User.Query().Where(user.EmailEQ("merchant.ctr@fooddiscovery.com")).Only(ctxReq)
 			}
+			// Auto-provision merchant partner account if registering or signing in through OTP
+			if usr == nil {
+				hash, _ := bcrypt.GenerateFromPassword([]byte("Merchant@123"), bcrypt.DefaultCost)
+				ownerName := strings.TrimSpace(ctx.FormValue("name"))
+				if ownerName == "" {
+					ownerName = "Partner " + normID
+				}
+				newMerchant, mErr := h.c.ORM.User.Create().
+					SetName(ownerName).
+					SetEmail(targetEmail).
+					SetPassword(string(hash)).
+					SetVerified(true).
+					SetIsAdmin(false).
+					SetRole(user.RoleMerchant).
+					Save(ctxReq)
+				if mErr == nil && newMerchant != nil {
+					usr = newMerchant
+					restName := strings.TrimSpace(ctx.FormValue("restaurant_name"))
+					if restName == "" {
+						restName = "Eatery (" + normID + ")"
+					}
+					restAddr := strings.TrimSpace(ctx.FormValue("restaurant_address"))
+					if restAddr == "" {
+						restAddr = "Bengaluru, Karnataka"
+					}
+					_, _ = h.c.FoodDiscovery.SubmitMerchantRestaurant(ctxReq, usr.ID, fooddiscovery.RestaurantInput{
+						Name:         restName,
+						Address:      restAddr,
+						Phone:        normID,
+						Description:  "Budget friendly eatery in Bengaluru",
+						OpeningHours: "08:00 AM - 10:00 PM",
+						Latitude:     12.9716,
+						Longitude:    77.5946,
+						CityName:     "Bangalore",
+					})
+				}
+			}
 			if usr == nil || (usr.Role != user.RoleMerchant && !usr.IsAdmin && usr.Role != user.RoleAdmin) {
 				return ctx.JSON(http.StatusForbidden, map[string]interface{}{
 					"success": false,
-					"error":   "Access denied: No restaurant partner account linked to this identifier. Please register first.",
+					"error":   "Access denied: No restaurant partner account linked to this identifier.",
 				})
 			}
 		}
@@ -682,10 +758,13 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 	// Customer portal: auto-provision new customer account if not found
 	if err != nil {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("Customer@123"), bcrypt.DefaultCost)
-		userName := cleanID
-		if strings.Contains(cleanID, "@") {
-			parts := strings.Split(cleanID, "@")
-			userName = strings.Title(parts[0])
+		userName := strings.TrimSpace(ctx.FormValue("name"))
+		if userName == "" {
+			userName = normID
+			if strings.Contains(normID, "@") {
+				parts := strings.Split(normID, "@")
+				userName = strings.Title(parts[0])
+			}
 		}
 		newUser, cErr := h.c.ORM.User.Create().
 			SetName(userName).
@@ -703,9 +782,9 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 	}
 
 	_ = h.c.Auth.Login(ctx, usr.ID)
-	if !strings.Contains(cleanID, "@") {
+	if !strings.Contains(normID, "@") {
 		if sess, sErr := session.Get("ua", ctx); sErr == nil && sess != nil {
-			sess.Values["user_phone"] = cleanID
+			sess.Values["user_phone"] = normID
 			_ = sess.Save(ctx.Request(), ctx.Response())
 		}
 	}

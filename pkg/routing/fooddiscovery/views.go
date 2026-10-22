@@ -5683,18 +5683,18 @@ func RenderHomePage(currentUser *ent.User) string {
         <!-- Subtabs: Mobile/OTP vs Email & Password -->
         <div style="display: flex; gap: 6px; background: #F1F5F9; padding: 4px; border-radius: 10px; margin-bottom: 16px;">
           <button type="button" id="modalSubtabOtp" onclick="switchModalAuth('otp')" style="flex: 1; padding: 7px 10px; border: none; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; background: #ffffff; color: #0C831F; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s;">
-            📲 Mobile / OTP
+            Mobile / OTP
           </button>
           <button type="button" id="modalSubtabPass" onclick="switchModalAuth('pass')" style="flex: 1; padding: 7px 10px; border: none; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; background: transparent; color: #64748B; transition: all 0.15s;">
-            🔑 Email &amp; Password
+            Email &amp; Password
           </button>
         </div>
 
         <!-- Mode 1: OTP Login Form -->
         <div id="modalOtpSection" style="display: block;">
           <div id="modalDemoOtpBox" style="display: none; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: #166534; align-items: center; justify-content: space-between;">
-            <div>Code sent via Ollastack: <strong id="modalDemoOtpCode" style="font-family: monospace; font-size: 14px; color: #087443;">123456</strong></div>
-            <button type="button" onclick="autoFillModalOTP()" style="background: #087443; color: #ffffff; border: none; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Fill</button>
+            <div>SMS Verification Code: <strong id="modalDemoOtpCode" style="font-family: monospace; font-size: 14px; color: #087443;">123456</strong></div>
+            <button type="button" onclick="autoFillModalOTP()" style="background: #087443; color: #ffffff; border: none; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Fill Code</button>
           </div>
 
           <div style="display: flex; border: 1.5px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #ffffff; margin-bottom: 12px;">
@@ -7574,6 +7574,8 @@ function sendModalOTP() {
       modalOtpDispatched = true;
       if (data.demo_otp) {
         modalDemoOtpCodeVal = data.demo_otp;
+        var inp = document.getElementById('modalOtpCodeInput');
+        if (inp) inp.value = data.demo_otp;
         var demoCodeEl = document.getElementById('modalDemoOtpCode');
         if (demoCodeEl) demoCodeEl.innerText = data.demo_otp;
         var demoBox = document.getElementById('modalDemoOtpBox');
@@ -7585,8 +7587,8 @@ function sendModalOTP() {
       if (contBtn) contBtn.innerText = 'Verify & Sign In';
       if (statusDiv) {
         statusDiv.style.display = 'block';
-        statusDiv.style.color = '#16A34A';
-        statusDiv.innerText = data.message || 'OTP verification code sent!';
+        statusDiv.style.color = '#166534';
+        statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Verification code is <span style="font-family: monospace; font-size: 14px; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 800;">' + (data.demo_otp || '123456') + '</span>';
       }
       var count = 60;
       var timer = setInterval(function() {
@@ -9948,10 +9950,10 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
     <div id="container-signin">
       <div class="subtabs-bar">
         <button type="button" id="cust-sub-pass" class="subtab-btn active" onclick="switchCustAuthMode('pass')">
-          <span>🔑</span> Password Login
+          Password Login
         </button>
         <button type="button" id="cust-sub-otp" class="subtab-btn" onclick="switchCustAuthMode('otp')">
-          <span>📲</span> Mobile / OTP Login
+          Mobile / OTP Login
         </button>
       </div>
 
@@ -9976,7 +9978,7 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       <div id="form-signin-otp" style="display: none;">
         <div id="custOtpDemoBox" class="otp-helper-banner" style="display: none;">
           <div>
-            <span>Code dispatched via Ollastack. Demo: </span><strong id="custDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #047857;">123456</strong>
+            <span>SMS Verification Code: </span><strong id="custDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #047857;">123456</strong>
           </div>
           <button type="button" onclick="autoFillCustOTP()" style="background: #047857; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Fill Code</button>
         </div>
@@ -10002,6 +10004,16 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
 
     <!-- SIGN UP CONTAINER -->
     <div id="container-signup" style="display: none;">
+      <div class="subtabs-bar">
+        <button type="button" id="reg-sub-pass" class="subtab-btn active" onclick="switchCustRegMode('pass')">
+          Register with Email &amp; Password
+        </button>
+        <button type="button" id="reg-sub-otp" class="subtab-btn" onclick="switchCustRegMode('otp')">
+          Register with Mobile OTP
+        </button>
+      </div>
+
+      <!-- Register with Password -->
       <form id="form-signup" method="POST" action="/register">
         <div class="form-group">
           <label class="form-label">Full Name</label>
@@ -10015,8 +10027,29 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
           <label class="form-label">Create Password</label>
           <input type="password" name="password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
         </div>
-        <button type="submit" class="btn-submit">Register Free Customer Account</button>
+        <button type="submit" class="btn-submit">Register with Email &amp; Password</button>
       </form>
+
+      <!-- Register with OTP -->
+      <div id="form-signup-otp" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Your Full Name</label>
+          <input type="text" id="custRegName" class="form-input" placeholder="e.g. Aarav Patel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mobile Number</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="custRegOtpIdentifier" class="form-input" placeholder="e.g. 9876543210" style="flex: 1;">
+            <button type="button" id="custRegBtnSend" class="btn-otp-action" onclick="sendCustRegOTP()">Get OTP</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">6-Digit Verification Code</label>
+          <input type="text" id="custRegOtpInput" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 1.1rem; font-weight: 700; text-align: center;">
+        </div>
+        <div id="custRegOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
+        <button type="button" id="custRegBtnVerify" class="btn-submit" onclick="verifyCustRegOTP()">Verify OTP &amp; Create Customer Account</button>
+      </div>
     </div>
 
     <div style="text-align: center;">
@@ -10065,6 +10098,25 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       }
     }
 
+    function switchCustRegMode(m) {
+      const btnPass = document.getElementById('reg-sub-pass');
+      const btnOtp = document.getElementById('reg-sub-otp');
+      const fPass = document.getElementById('form-signup');
+      const fOtp = document.getElementById('form-signup-otp');
+
+      if (m === 'otp') {
+        btnPass.classList.remove('active');
+        btnOtp.classList.add('active');
+        fPass.style.display = 'none';
+        fOtp.style.display = 'block';
+      } else {
+        btnOtp.classList.remove('active');
+        btnPass.classList.add('active');
+        fOtp.style.display = 'none';
+        fPass.style.display = 'block';
+      }
+    }
+
     function autoFillCustOTP() {
       document.getElementById('custOtpInput').value = currentCustDemoOtp;
     }
@@ -10097,12 +10149,13 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
         if (data.success) {
           if (data.demo_otp) {
             currentCustDemoOtp = data.demo_otp;
+            document.getElementById('custOtpInput').value = data.demo_otp;
             document.getElementById('custDemoCode').innerText = data.demo_otp;
             document.getElementById('custOtpDemoBox').style.display = 'flex';
           }
           statusDiv.style.display = 'block';
-          statusDiv.style.color = '#16a34a';
-          statusDiv.innerText = data.message || 'Verification code sent successfully!';
+          statusDiv.style.color = '#166534';
+          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #166534;">' + (data.demo_otp || '123456') + '</span>';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -10122,7 +10175,7 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
           statusDiv.innerText = data.error || 'Failed to send OTP.';
         }
       })
-      .catch(function(err) {
+      .catch(function() {
         btnSend.disabled = false;
         btnSend.innerText = 'Get OTP';
         statusDiv.style.display = 'block';
@@ -10174,12 +10227,126 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
           statusDiv.innerText = data.error || 'Invalid or expired OTP code.';
         }
       })
-      .catch(function(err) {
+      .catch(function() {
         btnVerify.disabled = false;
         btnVerify.innerText = 'Verify & Sign In';
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#dc2626';
         statusDiv.innerText = 'Network error during verification.';
+      });
+    }
+
+    function sendCustRegOTP() {
+      var idVal = document.getElementById('custRegOtpIdentifier').value.trim();
+      var statusDiv = document.getElementById('custRegOtpStatus');
+      var btnSend = document.getElementById('custRegBtnSend');
+      if (!idVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter your mobile number.';
+        return;
+      }
+      btnSend.disabled = true;
+      btnSend.innerText = 'Sending...';
+      statusDiv.style.display = 'none';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('portal', 'customer');
+
+      fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          if (data.demo_otp) {
+            document.getElementById('custRegOtpInput').value = data.demo_otp;
+          }
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#166534';
+          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #166534;">' + (data.demo_otp || '123456') + '</span>';
+          var count = 60;
+          var timer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+              clearInterval(timer);
+              btnSend.disabled = false;
+              btnSend.innerText = 'Resend';
+            } else {
+              btnSend.innerText = count + 's';
+            }
+          }, 1000);
+        } else {
+          btnSend.disabled = false;
+          btnSend.innerText = 'Get OTP';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Failed to send OTP.';
+        }
+      })
+      .catch(function() {
+        btnSend.disabled = false;
+        btnSend.innerText = 'Get OTP';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error while requesting OTP.';
+      });
+    }
+
+    function verifyCustRegOTP() {
+      var nameVal = document.getElementById('custRegName').value.trim();
+      var idVal = document.getElementById('custRegOtpIdentifier').value.trim();
+      var otpVal = document.getElementById('custRegOtpInput').value.trim();
+      var statusDiv = document.getElementById('custRegOtpStatus');
+      var btnVerify = document.getElementById('custRegBtnVerify');
+      var retTo = document.getElementById('custReturnTo').value || '/';
+
+      if (!idVal || !otpVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter mobile number and 6-digit OTP.';
+        return;
+      }
+
+      btnVerify.disabled = true;
+      btnVerify.innerText = 'Creating account...';
+
+      var body = new URLSearchParams();
+      body.append('name', nameVal || idVal);
+      body.append('identifier', idVal);
+      body.append('otp', otpVal);
+      body.append('portal', 'customer');
+      body.append('return_to', retTo);
+
+      fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = 'Account verified! Signing you in...';
+          window.location.href = data.redirect || retTo;
+        } else {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Verify OTP & Create Customer Account';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Invalid OTP code.';
+        }
+      })
+      .catch(function() {
+        btnVerify.disabled = false;
+        btnVerify.innerText = 'Verify OTP & Create Customer Account';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error while creating account.';
       });
     }
 
@@ -10398,12 +10565,6 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       <span class="auth-brand-badge">Partner Portal</span>
     </div>
 
-    <!-- Segmented Tab: Sign In vs Register -->
-    <div class="auth-nav-tabs">
-      <button type="button" id="merch-tab-in" class="auth-nav-tab active" onclick="switchMerchMainTab('signin')">Sign In</button>
-      <button type="button" id="merch-tab-reg" class="auth-nav-tab" onclick="switchMerchMainTab('register')">Register Partner Eatery</button>
-    </div>
-
     <div class="demo-helper-box">
       <div>
         <strong>Demo Merchant:</strong> CTR Malleshwaram<br>
@@ -10415,14 +10576,14 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
     %s
     %s
 
-    <!-- SIGN IN CONTAINER -->
+    <!-- DIRECT SIGN IN CONTAINER -->
     <div id="merch-signin-container">
       <div class="subtabs-bar">
         <button type="button" id="merch-sub-pass" class="subtab-btn active" onclick="switchMerchAuthMode('pass')">
-          <span>🔑</span> Password Login
+          Password Login
         </button>
         <button type="button" id="merch-sub-otp" class="subtab-btn" onclick="switchMerchAuthMode('otp')">
-          <span>📲</span> Mobile / OTP Login
+          Mobile / OTP Login
         </button>
       </div>
 
@@ -10443,7 +10604,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       <div id="merchantOtpForm" style="display: none;">
         <div id="merchOtpDemoBox" class="demo-helper-box" style="display: none; background: #ecfdf5; border-color: #a7f3d0;">
           <div>
-            <span>Ollastack Verification Code: </span><strong id="merchDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #065f36;">123456</strong>
+            <span>SMS Verification Code: </span><strong id="merchDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #065f36;">123456</strong>
           </div>
           <button type="button" class="btn-fill-demo" onclick="autoFillMerchOTP()">Fill Code</button>
         </div>
@@ -10467,16 +10628,22 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       </div>
 
       <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.82rem; color: #64748b;">
-        First time here? <a href="javascript:switchMerchMainTab('register')" style="color: #087443; font-weight: 700; text-decoration: none;">Register your restaurant partner account &rarr;</a>
+        Need to register your restaurant? <a href="javascript:switchMerchMainTab('register')" style="color: #087443; font-weight: 700; text-decoration: none;">Register restaurant partner account &rarr;</a>
       </div>
     </div>
 
     <!-- REGISTER CONTAINER -->
     <div id="merch-register-container" style="display: none;">
-      <div style="margin-bottom: 1.25rem; padding: 0.75rem 0.9rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 0.82rem; color: #166534;">
-        <strong>New Partner Registration:</strong> Register your eatery below to configure menu items under ₹100, set delivery zones, and manage live availability.
+      <div class="subtabs-bar">
+        <button type="button" id="merch-reg-sub-pass" class="subtab-btn active" onclick="switchMerchRegMode('pass')">
+          Register with Email &amp; Password
+        </button>
+        <button type="button" id="merch-reg-sub-otp" class="subtab-btn" onclick="switchMerchRegMode('otp')">
+          Register with Mobile OTP
+        </button>
       </div>
 
+      <!-- Mode 1: Register with Email & Password -->
       <form method="POST" action="/merchant/register" id="merchantRegisterForm">
         <div class="form-group">
           <label class="form-label">Owner Full Name</label>
@@ -10505,8 +10672,37 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         <button type="submit" class="btn-submit">Register Outlet &amp; Launch Merchant Portal</button>
       </form>
 
+      <!-- Mode 2: Register with Mobile OTP -->
+      <div id="merchantRegisterOtpForm" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Owner Full Name</label>
+          <input type="text" id="merchRegName" class="form-input" placeholder="e.g. Ramesh Kumar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Owner Mobile Number</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="tel" id="merchRegOtpPhone" class="form-input" placeholder="e.g. 9876543210" style="flex: 1;">
+            <button type="button" id="merchRegBtnSend" class="btn-otp-action" onclick="sendMerchRegOTP()">Get OTP</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">6-Digit Verification Code</label>
+          <input type="text" id="merchRegOtpInput" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 1.1rem; font-weight: 700; text-align: center;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Restaurant / Outlet Name</label>
+          <input type="text" id="merchRegRestName" class="form-input" placeholder="e.g. Sri Krishna Sagar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Outlet Address / Area in Bengaluru</label>
+          <input type="text" id="merchRegRestAddress" class="form-input" placeholder="e.g. Koramangala 5th Block, Bengaluru">
+        </div>
+        <div id="merchRegOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
+        <button type="button" id="merchRegBtnVerify" class="btn-submit" onclick="verifyMerchRegOTP()">Verify OTP &amp; Launch Merchant Portal</button>
+      </div>
+
       <div style="text-align: center; margin-top: 1.25rem;">
-        <a href="javascript:switchMerchMainTab('signin')" class="back-link">&larr; Already registered? Sign in here</a>
+        <a href="javascript:switchMerchMainTab('signin')" class="back-link">&larr; Already have an account? Sign in here</a>
       </div>
     </div>
 
@@ -10532,15 +10728,34 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       var cReg = document.getElementById('merch-register-container');
 
       if (tab === 'register') {
-        tabIn.classList.remove('active');
-        tabReg.classList.add('active');
-        cIn.style.display = 'none';
-        cReg.style.display = 'block';
+        if (tabIn) { tabIn.classList.remove('active'); }
+        if (tabReg) { tabReg.classList.add('active'); }
+        if (cIn) cIn.style.display = 'none';
+        if (cReg) cReg.style.display = 'block';
       } else {
-        tabReg.classList.remove('active');
-        tabIn.classList.add('active');
-        cReg.style.display = 'none';
-        cIn.style.display = 'block';
+        if (tabReg) { tabReg.classList.remove('active'); }
+        if (tabIn) { tabIn.classList.add('active'); }
+        if (cReg) cReg.style.display = 'none';
+        if (cIn) cIn.style.display = 'block';
+      }
+    }
+
+    function switchMerchRegMode(m) {
+      var btnPass = document.getElementById('merch-reg-sub-pass');
+      var btnOtp = document.getElementById('merch-reg-sub-otp');
+      var fPass = document.getElementById('merchantRegisterForm');
+      var fOtp = document.getElementById('merchantRegisterOtpForm');
+
+      if (m === 'otp') {
+        btnPass.classList.remove('active');
+        btnOtp.classList.add('active');
+        fPass.style.display = 'none';
+        fOtp.style.display = 'block';
+      } else {
+        btnOtp.classList.remove('active');
+        btnPass.classList.add('active');
+        fOtp.style.display = 'none';
+        fPass.style.display = 'block';
       }
     }
 
@@ -10595,12 +10810,13 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         if (data.success) {
           if (data.demo_otp) {
             currentMerchDemoOtp = data.demo_otp;
+            document.getElementById('merchOtpInput').value = data.demo_otp;
             document.getElementById('merchDemoCode').innerText = data.demo_otp;
             document.getElementById('merchOtpDemoBox').style.display = 'flex';
           }
           statusDiv.style.display = 'block';
-          statusDiv.style.color = '#16a34a';
-          statusDiv.innerText = data.message || 'OTP verification code sent!';
+          statusDiv.style.color = '#065f36';
+          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #ecfdf5; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #065f36;">' + (data.demo_otp || '123456') + '</span>';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -10620,7 +10836,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
           statusDiv.innerText = data.error || 'Failed to send OTP.';
         }
       })
-      .catch(function(err) {
+      .catch(function() {
         btnSend.disabled = false;
         btnSend.innerText = 'Get OTP';
         statusDiv.style.display = 'block';
@@ -10670,9 +10886,125 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
           statusDiv.innerText = data.error || 'Invalid or expired OTP code.';
         }
       })
-      .catch(function(err) {
+      .catch(function() {
         btnVerify.disabled = false;
         btnVerify.innerText = 'Verify & Open Merchant Portal';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error during verification.';
+      });
+    }
+
+    function sendMerchRegOTP() {
+      var phoneVal = document.getElementById('merchRegOtpPhone').value.trim();
+      var statusDiv = document.getElementById('merchRegOtpStatus');
+      var btnSend = document.getElementById('merchRegBtnSend');
+      if (!phoneVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter contact phone number.';
+        return;
+      }
+      btnSend.disabled = true;
+      btnSend.innerText = 'Sending...';
+      statusDiv.style.display = 'none';
+
+      var body = new URLSearchParams();
+      body.append('identifier', phoneVal);
+      body.append('portal', 'merchant');
+
+      fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          if (data.demo_otp) {
+            document.getElementById('merchRegOtpInput').value = data.demo_otp;
+          }
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#065f36';
+          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || phoneVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #ecfdf5; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #065f36;">' + (data.demo_otp || '123456') + '</span>';
+          var count = 60;
+          var timer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+              clearInterval(timer);
+              btnSend.disabled = false;
+              btnSend.innerText = 'Resend';
+            } else {
+              btnSend.innerText = count + 's';
+            }
+          }, 1000);
+        } else {
+          btnSend.disabled = false;
+          btnSend.innerText = 'Get OTP';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Failed to send OTP.';
+        }
+      })
+      .catch(function() {
+        btnSend.disabled = false;
+        btnSend.innerText = 'Get OTP';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error while requesting OTP.';
+      });
+    }
+
+    function verifyMerchRegOTP() {
+      var nameVal = document.getElementById('merchRegName').value.trim();
+      var phoneVal = document.getElementById('merchRegOtpPhone').value.trim();
+      var otpVal = document.getElementById('merchRegOtpInput').value.trim();
+      var restName = document.getElementById('merchRegRestName').value.trim();
+      var restAddress = document.getElementById('merchRegRestAddress').value.trim();
+      var statusDiv = document.getElementById('merchRegOtpStatus');
+      var btnVerify = document.getElementById('merchRegBtnVerify');
+
+      if (!phoneVal || !otpVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter phone number and 6-digit OTP code.';
+        return;
+      }
+
+      btnVerify.disabled = true;
+      btnVerify.innerText = 'Launching portal...';
+
+      var body = new URLSearchParams();
+      body.append('name', nameVal || ('Partner ' + phoneVal));
+      body.append('identifier', phoneVal);
+      body.append('otp', otpVal);
+      body.append('portal', 'merchant');
+      body.append('restaurant_name', restName || ('Eatery ' + phoneVal));
+      body.append('restaurant_address', restAddress || 'Bengaluru, Karnataka');
+
+      fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = 'Partner verified! Opening Merchant Portal...';
+          window.location.href = data.redirect || '/merchant';
+        } else {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Verify OTP & Launch Merchant Portal';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Invalid OTP code.';
+        }
+      })
+      .catch(function() {
+        btnVerify.disabled = false;
+        btnVerify.innerText = 'Verify OTP & Launch Merchant Portal';
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#dc2626';
         statusDiv.innerText = 'Network error during verification.';
@@ -10902,12 +11234,6 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     </div>
     <p class="auth-subtitle">Restricted system administration &amp; platform operations.</p>
 
-    <!-- Segmented Tab: Sign In vs Register Admin -->
-    <div class="auth-nav-tabs">
-      <button type="button" id="admin-tab-in" class="auth-nav-tab active" onclick="switchAdminMainTab('signin')">Sign In</button>
-      <button type="button" id="admin-tab-reg" class="auth-nav-tab" onclick="switchAdminMainTab('register')">Register Administrator</button>
-    </div>
-
     <div class="demo-helper-box">
       <div>
         <strong>Platform Administrator:</strong> Root Admin<br>
@@ -10923,10 +11249,10 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     <div id="admin-signin-container">
       <div class="subtabs-bar">
         <button type="button" id="admin-sub-pass" class="subtab-btn active" onclick="switchAdminAuthMode('pass')">
-          <span>🔑</span> Password Login
+          Password Login
         </button>
         <button type="button" id="admin-sub-otp" class="subtab-btn" onclick="switchAdminAuthMode('otp')">
-          <span>📲</span> Admin OTP Login
+          Admin OTP Login
         </button>
       </div>
 
@@ -10947,7 +11273,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       <div id="adminOtpForm" style="display: none;">
         <div id="adminOtpDemoBox" class="demo-helper-box" style="display: none; background: rgba(190, 24, 93, 0.2); border-color: #be185d;">
           <div>
-            <span>Ollastack Verification Code: </span><strong id="adminDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #fbcfe8;">123456</strong>
+            <span>SMS Verification Code: </span><strong id="adminDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #fbcfe8;">123456</strong>
           </div>
           <button type="button" class="btn-fill-demo" onclick="autoFillAdminOTP()">Fill Code</button>
         </div>
@@ -10968,6 +11294,10 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
         <div id="adminOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
 
         <button type="button" id="adminBtnVerify" class="btn-submit" onclick="verifyAdminOTP()">Verify &amp; Open Admin Console</button>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.82rem; color: #94a3b8;">
+        Need an administrator account? <a href="javascript:switchAdminMainTab('register')" style="color: #f43f5e; font-weight: 700; text-decoration: none;">Register with Admin Security Key &rarr;</a>
       </div>
     </div>
 
@@ -11037,15 +11367,15 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       var cReg = document.getElementById('admin-register-container');
 
       if (tab === 'register') {
-        tabIn.classList.remove('active');
-        tabReg.classList.add('active');
-        cIn.style.display = 'none';
-        cReg.style.display = 'block';
+        if (tabIn) tabIn.classList.remove('active');
+        if (tabReg) tabReg.classList.add('active');
+        if (cIn) cIn.style.display = 'none';
+        if (cReg) cReg.style.display = 'block';
       } else {
-        tabReg.classList.remove('active');
-        tabIn.classList.add('active');
-        cReg.style.display = 'none';
-        cIn.style.display = 'block';
+        if (tabReg) tabReg.classList.remove('active');
+        if (tabIn) tabIn.classList.add('active');
+        if (cReg) cReg.style.display = 'none';
+        if (cIn) cIn.style.display = 'block';
       }
     }
 
@@ -11100,12 +11430,13 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
         if (data.success) {
           if (data.demo_otp) {
             currentAdminDemoOtp = data.demo_otp;
+            document.getElementById('adminOtpInput').value = data.demo_otp;
             document.getElementById('adminDemoCode').innerText = data.demo_otp;
             document.getElementById('adminOtpDemoBox').style.display = 'flex';
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#34d399';
-          statusDiv.innerText = data.message || 'OTP verification code sent!';
+          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: rgba(244,63,94,0.2); padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #fbcfe8;">' + (data.demo_otp || '123456') + '</span>';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -11125,7 +11456,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
           statusDiv.innerText = data.error || 'Failed to send OTP.';
         }
       })
-      .catch(function(err) {
+      .catch(function() {
         btnSend.disabled = false;
         btnSend.innerText = 'Get OTP';
         statusDiv.style.display = 'block';
