@@ -9501,7 +9501,9 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
 
 	returnField := ""
 	if len(returnTo) > 0 && returnTo[0] != "" {
-		returnField = fmt.Sprintf(`<input type="hidden" name="return_to" value="%s">`, escapeHTML(returnTo[0]))
+		returnField = fmt.Sprintf(`<input type="hidden" name="return_to" id="custReturnTo" value="%s">`, escapeHTML(returnTo[0]))
+	} else {
+		returnField = `<input type="hidden" name="return_to" id="custReturnTo" value="/">`
 	}
 
 	return fmt.Sprintf(`<!DOCTYPE html>
@@ -9530,7 +9532,7 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 20px;
-      width: 440px;
+      width: 450px;
       max-width: 100%%;
       padding: 2.25rem;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
@@ -9556,13 +9558,13 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
     .auth-subtitle {
       color: #64748b;
       font-size: 0.88rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       margin-top: 0.35rem;
     }
     .tabs-bar {
       display: flex;
       background: #f1f5f9;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 0.25rem;
       margin-bottom: 1.25rem;
     }
@@ -9582,6 +9584,33 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       background: #ffffff;
       color: #0f172a;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .subtabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .subtab-btn {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .subtab-btn.active {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #b91c1c;
+      font-weight: 700;
     }
     .form-group { margin-bottom: 1rem; }
     .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: #0f172a; margin-bottom: 0.35rem; }
@@ -9610,6 +9639,33 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       transition: background 0.15s;
     }
     .btn-submit:hover { background: #cb202d; }
+    .btn-otp-action {
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-otp-action:hover { background: #334155; }
+    .btn-otp-action:disabled { opacity: 0.6; cursor: not-allowed; }
+    .otp-helper-banner {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+      color: #166534;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
     .back-link {
       display: inline-block;
       margin-top: 1.5rem;
@@ -9628,47 +9684,90 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       </a>
       <span class="auth-brand-badge">Bengaluru</span>
     </div>
-    <p class="auth-subtitle">Sign in or create a customer account to discover delicious food under ₹100.</p>
+    <p class="auth-subtitle">Sign in or register a customer account to discover delicious food under ₹100.</p>
 
     %s
     %s
 
     <div class="tabs-bar">
-      <button type="button" id="tab-in" class="tab-btn active" onclick="switchMode('in')">Log In</button>
-      <button type="button" id="tab-up" class="tab-btn" onclick="switchMode('up')">Sign Up</button>
+      <button type="button" id="tab-in" class="tab-btn active" onclick="switchMainTab('in')">Sign In</button>
+      <button type="button" id="tab-up" class="tab-btn" onclick="switchMainTab('up')">New Customer Register</button>
     </div>
 
-    <form id="form-signin" method="POST" action="/login">
-      %s
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" name="email" class="form-input" placeholder="user@example.com" required>
+    <!-- SIGN IN CONTAINER -->
+    <div id="container-signin">
+      <div class="subtabs-bar">
+        <button type="button" id="cust-sub-pass" class="subtab-btn active" onclick="switchCustAuthMode('pass')">
+          <span>🔑</span> Password Login
+        </button>
+        <button type="button" id="cust-sub-otp" class="subtab-btn" onclick="switchCustAuthMode('otp')">
+          <span>📲</span> Mobile / OTP Login
+        </button>
       </div>
-      <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-          <label class="form-label" style="margin-bottom: 0;">Password</label>
-          <a href="/password/forgot" style="color: #e23744; font-size: 0.8rem; text-decoration: none; font-weight: 700;">Forgot password?</a>
-        </div>
-        <input type="password" name="password" class="form-input" placeholder="Password" required>
-      </div>
-      <button type="submit" class="btn-submit">Log In</button>
-    </form>
 
-    <form id="form-signup" method="POST" action="/register" style="display: none;">
-      <div class="form-group">
-        <label class="form-label">Full Name</label>
-        <input type="text" name="name" class="form-input" placeholder="Aarav Patel" required>
+      <!-- Password Form -->
+      <form id="form-signin-pass" method="POST" action="/login">
+        %s
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-input" placeholder="user@example.com" required>
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label class="form-label" style="margin-bottom: 0;">Password</label>
+            <a href="/password/forgot" style="color: #e23744; font-size: 0.8rem; text-decoration: none; font-weight: 700;">Forgot password?</a>
+          </div>
+          <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">Sign In with Password</button>
+      </form>
+
+      <!-- OTP Form -->
+      <div id="form-signin-otp" style="display: none;">
+        <div id="custOtpDemoBox" class="otp-helper-banner" style="display: none;">
+          <div>
+            <span>Code dispatched via Ollastack. Demo: </span><strong id="custDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #047857;">123456</strong>
+          </div>
+          <button type="button" onclick="autoFillCustOTP()" style="background: #047857; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Fill Code</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mobile Number or Email</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="custOtpIdentifier" class="form-input" placeholder="e.g. 9876543210 or user@example.com" style="flex: 1;">
+            <button type="button" id="custBtnSend" class="btn-otp-action" onclick="sendCustOTP()">Get OTP</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">6-Digit Verification Code</label>
+          <input type="text" id="custOtpInput" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 1.1rem; font-weight: 700; text-align: center;">
+        </div>
+
+        <div id="custOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
+
+        <button type="button" id="custBtnVerify" class="btn-submit" onclick="verifyCustOTP()">Verify &amp; Sign In</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" name="email" class="form-input" placeholder="aarav@example.com" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Create Password</label>
-        <input type="password" name="password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
-      </div>
-      <button type="submit" class="btn-submit">Create Free Customer Account</button>
-    </form>
+    </div>
+
+    <!-- SIGN UP CONTAINER -->
+    <div id="container-signup" style="display: none;">
+      <form id="form-signup" method="POST" action="/register">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-input" placeholder="Aarav Patel" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" name="email" class="form-input" placeholder="aarav@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Create Password</label>
+          <input type="password" name="password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
+        </div>
+        <button type="submit" class="btn-submit">Register Free Customer Account</button>
+      </form>
+    </div>
 
     <div style="text-align: center;">
       <a href="/" class="back-link">&larr; Return to Home Page</a>
@@ -9676,33 +9775,173 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
   </div>
 
   <script>
-    function switchMode(mode) {
+    var currentCustDemoOtp = '123456';
+
+    function switchMainTab(mode) {
       const tabIn = document.getElementById('tab-in');
       const tabUp = document.getElementById('tab-up');
-      const formIn = document.getElementById('form-signin');
-      const formUp = document.getElementById('form-signup');
+      const cIn = document.getElementById('container-signin');
+      const cUp = document.getElementById('container-signup');
 
       if (mode === 'up') {
         tabIn.classList.remove('active');
         tabUp.classList.add('active');
-        formIn.style.display = 'none';
-        formUp.style.display = 'block';
+        cIn.style.display = 'none';
+        cUp.style.display = 'block';
       } else {
         tabUp.classList.remove('active');
         tabIn.classList.add('active');
-        formUp.style.display = 'none';
-        formIn.style.display = 'block';
+        cUp.style.display = 'none';
+        cIn.style.display = 'block';
       }
     }
+
+    function switchCustAuthMode(m) {
+      const btnPass = document.getElementById('cust-sub-pass');
+      const btnOtp = document.getElementById('cust-sub-otp');
+      const fPass = document.getElementById('form-signin-pass');
+      const fOtp = document.getElementById('form-signin-otp');
+
+      if (m === 'otp') {
+        btnPass.classList.remove('active');
+        btnOtp.classList.add('active');
+        fPass.style.display = 'none';
+        fOtp.style.display = 'block';
+      } else {
+        btnOtp.classList.remove('active');
+        btnPass.classList.add('active');
+        fOtp.style.display = 'none';
+        fPass.style.display = 'block';
+      }
+    }
+
+    function autoFillCustOTP() {
+      document.getElementById('custOtpInput').value = currentCustDemoOtp;
+    }
+
+    function sendCustOTP() {
+      var idVal = document.getElementById('custOtpIdentifier').value.trim();
+      var statusDiv = document.getElementById('custOtpStatus');
+      var btnSend = document.getElementById('custBtnSend');
+      if (!idVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter your mobile number or email.';
+        return;
+      }
+      btnSend.disabled = true;
+      btnSend.innerText = 'Sending...';
+      statusDiv.style.display = 'none';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('portal', 'customer');
+
+      fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          if (data.demo_otp) {
+            currentCustDemoOtp = data.demo_otp;
+            document.getElementById('custDemoCode').innerText = data.demo_otp;
+            document.getElementById('custOtpDemoBox').style.display = 'flex';
+          }
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = data.message || 'Verification code sent successfully!';
+          var count = 60;
+          var timer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+              clearInterval(timer);
+              btnSend.disabled = false;
+              btnSend.innerText = 'Resend OTP';
+            } else {
+              btnSend.innerText = count + 's';
+            }
+          }, 1000);
+        } else {
+          btnSend.disabled = false;
+          btnSend.innerText = 'Get OTP';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Failed to send OTP.';
+        }
+      })
+      .catch(function(err) {
+        btnSend.disabled = false;
+        btnSend.innerText = 'Get OTP';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error while requesting OTP.';
+      });
+    }
+
+    function verifyCustOTP() {
+      var idVal = document.getElementById('custOtpIdentifier').value.trim();
+      var otpVal = document.getElementById('custOtpInput').value.trim();
+      var statusDiv = document.getElementById('custOtpStatus');
+      var btnVerify = document.getElementById('custBtnVerify');
+      var retTo = document.getElementById('custReturnTo').value || '/';
+
+      if (!idVal || !otpVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter both your identifier and the 6-digit OTP.';
+        return;
+      }
+
+      btnVerify.disabled = true;
+      btnVerify.innerText = 'Verifying...';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('otp', otpVal);
+      body.append('portal', 'customer');
+      body.append('return_to', retTo);
+
+      fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = 'Verified! Signing you in...';
+          window.location.href = data.redirect || retTo;
+        } else {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Verify & Sign In';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Invalid or expired OTP code.';
+        }
+      })
+      .catch(function(err) {
+        btnVerify.disabled = false;
+        btnVerify.innerText = 'Verify & Sign In';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error during verification.';
+      });
+    }
+
     if (new URLSearchParams(window.location.search).get('mode') === 'signup') {
-      switchMode('up');
+      switchMainTab('up');
     }
   </script>
 </body>
 </html>`, flashHTML, errHTML, returnField)
 }
 
-// RenderMerchantLoginPage renders dedicated sign-in page for restaurant owners
+// RenderMerchantLoginPage renders dedicated sign-in and partner registration page for restaurant owners
 func RenderMerchantLoginPage(flashMsg, errMsg string) string {
 	var flashHTML string
 	if flashMsg == "merchant_required" {
@@ -9746,7 +9985,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 20px;
-      width: 460px;
+      width: 480px;
       max-width: 100%%;
       padding: 2.25rem;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
@@ -9778,7 +10017,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       background: #f1f5f9;
       padding: 4px;
       border-radius: 12px;
-      margin: 1.25rem 0 1.5rem;
+      margin: 1.25rem 0 1.25rem;
     }
     .auth-nav-tab {
       flex: 1;
@@ -9787,7 +10026,10 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       font-size: 0.85rem;
       font-weight: 700;
       border-radius: 8px;
-      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #64748b;
       transition: all 0.15s;
     }
     .auth-nav-tab.active {
@@ -9795,11 +10037,32 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       color: #087443;
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
-    .auth-nav-tab.inactive {
-      color: #64748b;
+    .subtabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
     }
-    .auth-nav-tab.inactive:hover {
-      color: #0f172a;
+    .subtab-btn {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .subtab-btn.active {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #166534;
+      font-weight: 700;
     }
     .demo-helper-box {
       background: #f0fdf4;
@@ -9829,7 +10092,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
     .form-group { margin-bottom: 1rem; }
     .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: #0f172a; margin-bottom: 0.35rem; }
     .form-input {
-      width: 100%;
+      width: 100%%;
       background: #ffffff;
       border: 1px solid #cbd5e1;
       color: #0f172a;
@@ -9840,7 +10103,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
     }
     .form-input:focus { border-color: #087443; }
     .btn-submit {
-      width: 100%;
+      width: 100%%;
       background: #087443;
       color: #ffffff;
       border: none;
@@ -9853,6 +10116,20 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       transition: background 0.15s;
     }
     .btn-submit:hover { background: #065f36; }
+    .btn-otp-action {
+      background: #087443;
+      color: #ffffff;
+      border: none;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-otp-action:hover { background: #065f36; }
+    .btn-otp-action:disabled { opacity: 0.6; cursor: not-allowed; }
     .back-link {
       display: inline-block;
       color: #64748b;
@@ -9873,8 +10150,8 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
 
     <!-- Segmented Tab: Sign In vs Register -->
     <div class="auth-nav-tabs">
-      <a href="/merchant/login" class="auth-nav-tab active">Sign In</a>
-      <a href="/partner/register" class="auth-nav-tab inactive">Register New Eatery &rarr;</a>
+      <button type="button" id="merch-tab-in" class="auth-nav-tab active" onclick="switchMerchMainTab('signin')">Sign In</button>
+      <button type="button" id="merch-tab-reg" class="auth-nav-tab" onclick="switchMerchMainTab('register')">Register Partner Eatery</button>
     </div>
 
     <div class="demo-helper-box">
@@ -9888,20 +10165,99 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
     %s
     %s
 
-    <form method="POST" action="/merchant/login" id="merchantLoginForm">
-      <div class="form-group">
-        <label class="form-label">Owner Email Address</label>
-        <input type="email" name="email" id="merchEmail" class="form-input" placeholder="merchant@example.com" required>
+    <!-- SIGN IN CONTAINER -->
+    <div id="merch-signin-container">
+      <div class="subtabs-bar">
+        <button type="button" id="merch-sub-pass" class="subtab-btn active" onclick="switchMerchAuthMode('pass')">
+          <span>🔑</span> Password Login
+        </button>
+        <button type="button" id="merch-sub-otp" class="subtab-btn" onclick="switchMerchAuthMode('otp')">
+          <span>📲</span> Mobile / OTP Login
+        </button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" id="merchPass" class="form-input" placeholder="••••••••" required>
-      </div>
-      <button type="submit" class="btn-submit">Sign In to Merchant Portal</button>
-    </form>
 
-    <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.82rem; color: #64748b;">
-      Want to list your Bangalore kitchen? <a href="/partner/register" style="color: #087443; font-weight: 700; text-decoration: none;">Register New Restaurant &rarr;</a>
+      <!-- Merchant Password Login Form -->
+      <form method="POST" action="/merchant/login" id="merchantLoginForm">
+        <div class="form-group">
+          <label class="form-label">Owner Email Address</label>
+          <input type="email" name="email" id="merchEmail" class="form-input" placeholder="merchant@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" id="merchPass" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">Sign In to Merchant Portal</button>
+      </form>
+
+      <!-- Merchant OTP Login Form -->
+      <div id="merchantOtpForm" style="display: none;">
+        <div id="merchOtpDemoBox" class="demo-helper-box" style="display: none; background: #ecfdf5; border-color: #a7f3d0;">
+          <div>
+            <span>Ollastack Verification Code: </span><strong id="merchDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #065f36;">123456</strong>
+          </div>
+          <button type="button" class="btn-fill-demo" onclick="autoFillMerchOTP()">Fill Code</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Registered Owner Mobile or Email</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="merchOtpIdentifier" class="form-input" placeholder="e.g. 9876543210 or owner@example.com" style="flex: 1;">
+            <button type="button" id="merchBtnSend" class="btn-otp-action" onclick="sendMerchOTP()">Get OTP</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">6-Digit Verification Code</label>
+          <input type="text" id="merchOtpInput" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 1.1rem; font-weight: 700; text-align: center;">
+        </div>
+
+        <div id="merchOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
+
+        <button type="button" id="merchBtnVerify" class="btn-submit" onclick="verifyMerchOTP()">Verify &amp; Open Merchant Portal</button>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.82rem; color: #64748b;">
+        First time here? <a href="javascript:switchMerchMainTab('register')" style="color: #087443; font-weight: 700; text-decoration: none;">Register your restaurant partner account &rarr;</a>
+      </div>
+    </div>
+
+    <!-- REGISTER CONTAINER -->
+    <div id="merch-register-container" style="display: none;">
+      <div style="margin-bottom: 1.25rem; padding: 0.75rem 0.9rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 0.82rem; color: #166534;">
+        <strong>New Partner Registration:</strong> Register your eatery below to configure menu items under ₹100, set delivery zones, and manage live availability.
+      </div>
+
+      <form method="POST" action="/merchant/register" id="merchantRegisterForm">
+        <div class="form-group">
+          <label class="form-label">Owner Full Name</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g. Ramesh Kumar" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Business Email Address</label>
+          <input type="email" name="email" class="form-input" placeholder="owner@restaurant.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Phone Number</label>
+          <input type="tel" name="phone" class="form-input" placeholder="e.g. 9876543210" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Restaurant / Outlet Name</label>
+          <input type="text" name="restaurant_name" class="form-input" placeholder="e.g. Sri Krishna Sagar" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Outlet Address / Area in Bengaluru</label>
+          <input type="text" name="restaurant_address" class="form-input" placeholder="e.g. Koramangala 5th Block, Bengaluru" required>
+        </div>
+        <button type="submit" class="btn-submit">Register Outlet &amp; Launch Merchant Portal</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.25rem;">
+        <a href="javascript:switchMerchMainTab('signin')" class="back-link">&larr; Already registered? Sign in here</a>
+      </div>
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; font-size: 0.85rem;">
@@ -9911,16 +10267,178 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
   </div>
 
   <script>
+    var currentMerchDemoOtp = '123456';
+
     function fillMerchantDemo() {
+      switchMerchMainTab('signin');
+      switchMerchAuthMode('pass');
       document.getElementById('merchEmail').value = 'merchant.ctr@fooddiscovery.com';
       document.getElementById('merchPass').value = 'Merchant@123';
+    }
+
+    function switchMerchMainTab(tab) {
+      var tabIn = document.getElementById('merch-tab-in');
+      var tabReg = document.getElementById('merch-tab-reg');
+      var cIn = document.getElementById('merch-signin-container');
+      var cReg = document.getElementById('merch-register-container');
+
+      if (tab === 'register') {
+        tabIn.classList.remove('active');
+        tabReg.classList.add('active');
+        cIn.style.display = 'none';
+        cReg.style.display = 'block';
+      } else {
+        tabReg.classList.remove('active');
+        tabIn.classList.add('active');
+        cReg.style.display = 'none';
+        cIn.style.display = 'block';
+      }
+    }
+
+    function switchMerchAuthMode(m) {
+      var btnPass = document.getElementById('merch-sub-pass');
+      var btnOtp = document.getElementById('merch-sub-otp');
+      var fPass = document.getElementById('merchantLoginForm');
+      var fOtp = document.getElementById('merchantOtpForm');
+
+      if (m === 'otp') {
+        btnPass.classList.remove('active');
+        btnOtp.classList.add('active');
+        fPass.style.display = 'none';
+        fOtp.style.display = 'block';
+      } else {
+        btnOtp.classList.remove('active');
+        btnPass.classList.add('active');
+        fOtp.style.display = 'none';
+        fPass.style.display = 'block';
+      }
+    }
+
+    function autoFillMerchOTP() {
+      document.getElementById('merchOtpInput').value = currentMerchDemoOtp;
+    }
+
+    function sendMerchOTP() {
+      var idVal = document.getElementById('merchOtpIdentifier').value.trim();
+      var statusDiv = document.getElementById('merchOtpStatus');
+      var btnSend = document.getElementById('merchBtnSend');
+      if (!idVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter your registered mobile number or email.';
+        return;
+      }
+      btnSend.disabled = true;
+      btnSend.innerText = 'Sending...';
+      statusDiv.style.display = 'none';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('portal', 'merchant');
+
+      fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          if (data.demo_otp) {
+            currentMerchDemoOtp = data.demo_otp;
+            document.getElementById('merchDemoCode').innerText = data.demo_otp;
+            document.getElementById('merchOtpDemoBox').style.display = 'flex';
+          }
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = data.message || 'OTP verification code sent!';
+          var count = 60;
+          var timer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+              clearInterval(timer);
+              btnSend.disabled = false;
+              btnSend.innerText = 'Resend OTP';
+            } else {
+              btnSend.innerText = count + 's';
+            }
+          }, 1000);
+        } else {
+          btnSend.disabled = false;
+          btnSend.innerText = 'Get OTP';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Failed to send OTP.';
+        }
+      })
+      .catch(function(err) {
+        btnSend.disabled = false;
+        btnSend.innerText = 'Get OTP';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error while requesting OTP.';
+      });
+    }
+
+    function verifyMerchOTP() {
+      var idVal = document.getElementById('merchOtpIdentifier').value.trim();
+      var otpVal = document.getElementById('merchOtpInput').value.trim();
+      var statusDiv = document.getElementById('merchOtpStatus');
+      var btnVerify = document.getElementById('merchBtnVerify');
+
+      if (!idVal || !otpVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Please enter both identifier and 6-digit OTP.';
+        return;
+      }
+
+      btnVerify.disabled = true;
+      btnVerify.innerText = 'Verifying...';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('otp', otpVal);
+      body.append('portal', 'merchant');
+
+      fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16a34a';
+          statusDiv.innerText = 'Verified! Launching Merchant Portal...';
+          window.location.href = data.redirect || '/merchant';
+        } else {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Verify & Open Merchant Portal';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#dc2626';
+          statusDiv.innerText = data.error || 'Invalid or expired OTP code.';
+        }
+      })
+      .catch(function(err) {
+        btnVerify.disabled = false;
+        btnVerify.innerText = 'Verify & Open Merchant Portal';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#dc2626';
+        statusDiv.innerText = 'Network error during verification.';
+      });
+    }
+
+    if (new URLSearchParams(window.location.search).get('mode') === 'register') {
+      switchMerchMainTab('register');
     }
   </script>
 </body>
 </html>`, flashHTML, errHTML)
 }
 
-// RenderAdminLoginPage renders dedicated sign-in page for platform administrators
+// RenderAdminLoginPage renders dedicated sign-in and registration page for platform administrators
 func RenderAdminLoginPage(flashMsg, errMsg string) string {
 	var flashHTML string
 	if flashMsg == "admin_required" {
@@ -9964,7 +10482,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 20px;
-      width: 460px;
+      width: 480px;
       max-width: 100%%;
       padding: 2.25rem;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
@@ -9996,6 +10514,60 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       margin-bottom: 1.25rem;
       margin-top: 0.35rem;
     }
+    .auth-nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      border: 1px solid #334155;
+    }
+    .auth-nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: #94a3b8;
+      transition: all 0.15s;
+    }
+    .auth-nav-tab.active {
+      background: #be185d;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(190, 24, 93, 0.3);
+    }
+    .subtabs-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .subtab-btn {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .subtab-btn.active {
+      background: rgba(190, 24, 93, 0.2);
+      border-color: #be185d;
+      color: #fbcfe8;
+      font-weight: 700;
+    }
     .demo-helper-box {
       background: rgba(190, 24, 93, 0.12);
       border: 1px solid rgba(190, 24, 93, 0.35);
@@ -10024,7 +10596,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     .form-group { margin-bottom: 1rem; }
     .form-label { display: block; font-size: 0.82rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.35rem; }
     .form-input {
-      width: 100%;
+      width: 100%%;
       background: #0f172a;
       border: 1px solid #475569;
       color: #ffffff;
@@ -10035,7 +10607,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     }
     .form-input:focus { border-color: #f43f5e; }
     .btn-submit {
-      width: 100%;
+      width: 100%%;
       background: #be185d;
       color: #ffffff;
       border: none;
@@ -10048,6 +10620,20 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       transition: background 0.15s;
     }
     .btn-submit:hover { background: #9d174d; }
+    .btn-otp-action {
+      background: #be185d;
+      color: #ffffff;
+      border: none;
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-otp-action:hover { background: #9d174d; }
+    .btn-otp-action:disabled { opacity: 0.6; cursor: not-allowed; }
     .back-link {
       display: inline-block;
       color: #94a3b8;
@@ -10067,6 +10653,12 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     </div>
     <p class="auth-subtitle">Restricted system administration &amp; platform operations.</p>
 
+    <!-- Segmented Tab: Sign In vs Register Admin -->
+    <div class="auth-nav-tabs">
+      <button type="button" id="admin-tab-in" class="auth-nav-tab active" onclick="switchAdminMainTab('signin')">Sign In</button>
+      <button type="button" id="admin-tab-reg" class="auth-nav-tab" onclick="switchAdminMainTab('register')">Register Administrator</button>
+    </div>
+
     <div class="demo-helper-box">
       <div>
         <strong>Platform Administrator:</strong> Root Admin<br>
@@ -10078,17 +10670,91 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
     %s
     %s
 
-    <form method="POST" action="/admin/login" id="adminLoginForm">
-      <div class="form-group">
-        <label class="form-label">Administrator Email</label>
-        <input type="email" name="email" id="adminEmail" class="form-input" placeholder="admin@example.com" required>
+    <!-- SIGN IN CONTAINER -->
+    <div id="admin-signin-container">
+      <div class="subtabs-bar">
+        <button type="button" id="admin-sub-pass" class="subtab-btn active" onclick="switchAdminAuthMode('pass')">
+          <span>🔑</span> Password Login
+        </button>
+        <button type="button" id="admin-sub-otp" class="subtab-btn" onclick="switchAdminAuthMode('otp')">
+          <span>📲</span> Admin OTP Login
+        </button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" id="adminPass" class="form-input" placeholder="••••••••" required>
+
+      <!-- Admin Password Login Form -->
+      <form method="POST" action="/admin/login" id="adminLoginForm">
+        <div class="form-group">
+          <label class="form-label">Administrator Email</label>
+          <input type="email" name="email" id="adminEmail" class="form-input" placeholder="admin@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" id="adminPass" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">Sign In to Admin Console</button>
+      </form>
+
+      <!-- Admin OTP Login Form -->
+      <div id="adminOtpForm" style="display: none;">
+        <div id="adminOtpDemoBox" class="demo-helper-box" style="display: none; background: rgba(190, 24, 93, 0.2); border-color: #be185d;">
+          <div>
+            <span>Ollastack Verification Code: </span><strong id="adminDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #fbcfe8;">123456</strong>
+          </div>
+          <button type="button" class="btn-fill-demo" onclick="autoFillAdminOTP()">Fill Code</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Administrator Official Email or Mobile</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="adminOtpIdentifier" class="form-input" placeholder="e.g. admin@example.com or 9876543210" style="flex: 1;">
+            <button type="button" id="adminBtnSend" class="btn-otp-action" onclick="sendAdminOTP()">Get OTP</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">6-Digit Admin Verification Code</label>
+          <input type="text" id="adminOtpInput" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 1.1rem; font-weight: 700; text-align: center;">
+        </div>
+
+        <div id="adminOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
+
+        <button type="button" id="adminBtnVerify" class="btn-submit" onclick="verifyAdminOTP()">Verify &amp; Open Admin Console</button>
       </div>
-      <button type="submit" class="btn-submit">Sign In to Admin Console</button>
-    </form>
+    </div>
+
+    <!-- REGISTER ADMIN CONTAINER -->
+    <div id="admin-register-container" style="display: none;">
+      <div style="margin-bottom: 1.25rem; padding: 0.75rem 0.9rem; background: rgba(190, 24, 93, 0.15); border: 1px solid rgba(190, 24, 93, 0.4); border-radius: 10px; font-size: 0.82rem; color: #fbcfe8;">
+        <strong>Admin Account Onboarding:</strong> To register a new platform administrator, enter your official credentials along with the Master Administrative Key.
+      </div>
+
+      <form method="POST" action="/admin/register" id="adminRegisterForm">
+        <div class="form-group">
+          <label class="form-label">Administrator Full Name</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g. Systems Administrator" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Official Administrator Email</label>
+          <input type="email" name="email" class="form-input" placeholder="admin.ops@fooddiscovery.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Create Password</label>
+          <input type="password" name="password" class="form-input" placeholder="Min 6 characters" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="form-label" style="margin-bottom: 0;">Administrative Security Key</label>
+            <span style="font-size: 0.75rem; color: #fbcfe8;">Key: <code style="color: #cbd5e1;">Admin@123</code></span>
+          </div>
+          <input type="password" name="admin_key" class="form-input" placeholder="Enter Administrative Security Key" required>
+        </div>
+        <button type="submit" class="btn-submit">Register Administrator &amp; Open Console</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.25rem;">
+        <a href="javascript:switchAdminMainTab('signin')" class="back-link">&larr; Already registered? Sign in here</a>
+      </div>
+    </div>
 
     <div style="margin-top: 1.25rem; padding: 0.85rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.8rem; color: #94a3b8;">
       <strong style="color: #fbcfe8;">Admin Features Available:</strong>
@@ -10107,9 +10773,171 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
   </div>
 
   <script>
+    var currentAdminDemoOtp = '123456';
+
     function fillAdminDemo() {
+      switchAdminMainTab('signin');
+      switchAdminAuthMode('pass');
       document.getElementById('adminEmail').value = 'admin@fooddiscovery.com';
       document.getElementById('adminPass').value = 'Admin@123';
+    }
+
+    function switchAdminMainTab(tab) {
+      var tabIn = document.getElementById('admin-tab-in');
+      var tabReg = document.getElementById('admin-tab-reg');
+      var cIn = document.getElementById('admin-signin-container');
+      var cReg = document.getElementById('admin-register-container');
+
+      if (tab === 'register') {
+        tabIn.classList.remove('active');
+        tabReg.classList.add('active');
+        cIn.style.display = 'none';
+        cReg.style.display = 'block';
+      } else {
+        tabReg.classList.remove('active');
+        tabIn.classList.add('active');
+        cReg.style.display = 'none';
+        cIn.style.display = 'block';
+      }
+    }
+
+    function switchAdminAuthMode(m) {
+      var btnPass = document.getElementById('admin-sub-pass');
+      var btnOtp = document.getElementById('admin-sub-otp');
+      var fPass = document.getElementById('adminLoginForm');
+      var fOtp = document.getElementById('adminOtpForm');
+
+      if (m === 'otp') {
+        btnPass.classList.remove('active');
+        btnOtp.classList.add('active');
+        fPass.style.display = 'none';
+        fOtp.style.display = 'block';
+      } else {
+        btnOtp.classList.remove('active');
+        btnPass.classList.add('active');
+        fOtp.style.display = 'none';
+        fPass.style.display = 'block';
+      }
+    }
+
+    function autoFillAdminOTP() {
+      document.getElementById('adminOtpInput').value = currentAdminDemoOtp;
+    }
+
+    function sendAdminOTP() {
+      var idVal = document.getElementById('adminOtpIdentifier').value.trim();
+      var statusDiv = document.getElementById('adminOtpStatus');
+      var btnSend = document.getElementById('adminBtnSend');
+      if (!idVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerText = 'Please enter administrator official email or mobile.';
+        return;
+      }
+      btnSend.disabled = true;
+      btnSend.innerText = 'Sending...';
+      statusDiv.style.display = 'none';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('portal', 'admin');
+
+      fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          if (data.demo_otp) {
+            currentAdminDemoOtp = data.demo_otp;
+            document.getElementById('adminDemoCode').innerText = data.demo_otp;
+            document.getElementById('adminOtpDemoBox').style.display = 'flex';
+          }
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#34d399';
+          statusDiv.innerText = data.message || 'OTP verification code sent!';
+          var count = 60;
+          var timer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+              clearInterval(timer);
+              btnSend.disabled = false;
+              btnSend.innerText = 'Resend OTP';
+            } else {
+              btnSend.innerText = count + 's';
+            }
+          }, 1000);
+        } else {
+          btnSend.disabled = false;
+          btnSend.innerText = 'Get OTP';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#f87171';
+          statusDiv.innerText = data.error || 'Failed to send OTP.';
+        }
+      })
+      .catch(function(err) {
+        btnSend.disabled = false;
+        btnSend.innerText = 'Get OTP';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerText = 'Network error while requesting OTP.';
+      });
+    }
+
+    function verifyAdminOTP() {
+      var idVal = document.getElementById('adminOtpIdentifier').value.trim();
+      var otpVal = document.getElementById('adminOtpInput').value.trim();
+      var statusDiv = document.getElementById('adminOtpStatus');
+      var btnVerify = document.getElementById('adminBtnVerify');
+
+      if (!idVal || !otpVal) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerText = 'Please enter both identifier and 6-digit OTP.';
+        return;
+      }
+
+      btnVerify.disabled = true;
+      btnVerify.innerText = 'Verifying...';
+
+      var body = new URLSearchParams();
+      body.append('identifier', idVal);
+      body.append('otp', otpVal);
+      body.append('portal', 'admin');
+
+      fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#34d399';
+          statusDiv.innerText = 'Verified! Opening Admin Console...';
+          window.location.href = data.redirect || '/admin';
+        } else {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Verify & Open Admin Console';
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#f87171';
+          statusDiv.innerText = data.error || 'Invalid or expired OTP code.';
+        }
+      })
+      .catch(function(err) {
+        btnVerify.disabled = false;
+        btnVerify.innerText = 'Verify & Open Admin Console';
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#f87171';
+        statusDiv.innerText = 'Network error during verification.';
+      });
+    }
+
+    if (new URLSearchParams(window.location.search).get('mode') === 'register') {
+      switchAdminMainTab('register');
     }
   </script>
 </body>

@@ -110,7 +110,7 @@ func (h *Handler) getAllMerchantRestaurants(ctx context.Context, u *ent.User) ([
 func (h *Handler) MerchantDashboard(ctx echo.Context) error {
 	u, err := h.c.Auth.GetAuthenticatedUser(ctx)
 	if err != nil || u == nil {
-		return ctx.Redirect(http.StatusSeeOther, "/login?msg=merchant_required")
+		return ctx.Redirect(http.StatusSeeOther, "/merchant/login?msg=merchant_required")
 	}
 
 	reqID, _ := strconv.Atoi(ctx.QueryParam("restaurant_id"))
@@ -614,7 +614,7 @@ func (h *Handler) MerchantSaveDeliverySettings(ctx echo.Context) error {
 func (h *Handler) MerchantNewRestaurantForm(ctx echo.Context) error {
 	u, _ := h.c.Auth.GetAuthenticatedUser(ctx)
 	if u == nil {
-		return ctx.Redirect(http.StatusSeeOther, "/login?msg=merchant_required")
+		return ctx.Redirect(http.StatusSeeOther, "/merchant/login?msg=merchant_required")
 	}
 
 	html := RenderMerchantRestaurantModal("", foodrepo.RestaurantInput{
@@ -629,7 +629,7 @@ func (h *Handler) MerchantNewRestaurantForm(ctx echo.Context) error {
 func (h *Handler) MerchantSubmitRestaurant(ctx echo.Context) error {
 	u, _ := h.c.Auth.GetAuthenticatedUser(ctx)
 	if u == nil {
-		return ctx.Redirect(http.StatusSeeOther, "/login?msg=merchant_required")
+		return ctx.Redirect(http.StatusSeeOther, "/merchant/login?msg=merchant_required")
 	}
 
 	// 1. Extract and sanitize input
@@ -721,7 +721,7 @@ func (h *Handler) MerchantSubmitRestaurant(ctx echo.Context) error {
 func (h *Handler) MerchantClaimRestaurantModal(ctx echo.Context) error {
 	u, _ := h.c.Auth.GetAuthenticatedUser(ctx)
 	if u == nil {
-		return ctx.Redirect(http.StatusSeeOther, "/login?msg=merchant_required")
+		return ctx.Redirect(http.StatusSeeOther, "/merchant/login?msg=merchant_required")
 	}
 
 	claimID, _ := strconv.Atoi(ctx.QueryParam("claim_id"))
@@ -744,7 +744,7 @@ func (h *Handler) MerchantClaimRestaurantModal(ctx echo.Context) error {
 func (h *Handler) MerchantClaimRestaurantSubmit(ctx echo.Context) error {
 	u, _ := h.c.Auth.GetAuthenticatedUser(ctx)
 	if u == nil {
-		return ctx.Redirect(http.StatusSeeOther, "/login?msg=merchant_required")
+		return ctx.Redirect(http.StatusSeeOther, "/merchant/login?msg=merchant_required")
 	}
 
 	restID, err := strconv.Atoi(ctx.FormValue("restaurant_id"))
