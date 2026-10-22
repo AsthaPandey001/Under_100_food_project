@@ -5692,10 +5692,6 @@ func RenderHomePage(currentUser *ent.User) string {
 
         <!-- Mode 1: OTP Login Form -->
         <div id="modalOtpSection" style="display: block;">
-          <div id="modalDemoOtpBox" style="display: none; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: #166534; align-items: center; justify-content: space-between;">
-            <div>SMS Verification Code: <strong id="modalDemoOtpCode" style="font-family: monospace; font-size: 14px; color: #087443;">123456</strong></div>
-            <button type="button" onclick="autoFillModalOTP()" style="background: #087443; color: #ffffff; border: none; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Fill Code</button>
-          </div>
 
           <div style="display: flex; border: 1.5px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #ffffff; margin-bottom: 12px;">
             <div style="padding: 11px 13px; background: #F8FAFC; border-right: 1.5px solid #CBD5E1; font-weight: 700; font-size: 13px; color: #334155; display: flex; align-items: center;">
@@ -7536,10 +7532,7 @@ function switchModalAuth(mode) {
   }
 }
 
-function autoFillModalOTP() {
-  var inp = document.getElementById('modalOtpCodeInput');
-  if (inp) inp.value = modalDemoOtpCodeVal;
-}
+
 
 function sendModalOTP() {
   var idInput = document.getElementById('loginIdentifierInput');
@@ -7572,14 +7565,10 @@ function sendModalOTP() {
   .then(function(data) {
     if (data.success) {
       modalOtpDispatched = true;
-      if (data.demo_otp) {
-        modalDemoOtpCodeVal = data.demo_otp;
-        var inp = document.getElementById('modalOtpCodeInput');
-        if (inp) inp.value = data.demo_otp;
-        var demoCodeEl = document.getElementById('modalDemoOtpCode');
-        if (demoCodeEl) demoCodeEl.innerText = data.demo_otp;
-        var demoBox = document.getElementById('modalDemoOtpBox');
-        if (demoBox) demoBox.style.display = 'flex';
+      var inp = document.getElementById('modalOtpCodeInput');
+      if (inp) {
+        inp.value = '';
+        inp.focus();
       }
       var wrap = document.getElementById('modalOtpInputWrap');
       if (wrap) wrap.style.display = 'block';
@@ -7588,7 +7577,7 @@ function sendModalOTP() {
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#166534';
-        statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Verification code is <span style="font-family: monospace; font-size: 14px; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 800;">' + (data.demo_otp || '123456') + '</span>';
+        statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
       }
       var count = 60;
       var timer = setInterval(function() {
@@ -9976,12 +9965,6 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
 
       <!-- OTP Form -->
       <div id="form-signin-otp" style="display: none;">
-        <div id="custOtpDemoBox" class="otp-helper-banner" style="display: none;">
-          <div>
-            <span>SMS Verification Code: </span><strong id="custDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #047857;">123456</strong>
-          </div>
-          <button type="button" onclick="autoFillCustOTP()" style="background: #047857; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Fill Code</button>
-        </div>
 
         <div class="form-group">
           <label class="form-label">Mobile Number or Email</label>
@@ -10117,9 +10100,7 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       }
     }
 
-    function autoFillCustOTP() {
-      document.getElementById('custOtpInput').value = currentCustDemoOtp;
-    }
+
 
     function sendCustOTP() {
       var idVal = document.getElementById('custOtpIdentifier').value.trim();
@@ -10147,15 +10128,14 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          if (data.demo_otp) {
-            currentCustDemoOtp = data.demo_otp;
-            document.getElementById('custOtpInput').value = data.demo_otp;
-            document.getElementById('custDemoCode').innerText = data.demo_otp;
-            document.getElementById('custOtpDemoBox').style.display = 'flex';
+          var inp = document.getElementById('custOtpInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#166534';
-          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #166534;">' + (data.demo_otp || '123456') + '</span>';
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -10262,12 +10242,14 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          if (data.demo_otp) {
-            document.getElementById('custRegOtpInput').value = data.demo_otp;
+          var inp = document.getElementById('custRegOtpInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#166534';
-          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #166534;">' + (data.demo_otp || '123456') + '</span>';
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -10602,12 +10584,6 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
 
       <!-- Merchant OTP Login Form -->
       <div id="merchantOtpForm" style="display: none;">
-        <div id="merchOtpDemoBox" class="demo-helper-box" style="display: none; background: #ecfdf5; border-color: #a7f3d0;">
-          <div>
-            <span>SMS Verification Code: </span><strong id="merchDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #065f36;">123456</strong>
-          </div>
-          <button type="button" class="btn-fill-demo" onclick="autoFillMerchOTP()">Fill Code</button>
-        </div>
 
         <div class="form-group">
           <label class="form-label">Registered Owner Mobile or Email</label>
@@ -10778,9 +10754,7 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       }
     }
 
-    function autoFillMerchOTP() {
-      document.getElementById('merchOtpInput').value = currentMerchDemoOtp;
-    }
+
 
     function sendMerchOTP() {
       var idVal = document.getElementById('merchOtpIdentifier').value.trim();
@@ -10808,15 +10782,14 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          if (data.demo_otp) {
-            currentMerchDemoOtp = data.demo_otp;
-            document.getElementById('merchOtpInput').value = data.demo_otp;
-            document.getElementById('merchDemoCode').innerText = data.demo_otp;
-            document.getElementById('merchOtpDemoBox').style.display = 'flex';
+          var inp = document.getElementById('merchOtpInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#065f36';
-          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #ecfdf5; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #065f36;">' + (data.demo_otp || '123456') + '</span>';
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -10921,12 +10894,14 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          if (data.demo_otp) {
-            document.getElementById('merchRegOtpInput').value = data.demo_otp;
+          var inp = document.getElementById('merchRegOtpInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#065f36';
-          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || phoneVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: #ecfdf5; padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #065f36;">' + (data.demo_otp || '123456') + '</span>';
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || phoneVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -11271,12 +11246,6 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
 
       <!-- Admin OTP Login Form -->
       <div id="adminOtpForm" style="display: none;">
-        <div id="adminOtpDemoBox" class="demo-helper-box" style="display: none; background: rgba(190, 24, 93, 0.2); border-color: #be185d;">
-          <div>
-            <span>SMS Verification Code: </span><strong id="adminDemoCode" style="font-family: monospace; font-size: 0.95rem; color: #fbcfe8;">123456</strong>
-          </div>
-          <button type="button" class="btn-fill-demo" onclick="autoFillAdminOTP()">Fill Code</button>
-        </div>
 
         <div class="form-group">
           <label class="form-label">Administrator Official Email or Mobile</label>
@@ -11398,9 +11367,7 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       }
     }
 
-    function autoFillAdminOTP() {
-      document.getElementById('adminOtpInput').value = currentAdminDemoOtp;
-    }
+
 
     function sendAdminOTP() {
       var idVal = document.getElementById('adminOtpIdentifier').value.trim();
@@ -11428,15 +11395,14 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.success) {
-          if (data.demo_otp) {
-            currentAdminDemoOtp = data.demo_otp;
-            document.getElementById('adminOtpInput').value = data.demo_otp;
-            document.getElementById('adminDemoCode').innerText = data.demo_otp;
-            document.getElementById('adminOtpDemoBox').style.display = 'flex';
+          var inp = document.getElementById('adminOtpInput');
+          if (inp) {
+            inp.value = '';
+            inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#34d399';
-          statusDiv.innerHTML = '<strong>SMS dispatched to ' + (data.target || idVal) + ':</strong> Code: <span style="font-family: monospace; font-size: 14px; background: rgba(244,63,94,0.2); padding: 2px 6px; border-radius: 4px; font-weight: 800; color: #fbcfe8;">' + (data.demo_otp || '123456') + '</span>';
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;

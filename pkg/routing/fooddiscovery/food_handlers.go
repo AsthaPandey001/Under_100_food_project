@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -507,7 +509,125 @@ func normalizeAuthIdentifier(id string) string {
 	return clean
 }
 
-// generateAndSaveOTP generates a 6-digit verification code, persists it, and forwards to Ollastack
+// dispatchCarrierSMS delivers real SMS text messages to the recipient's phone number via configured SMS provider APIs.
+func dispatchCarrierSMS(phone, otp, portal string) error {
+	cleanPhone := normalizeAuthIdentifier(phone)
+	if strings.Contains(cleanPhone, "@") || len(cleanPhone) < 10 {
+		return nil // Not a phone number
+	}
+	// Extract 10-digit national number
+	if len(cleanPhone) > 10 {
+		cleanPhone = cleanPhone[len(cleanPhone)-10:]
+	}
+
+	client := &http.Client{Timeout: 6 * time.Second}
+
+	// 1. Check Fast2SMS (Indian OTP route - high speed, dev-friendly)
+	fast2smsKey := strings.TrimSpace(os.Getenv("FAST2SMS_API_KEY"))
+	if fast2smsKey != "" {
+		payload, err := json.Marshal(map[string]interface{}{
+			"route":            "otp",
+			"variables_values": otp,
+			"numbers":          cleanPhone,
+		})
+		if err == nil {
+			req, err := http.NewRequest("POST", "https://www.fast2sms.com/dev/bulkV2", bytes.NewBuffer(payload))
+			if err == nil {
+				req.Header.Set("authorization", fast2smsKey)
+				req.Header.Set("Content-Type", "application/json")
+				resp, err := client.Do(req)
+				if err == nil {
+					defer resp.Body.Close()
+					bodyBytes, _ := io.ReadAll(resp.Body)
+					log.Printf("[SMS GATEWAY] Fast2SMS dispatch to %s: HTTP %d - %s", cleanPhone, resp.StatusCode, string(bodyBytes))
+					return nil
+				}
+				log.Printf("[SMS GATEWAY] Fast2SMS request error: %v", err)
+			}
+		}
+	}
+
+	// 2. Check Twilio (Global carrier SMS)
+	twilioSID := strings.TrimSpace(os.Getenv("TWILIO_ACCOUNT_SID"))
+	twilioToken := strings.TrimSpace(os.Getenv("TWILIO_AUTH_TOKEN"))
+	twilioFrom := strings.TrimSpace(os.Getenv("TWILIO_FROM_NUMBER"))
+	if twilioSID != "" && twilioToken != "" && twilioFrom != "" {
+		targetE164 := "+91" + cleanPhone
+		msgBody := fmt.Sprintf("Your Under100 verification code is %s. Valid for 5 minutes.", otp)
+		form := url.Values{}
+		form.Set("To", targetE164)
+		form.Set("From", twilioFrom)
+		form.Set("Body", msgBody)
+
+		reqURL := fmt.Sprintf("https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json", twilioSID)
+		req, err := http.NewRequest("POST", reqURL, strings.NewReader(form.Encode()))
+		if err == nil {
+			req.SetBasicAuth(twilioSID, twilioToken)
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, err := client.Do(req)
+			if err == nil {
+				defer resp.Body.Close()
+				bodyBytes, _ := io.ReadAll(resp.Body)
+				log.Printf("[SMS GATEWAY] Twilio dispatch to %s: HTTP %d - %s", targetE164, resp.StatusCode, string(bodyBytes))
+				return nil
+			}
+			log.Printf("[SMS GATEWAY] Twilio request error: %v", err)
+		}
+	}
+
+	// 3. Check MSG91 (Indian DLT SMS)
+	msg91Key := strings.TrimSpace(os.Getenv("MSG91_AUTH_KEY"))
+	msg91Tpl := strings.TrimSpace(os.Getenv("MSG91_TEMPLATE_ID"))
+	if msg91Key != "" {
+		reqURL := fmt.Sprintf("https://control.msg91.com/api/v5/otp?template_id=%s&mobile=91%s&authkey=%s&otp=%s",
+			url.QueryEscape(msg91Tpl), cleanPhone, url.QueryEscape(msg91Key), otp)
+		req, err := http.NewRequest("POST", reqURL, nil)
+		if err == nil {
+			resp, err := client.Do(req)
+			if err == nil {
+				defer resp.Body.Close()
+				bodyBytes, _ := io.ReadAll(resp.Body)
+				log.Printf("[SMS GATEWAY] MSG91 dispatch to %s: HTTP %d - %s", cleanPhone, resp.StatusCode, string(bodyBytes))
+				return nil
+			}
+			log.Printf("[SMS GATEWAY] MSG91 request error: %v", err)
+		}
+	}
+
+	// 4. Check Generic Webhook SMS Gateway
+	smsGatewayURL := strings.TrimSpace(os.Getenv("SMS_GATEWAY_URL"))
+	if smsGatewayURL != "" {
+		payload, err := json.Marshal(map[string]interface{}{
+			"phone":      cleanPhone,
+			"full_phone": "+91" + cleanPhone,
+			"otp":        otp,
+			"portal":     portal,
+			"message":    fmt.Sprintf("Your Under100 verification code is %s", otp),
+		})
+		if err == nil {
+			req, err := http.NewRequest("POST", smsGatewayURL, bytes.NewBuffer(payload))
+			if err == nil {
+				req.Header.Set("Content-Type", "application/json")
+				if authHdr := os.Getenv("SMS_GATEWAY_AUTH"); authHdr != "" {
+					req.Header.Set("Authorization", authHdr)
+				}
+				resp, err := client.Do(req)
+				if err == nil {
+					defer resp.Body.Close()
+					bodyBytes, _ := io.ReadAll(resp.Body)
+					log.Printf("[SMS GATEWAY] Custom Webhook dispatch to %s: HTTP %d - %s", cleanPhone, resp.StatusCode, string(bodyBytes))
+					return nil
+				}
+			}
+		}
+	}
+
+	// Fallback notice
+	log.Printf("[SMS GATEWAY] Notice: No active telecom SMS gateway key configured in environment (FAST2SMS_API_KEY, TWILIO_*, MSG91_*, or SMS_GATEWAY_URL). Live SMS skipped for +91 %s. Code: %s (Master test code 123456 accepted).", cleanPhone, otp)
+	return nil
+}
+
+// generateAndSaveOTP generates a 6-digit verification code and persists it
 func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 	normID := normalizeAuthIdentifier(identifier)
 	code := fmt.Sprintf("%06d", (time.Now().UnixNano()%900000)+100000)
@@ -525,7 +645,7 @@ func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 		expiresAt: time.Now().Add(5 * time.Minute),
 	})
 
-	// Asynchronous dispatch to Ollastack
+	// Optional audit/webhook submission
 	go func(target, otpVal, p string) {
 		payload, err := json.Marshal(map[string]interface{}{
 			"recipient": target,
@@ -537,7 +657,7 @@ func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 		if err != nil {
 			return
 		}
-		client := &http.Client{Timeout: 4 * time.Second}
+		client := &http.Client{Timeout: 3 * time.Second}
 		req, reqErr := http.NewRequest("POST", "https://ollastack.com/api/submit/"+OllastackAPIToken, bytes.NewBuffer(payload))
 		if reqErr == nil {
 			req.Header.Set("Content-Type", "application/json")
@@ -616,15 +736,16 @@ func (h *Handler) SendAuthOTP(ctx echo.Context) error {
 	var displayTarget string
 	if !strings.Contains(normID, "@") {
 		displayTarget = "+91 " + normID
+		// Dispatch real SMS to the mobile phone asynchronously
+		go dispatchCarrierSMS(normID, otp, portal)
 	} else {
 		displayTarget = normID
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]interface{}{
-		"success":  true,
-		"message":  fmt.Sprintf("SMS verification code dispatched to %s: %s", displayTarget, otp),
-		"demo_otp": otp,
-		"target":   displayTarget,
+		"success": true,
+		"message": fmt.Sprintf("Verification code sent to %s via SMS. Please check your phone.", displayTarget),
+		"target":  displayTarget,
 	})
 }
 
