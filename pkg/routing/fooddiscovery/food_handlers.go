@@ -242,9 +242,9 @@ func (h *Handler) Home(ctx echo.Context) error {
 	return ctx.HTML(http.StatusOK, html)
 }
 
-// PortalsHub renders the all-in-one visual navigation switchboard
+// PortalsHub redirects to the main customer storefront
 func (h *Handler) PortalsHub(ctx echo.Context) error {
-	return ctx.HTML(http.StatusOK, RenderPortalsHubPage())
+	return ctx.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // sanitizeReturnURL ensures return URLs are safe internal paths preventing open redirects

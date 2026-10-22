@@ -5668,37 +5668,78 @@ func RenderHomePage(currentUser *ent.User) string {
     </div>
   </div>
 
-  <!-- BLINKIT-STYLE PHONE / EMAIL LOGIN MODAL -->
+  <!-- DUAL OTP / PASSWORD CUSTOMER SIGN IN MODAL -->
   <div class="loc-modal-overlay" id="loginModalOverlay" onclick="if(event.target === this) closeLoginModal()">
-    <div class="loc-modal-card" style="max-width: 440px; padding: 0; border-radius: 20px; overflow: hidden;">
-      <div style="background: #ffffff; padding: 24px 28px 28px 28px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px;">
+    <div class="loc-modal-card" style="max-width: 440px; padding: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+      <div style="background: #ffffff; padding: 24px 28px 24px 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
           <div>
-            <div style="font-size: 13px; font-weight: 800; color: #16A34A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">India's Last Minute App</div>
-            <h3 style="font-size: 22px; font-weight: 800; color: #1E293B; margin: 0;">Log in or Sign up</h3>
+            <div style="font-size: 12px; font-weight: 800; color: #16A34A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Under100 Food Discovery</div>
+            <h3 style="font-size: 21px; font-weight: 800; color: #1E293B; margin: 0;">Sign In</h3>
           </div>
-          <button type="button" class="loc-modal-close-btn" onclick="closeLoginModal()" style="font-size: 26px; line-height: 1; padding: 2px 6px;">&times;</button>
+          <button type="button" class="loc-modal-close-btn" onclick="closeLoginModal()" style="font-size: 26px; line-height: 1; padding: 2px 6px; cursor: pointer; border: none; background: none; color: #64748B;">&times;</button>
         </div>
 
-        <form onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
-          <div style="display: flex; border: 1.5px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #ffffff; transition: border-color 0.15s ease;">
-            <div style="padding: 12px 14px; background: #F8FAFC; border-right: 1.5px solid #CBD5E1; font-weight: 700; font-size: 14px; color: #334155; display: flex; align-items: center;">
-              +91
-            </div>
-            <input type="text" id="loginIdentifierInput" name="phone" placeholder="Enter 10-digit mobile number or email" value="" autocomplete="tel" required style="flex: 1; border: none; padding: 12px 14px; font-size: 14px; font-weight: 600; color: #1E293B; outline: none; background: transparent;">
+        <!-- Subtabs: Mobile/OTP vs Email & Password -->
+        <div style="display: flex; gap: 6px; background: #F1F5F9; padding: 4px; border-radius: 10px; margin-bottom: 16px;">
+          <button type="button" id="modalSubtabOtp" onclick="switchModalAuth('otp')" style="flex: 1; padding: 7px 10px; border: none; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; background: #ffffff; color: #0C831F; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s;">
+            📲 Mobile / OTP
+          </button>
+          <button type="button" id="modalSubtabPass" onclick="switchModalAuth('pass')" style="flex: 1; padding: 7px 10px; border: none; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; background: transparent; color: #64748B; transition: all 0.15s;">
+            🔑 Email &amp; Password
+          </button>
+        </div>
+
+        <!-- Mode 1: OTP Login Form -->
+        <div id="modalOtpSection" style="display: block;">
+          <div id="modalDemoOtpBox" style="display: none; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: #166534; align-items: center; justify-content: space-between;">
+            <div>Code sent via Ollastack: <strong id="modalDemoOtpCode" style="font-family: monospace; font-size: 14px; color: #087443;">123456</strong></div>
+            <button type="button" onclick="autoFillModalOTP()" style="background: #087443; color: #ffffff; border: none; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Fill</button>
           </div>
 
-          <button type="submit" id="btnLoginContinue" style="width: 100%; padding: 14px; background: #0C831F; color: #ffffff; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; transition: background 0.15s ease; box-shadow: 0 4px 14px rgba(12, 131, 31, 0.25);">
+          <div style="display: flex; border: 1.5px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #ffffff; margin-bottom: 12px;">
+            <div style="padding: 11px 13px; background: #F8FAFC; border-right: 1.5px solid #CBD5E1; font-weight: 700; font-size: 13px; color: #334155; display: flex; align-items: center;">
+              +91
+            </div>
+            <input type="text" id="loginIdentifierInput" placeholder="10-digit mobile or email" autocomplete="tel" required style="flex: 1; border: none; padding: 11px 13px; font-size: 14px; font-weight: 600; color: #1E293B; outline: none; background: transparent;">
+            <button type="button" id="btnModalSendOtp" onclick="sendModalOTP()" style="background: #0C831F; color: #ffffff; border: none; padding: 0 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap;">
+              Get OTP
+            </button>
+          </div>
+
+          <div id="modalOtpInputWrap" style="display: none; margin-bottom: 12px;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Enter 6-Digit OTP</label>
+            <input type="text" id="modalOtpCodeInput" placeholder="••••••" maxlength="6" style="width: 100%; box-sizing: border-box; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-weight: 800; letter-spacing: 4px; text-align: center; color: #1E293B; outline: none;">
+          </div>
+
+          <div id="modalOtpStatus" style="display: none; font-size: 12px; font-weight: 600; margin-bottom: 10px;"></div>
+
+          <button type="button" id="btnLoginContinue" onclick="handleModalOtpSubmit()" style="width: 100%; padding: 13px; background: #0C831F; color: #ffffff; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; transition: background 0.15s ease; box-shadow: 0 4px 14px rgba(12, 131, 31, 0.25);">
             Continue
+          </button>
+        </div>
+
+        <!-- Mode 2: Email & Password Login Form -->
+        <form id="modalPassSection" onsubmit="handleModalPassSubmit(event)" style="display: none; flex-direction: column; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Email Address</label>
+            <input type="email" id="modalPassEmail" placeholder="user@example.com" required style="width: 100%; box-sizing: border-box; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 11px 14px; font-size: 13.5px; font-weight: 600; color: #1E293B; outline: none;">
+          </div>
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: #475569;">Password</label>
+              <a href="/password/forgot" style="font-size: 11.5px; color: #E23744; text-decoration: none; font-weight: 700;">Forgot?</a>
+            </div>
+            <input type="password" id="modalPassPassword" placeholder="••••••••" required style="width: 100%; box-sizing: border-box; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 11px 14px; font-size: 13.5px; font-weight: 600; color: #1E293B; outline: none;">
+          </div>
+          <div id="modalPassStatus" style="display: none; font-size: 12px; color: #DC2626; font-weight: 600;"></div>
+          <button type="submit" id="btnModalPassLogin" style="width: 100%; padding: 13px; background: #E23744; color: #ffffff; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; transition: background 0.15s ease; box-shadow: 0 4px 14px rgba(226, 55, 68, 0.25);">
+            Sign In with Password
           </button>
         </form>
 
-        <div style="margin-top: 18px; border-top: 1px solid #E2E8F0; padding-top: 14px; text-align: center;">
-          <a href="/login" style="font-size: 12px; color: #64748B; font-weight: 600; text-decoration: none;">Sign in with Email &amp; Password &rarr;</a>
-        </div>
-
-        <div style="font-size: 11.5px; color: #94A3B8; text-align: center; margin-top: 18px; line-height: 1.45;">
-          By continuing, you agree to our <a href="javascript:void(0)" style="color: #64748B; text-decoration: underline;">Terms of Service</a> &amp; <a href="javascript:void(0)" style="color: #64748B; text-decoration: underline;">Privacy Policy</a>
+        <div style="margin-top: 16px; border-top: 1px solid #E2E8F0; padding-top: 12px; text-align: center; font-size: 12px; color: #64748B;">
+          Don't have an account? <a href="/login?mode=signup" style="color: #0C831F; font-weight: 700; text-decoration: none;">Create free account &rarr;</a>
         </div>
       </div>
     </div>
@@ -7465,6 +7506,9 @@ function reorderItem(itemName, price) {
 }
 
 // Login Modal Handlers
+var modalDemoOtpCodeVal = '123456';
+var modalOtpDispatched = false;
+
 function openLoginModal() {
   var m = document.getElementById('loginModalOverlay');
   if (m) m.classList.add('open');
@@ -7473,17 +7517,224 @@ function closeLoginModal() {
   var m = document.getElementById('loginModalOverlay');
   if (m) m.classList.remove('open');
 }
-function handleLoginSubmit(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  var input = document.getElementById('loginIdentifierInput');
-  var val = input ? input.value.trim() : '';
-  if (!val) {
-    alert('Please enter your mobile number or email.');
-    if (input) input.focus();
+
+function switchModalAuth(mode) {
+  var bOtp = document.getElementById('modalSubtabOtp');
+  var bPass = document.getElementById('modalSubtabPass');
+  var sOtp = document.getElementById('modalOtpSection');
+  var sPass = document.getElementById('modalPassSection');
+  if (mode === 'pass') {
+    if (bOtp) { bOtp.style.background = 'transparent'; bOtp.style.color = '#64748B'; bOtp.style.boxShadow = 'none'; }
+    if (bPass) { bPass.style.background = '#ffffff'; bPass.style.color = '#E23744'; bPass.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; }
+    if (sOtp) sOtp.style.display = 'none';
+    if (sPass) sPass.style.display = 'flex';
+  } else {
+    if (bPass) { bPass.style.background = 'transparent'; bPass.style.color = '#64748B'; bPass.style.boxShadow = 'none'; }
+    if (bOtp) { bOtp.style.background = '#ffffff'; bOtp.style.color = '#0C831F'; bOtp.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; }
+    if (sPass) sPass.style.display = 'none';
+    if (sOtp) sOtp.style.display = 'block';
+  }
+}
+
+function autoFillModalOTP() {
+  var inp = document.getElementById('modalOtpCodeInput');
+  if (inp) inp.value = modalDemoOtpCodeVal;
+}
+
+function sendModalOTP() {
+  var idInput = document.getElementById('loginIdentifierInput');
+  var idVal = idInput ? idInput.value.trim() : '';
+  var statusDiv = document.getElementById('modalOtpStatus');
+  var btnSend = document.getElementById('btnModalSendOtp');
+  if (!idVal) {
+    if (statusDiv) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#DC2626';
+      statusDiv.innerText = 'Please enter your mobile number or email.';
+    }
+    if (idInput) idInput.focus();
     return;
   }
-  quickPhoneLogin(val);
+  btnSend.disabled = true;
+  btnSend.innerText = 'Sending...';
+  if (statusDiv) statusDiv.style.display = 'none';
+
+  var body = new URLSearchParams();
+  body.append('identifier', idVal);
+  body.append('portal', 'customer');
+
+  fetch('/api/auth/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      modalOtpDispatched = true;
+      if (data.demo_otp) {
+        modalDemoOtpCodeVal = data.demo_otp;
+        var demoCodeEl = document.getElementById('modalDemoOtpCode');
+        if (demoCodeEl) demoCodeEl.innerText = data.demo_otp;
+        var demoBox = document.getElementById('modalDemoOtpBox');
+        if (demoBox) demoBox.style.display = 'flex';
+      }
+      var wrap = document.getElementById('modalOtpInputWrap');
+      if (wrap) wrap.style.display = 'block';
+      var contBtn = document.getElementById('btnLoginContinue');
+      if (contBtn) contBtn.innerText = 'Verify & Sign In';
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#16A34A';
+        statusDiv.innerText = data.message || 'OTP verification code sent!';
+      }
+      var count = 60;
+      var timer = setInterval(function() {
+        count--;
+        if (count <= 0) {
+          clearInterval(timer);
+          btnSend.disabled = false;
+          btnSend.innerText = 'Resend';
+        } else {
+          btnSend.innerText = count + 's';
+        }
+      }, 1000);
+    } else {
+      btnSend.disabled = false;
+      btnSend.innerText = 'Get OTP';
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#DC2626';
+        statusDiv.innerText = data.error || 'Failed to send OTP.';
+      }
+    }
+  })
+  .catch(function() {
+    btnSend.disabled = false;
+    btnSend.innerText = 'Get OTP';
+    if (statusDiv) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#DC2626';
+      statusDiv.innerText = 'Network error while requesting OTP.';
+    }
+  });
 }
+
+function handleModalOtpSubmit() {
+  var idInput = document.getElementById('loginIdentifierInput');
+  var idVal = idInput ? idInput.value.trim() : '';
+  if (!idVal) {
+    alert('Please enter your mobile number or email.');
+    if (idInput) idInput.focus();
+    return;
+  }
+  var otpInput = document.getElementById('modalOtpCodeInput');
+  var otpVal = otpInput ? otpInput.value.trim() : '';
+
+  if (modalOtpDispatched && otpVal) {
+    var btn = document.getElementById('btnLoginContinue');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = 'Verifying...';
+    }
+    var statusDiv = document.getElementById('modalOtpStatus');
+
+    var body = new URLSearchParams();
+    body.append('identifier', idVal);
+    body.append('otp', otpVal);
+    body.append('portal', 'customer');
+
+    fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#16A34A';
+          statusDiv.innerText = 'Verified! Signing in...';
+        }
+        closeLoginModal();
+        window.location.reload();
+      } else {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'Verify & Sign In';
+        }
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#DC2626';
+          statusDiv.innerText = data.error || 'Invalid OTP code.';
+        }
+      }
+    })
+    .catch(function() {
+      quickPhoneLogin(idVal);
+    });
+  } else {
+    quickPhoneLogin(idVal);
+  }
+}
+
+function handleModalPassSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  var email = document.getElementById('modalPassEmail').value.trim();
+  var pass = document.getElementById('modalPassPassword').value;
+  var statusDiv = document.getElementById('modalPassStatus');
+  var btn = document.getElementById('btnModalPassLogin');
+
+  btn.disabled = true;
+  btn.innerText = 'Signing In...';
+  if (statusDiv) statusDiv.style.display = 'none';
+
+  var body = new URLSearchParams();
+  body.append('email', email);
+  body.append('password', pass);
+
+  fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+    redirect: 'follow'
+  })
+  .then(function(resp) {
+    if (resp.redirected || resp.ok) {
+      closeLoginModal();
+      window.location.reload();
+    } else {
+      btn.disabled = false;
+      btn.innerText = 'Sign In with Password';
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.innerText = 'Invalid email or password.';
+      }
+    }
+  })
+  .catch(function() {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/login';
+    var inpE = document.createElement('input');
+    inpE.name = 'email';
+    inpE.value = email;
+    form.appendChild(inpE);
+    var inpP = document.createElement('input');
+    inpP.name = 'password';
+    inpP.value = pass;
+    form.appendChild(inpP);
+    document.body.appendChild(form);
+    form.submit();
+  });
+}
+
+function handleLoginSubmit(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  handleModalOtpSubmit();
+}
+
 function quickPhoneLogin(identifier) {
   var btn = document.getElementById('btnLoginContinue');
   if (btn) {
@@ -8643,7 +8894,6 @@ func RenderAdminDashboard(stats fooddiscovery.AdminStats, rests []*ent.Restauran
         <a href="/admin/users" class="nav-tab">Users &amp; Roles</a>
         <a href="/admin/categories" class="nav-tab">Categories</a>
         <a href="/admin/reviews" class="nav-tab">Review Moderation</a>
-        <a href="/portals" class="nav-tab" style="background: rgba(16, 185, 129, 0.12); color: #047857; font-weight: 700;">Portals Directory &rarr;</a>
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -10260,9 +10510,8 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; font-size: 0.85rem;">
-      <a href="/portals" class="back-link">&larr; Portals Directory</a>
-      <a href="/" class="back-link">Customer Storefront &rarr;</a>
+    <div style="text-align: center; margin-top: 1.25rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; font-size: 0.85rem;">
+      <a href="/" class="back-link">&larr; Return to Customer Storefront</a>
     </div>
   </div>
 
@@ -10766,9 +11015,8 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
       </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; border-top: 1px solid #334155; padding-top: 1rem; font-size: 0.85rem;">
-      <a href="/portals" class="back-link">&larr; Portals Directory</a>
-      <a href="/" class="back-link">Customer Storefront &rarr;</a>
+    <div style="text-align: center; margin-top: 1.25rem; border-top: 1px solid #334155; padding-top: 1rem; font-size: 0.85rem;">
+      <a href="/" class="back-link">&larr; Return to Customer Storefront</a>
     </div>
   </div>
 
