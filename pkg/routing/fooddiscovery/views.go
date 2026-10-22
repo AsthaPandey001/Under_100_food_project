@@ -9930,7 +9930,7 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
     %s
     %s
 
-    <div class="tabs-bar">
+    <div class="tabs-bar" style="display: none;">
       <button type="button" id="tab-in" class="tab-btn active" onclick="switchMainTab('in')">Sign In</button>
       <button type="button" id="tab-up" class="tab-btn" onclick="switchMainTab('up')">New Customer Register</button>
     </div>
@@ -9983,6 +9983,10 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
 
         <button type="button" id="custBtnVerify" class="btn-submit" onclick="verifyCustOTP()">Verify &amp; Sign In</button>
       </div>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #64748b;">
+        Don't have an account? <a href="javascript:switchMainTab('up')" style="color: #e23744; font-weight: 700; text-decoration: none;">Register here</a>
+      </div>
     </div>
 
     <!-- SIGN UP CONTAINER -->
@@ -10032,6 +10036,10 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
         </div>
         <div id="custRegOtpStatus" style="display: none; font-size: 0.82rem; margin-bottom: 0.75rem; font-weight: 600;"></div>
         <button type="button" id="custRegBtnVerify" class="btn-submit" onclick="verifyCustRegOTP()">Verify OTP &amp; Create Customer Account</button>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #64748b;">
+        Already have an account? <a href="javascript:switchMainTab('in')" style="color: #e23744; font-weight: 700; text-decoration: none;">Sign in here</a>
       </div>
     </div>
 
@@ -10603,8 +10611,8 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         <button type="button" id="merchBtnVerify" class="btn-submit" onclick="verifyMerchOTP()">Verify &amp; Open Merchant Portal</button>
       </div>
 
-      <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.82rem; color: #64748b;">
-        Need to register your restaurant? <a href="javascript:switchMerchMainTab('register')" style="color: #087443; font-weight: 700; text-decoration: none;">Register restaurant partner account &rarr;</a>
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #64748b;">
+        Don't have an account? <a href="javascript:switchMerchMainTab('register')" style="color: #087443; font-weight: 700; text-decoration: none;">Register here</a>
       </div>
     </div>
 
@@ -10677,8 +10685,8 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         <button type="button" id="merchRegBtnVerify" class="btn-submit" onclick="verifyMerchRegOTP()">Verify OTP &amp; Launch Merchant Portal</button>
       </div>
 
-      <div style="text-align: center; margin-top: 1.25rem;">
-        <a href="javascript:switchMerchMainTab('signin')" class="back-link">&larr; Already have an account? Sign in here</a>
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #64748b;">
+        Already have an account? <a href="javascript:switchMerchMainTab('signin')" style="color: #087443; font-weight: 700; text-decoration: none;">Sign in here</a>
       </div>
     </div>
 
@@ -11265,16 +11273,13 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
         <button type="button" id="adminBtnVerify" class="btn-submit" onclick="verifyAdminOTP()">Verify &amp; Open Admin Console</button>
       </div>
 
-      <div style="text-align: center; margin-top: 1.25rem; padding: 0.85rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.82rem; color: #94a3b8;">
-        Need an administrator account? <a href="javascript:switchAdminMainTab('register')" style="color: #f43f5e; font-weight: 700; text-decoration: none;">Register with Admin Security Key &rarr;</a>
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #94a3b8;">
+        Don't have an account? <a href="javascript:switchAdminMainTab('register')" style="color: #f43f5e; font-weight: 700; text-decoration: none;">Register here</a>
       </div>
     </div>
 
     <!-- REGISTER ADMIN CONTAINER -->
     <div id="admin-register-container" style="display: none;">
-      <div style="margin-bottom: 1.25rem; padding: 0.75rem 0.9rem; background: rgba(190, 24, 93, 0.15); border: 1px solid rgba(190, 24, 93, 0.4); border-radius: 10px; font-size: 0.82rem; color: #fbcfe8;">
-        <strong>Admin Account Onboarding:</strong> To register a new platform administrator, enter your official credentials along with the Master Administrative Key.
-      </div>
 
       <form method="POST" action="/admin/register" id="adminRegisterForm">
         <div class="form-group">
@@ -11299,18 +11304,8 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
         <button type="submit" class="btn-submit">Register Administrator &amp; Open Console</button>
       </form>
 
-      <div style="text-align: center; margin-top: 1.25rem;">
-        <a href="javascript:switchAdminMainTab('signin')" class="back-link">&larr; Already registered? Sign in here</a>
-      </div>
-    </div>
-
-    <div style="margin-top: 1.25rem; padding: 0.85rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; font-size: 0.8rem; color: #94a3b8;">
-      <strong style="color: #fbcfe8;">Admin Features Available:</strong>
-      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
-        <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">Restaurant Approvals</span>
-        <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">User Management</span>
-        <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">Categories</span>
-        <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">Review Moderation</span>
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.9rem; color: #94a3b8;">
+        Already have an account? <a href="javascript:switchAdminMainTab('signin')" style="color: #f43f5e; font-weight: 700; text-decoration: none;">Sign in here</a>
       </div>
     </div>
 

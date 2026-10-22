@@ -461,18 +461,31 @@ func (h *Handler) AdminLoginPage(ctx echo.Context) error {
 
 // AdminLoginSubmit handles dedicated administrator sign-in
 func (h *Handler) AdminLoginSubmit(ctx echo.Context) error {
-	email := strings.ToLower(strings.TrimSpace(ctx.FormValue("email")))
+	inputID := strings.ToLower(strings.TrimSpace(ctx.FormValue("email")))
 	password := ctx.FormValue("password")
 
-	if email == "" || password == "" {
-		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Email and password are required."))
+	if inputID == "" || password == "" {
+		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Email or mobile and password are required."))
 	}
 
-	usr, err := h.c.ORM.User.Query().
-		Where(user.EmailEQ(email)).
-		Only(ctx.Request().Context())
+	normID := normalizeAuthIdentifier(inputID)
+	var altEmail string
+	if !strings.Contains(normID, "@") {
+		altEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", normID)
+	} else {
+		altEmail = normID
+	}
 
-	if err != nil {
+	ctxReq := ctx.Request().Context()
+	usr, err := h.c.ORM.User.Query().
+		Where(user.Or(
+			user.EmailEQ(inputID),
+			user.EmailEQ(normID),
+			user.EmailEQ(altEmail),
+		)).
+		First(ctxReq)
+
+	if err != nil || usr == nil {
 		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Invalid administrator credentials."))
 	}
 
@@ -997,32 +1010,60 @@ func (h *Handler) MerchantRegisterSubmit(ctx echo.Context) error {
 // AdminRegisterSubmit handles administrator registration protected with administrative security key
 func (h *Handler) AdminRegisterSubmit(ctx echo.Context) error {
 	name := strings.TrimSpace(ctx.FormValue("name"))
-	email := strings.ToLower(strings.TrimSpace(ctx.FormValue("email")))
+	inputEmail := strings.ToLower(strings.TrimSpace(ctx.FormValue("email")))
 	password := ctx.FormValue("password")
 	adminKey := strings.TrimSpace(ctx.FormValue("admin_key"))
 
-	if name == "" || email == "" || len(password) < 6 {
-		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Administrator name, valid email, and password (min 6 characters) are required."))
+	if name == "" || inputEmail == "" || len(password) < 6 {
+		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Administrator name, valid email/mobile, and password (min 6 characters) are required."))
 	}
 
 	if adminKey != "Admin@123" && adminKey != "Under100AdminSecret2026" {
 		return ctx.HTML(http.StatusForbidden, RenderAdminLoginPage("", "Invalid Administrator Security Key. Authorization denied."))
 	}
 
-	ctxReq := ctx.Request().Context()
-	exists, _ := h.c.ORM.User.Query().Where(user.EmailEQ(email)).Exist(ctxReq)
-	if exists {
-		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "An administrator account with this email already exists. Please sign in."))
+	normID := normalizeAuthIdentifier(inputEmail)
+	var altEmail string
+	if !strings.Contains(normID, "@") {
+		altEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", normID)
+	} else {
+		altEmail = normID
 	}
+
+	ctxReq := ctx.Request().Context()
+	existingUser, _ := h.c.ORM.User.Query().
+		Where(user.Or(
+			user.EmailEQ(inputEmail),
+			user.EmailEQ(normID),
+			user.EmailEQ(altEmail),
+		)).
+		First(ctxReq)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return ctx.HTML(http.StatusInternalServerError, "Failed to hash password")
 	}
 
+	if existingUser != nil {
+		// Existing account provided valid admin key: promote to Administrator
+		updatedAdmin, uErr := h.c.ORM.User.UpdateOne(existingUser).
+			SetIsAdmin(true).
+			SetRole(user.RoleAdmin).
+			SetVerified(true).
+			SetPassword(string(hash)).
+			SetName(name).
+			Save(ctxReq)
+		if uErr != nil {
+			return ctx.HTML(http.StatusInternalServerError, "Failed to update administrator account: "+uErr.Error())
+		}
+		_ = h.c.Auth.Login(ctx, updatedAdmin.ID)
+		return ctx.Redirect(http.StatusSeeOther, "/admin?msg=admin_created")
+	}
+
+	// New account
 	newAdmin, err := h.c.ORM.User.Create().
 		SetName(name).
-		SetEmail(email).
+		SetEmail(inputEmail).
 		SetPassword(string(hash)).
 		SetVerified(true).
 		SetIsAdmin(true).
