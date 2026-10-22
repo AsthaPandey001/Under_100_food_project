@@ -198,4 +198,9 @@ dump.rdb
 .gobuild2/
 build_tmp/
 scratch/
-.env.dev
+.env.dev
+
+# Daily engineering work reports
+*WORK_REPORT*.md
+TODAY_WORK_REPORT*.md
+
