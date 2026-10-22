@@ -75,18 +75,11 @@ type Type string
 // Type values.
 const (
 	TypeNewPrivateMessage             Type = "new_private_message"
-	TypeMutualQuestionAnswered        Type = "mutual_question_answered"
 	TypeConnectionEngagedWithQuestion Type = "connection_engaged_with_question"
 	TypeIncrementNumUnseenMsg         Type = "increment_num_unseen_msg"
 	TypeDecrementNumUnseenMsg         Type = "decrement_num_unseen_msg"
 	TypeUpdateNumNotifs               Type = "update_num_notifs"
-	TypeConnectionRequestAccepted     Type = "connection_request_accepted"
 	TypePlatformUpdate                Type = "platform_update"
-	TypeConnectionReactedToAnswer     Type = "connection_reacted_to_answer"
-	TypeCommittedRelationshipRequest  Type = "committed_relationship_request"
-	TypeBreakup                       Type = "breakup"
-	TypeContactRequest                Type = "contact_request"
-	TypeNewHomefeedQaObject           Type = "new_homefeed_qa_object"
 	TypePaymentFailed                 Type = "payment_failed"
 	TypeDailyConversationReminder     Type = "daily_conversation_reminder"
 )
@@ -98,7 +91,7 @@ func (_type Type) String() string {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeNewPrivateMessage, TypeMutualQuestionAnswered, TypeConnectionEngagedWithQuestion, TypeIncrementNumUnseenMsg, TypeDecrementNumUnseenMsg, TypeUpdateNumNotifs, TypeConnectionRequestAccepted, TypePlatformUpdate, TypeConnectionReactedToAnswer, TypeCommittedRelationshipRequest, TypeBreakup, TypeContactRequest, TypeNewHomefeedQaObject, TypePaymentFailed, TypeDailyConversationReminder:
+	case TypeNewPrivateMessage, TypeConnectionEngagedWithQuestion, TypeIncrementNumUnseenMsg, TypeDecrementNumUnseenMsg, TypeUpdateNumNotifs, TypePlatformUpdate, TypePaymentFailed, TypeDailyConversationReminder:
 		return nil
 	default:
 		return fmt.Errorf("notificationtime: invalid enum value for type field: %q", _type)

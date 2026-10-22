@@ -30,6 +30,10 @@ type User struct {
 	Password string `json:"-"`
 	// Verified holds the value of the "verified" field.
 	Verified bool `json:"verified,omitempty"`
+	// IsAdmin holds the value of the "is_admin" field.
+	IsAdmin bool `json:"is_admin,omitempty"`
+	// Role holds the value of the "role" field.
+	Role user.Role `json:"role,omitempty"`
 	// LastOnline holds the value of the "last_online" field.
 	LastOnline time.Time `json:"last_online,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -46,9 +50,11 @@ type UserEdges struct {
 	Profile *Profile `json:"profile,omitempty"`
 	// LastSeenAt holds the value of the last_seen_at edge.
 	LastSeenAt []*LastSeenOnline `json:"last_seen_at,omitempty"`
+	// Restaurants holds the value of the restaurants edge.
+	Restaurants []*Restaurant `json:"restaurants,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -80,16 +86,25 @@ func (e UserEdges) LastSeenAtOrErr() ([]*LastSeenOnline, error) {
 	return nil, &NotLoadedError{edge: "last_seen_at"}
 }
 
+// RestaurantsOrErr returns the Restaurants value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RestaurantsOrErr() ([]*Restaurant, error) {
+	if e.loadedTypes[3] {
+		return e.Restaurants, nil
+	}
+	return nil, &NotLoadedError{edge: "restaurants"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldVerified:
+		case user.FieldVerified, user.FieldIsAdmin:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldName, user.FieldEmail, user.FieldPassword:
+		case user.FieldName, user.FieldEmail, user.FieldPassword, user.FieldRole:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldLastOnline:
 			values[i] = new(sql.NullTime)
@@ -150,6 +165,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Verified = value.Bool
 			}
+		case user.FieldIsAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_admin", values[i])
+			} else if value.Valid {
+				u.IsAdmin = value.Bool
+			}
+		case user.FieldRole:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field role", values[i])
+			} else if value.Valid {
+				u.Role = user.Role(value.String)
+			}
 		case user.FieldLastOnline:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field last_online", values[i])
@@ -182,6 +209,11 @@ func (u *User) QueryProfile() *ProfileQuery {
 // QueryLastSeenAt queries the "last_seen_at" edge of the User entity.
 func (u *User) QueryLastSeenAt() *LastSeenOnlineQuery {
 	return NewUserClient(u.config).QueryLastSeenAt(u)
+}
+
+// QueryRestaurants queries the "restaurants" edge of the User entity.
+func (u *User) QueryRestaurants() *RestaurantQuery {
+	return NewUserClient(u.config).QueryRestaurants(u)
 }
 
 // Update returns a builder for updating this User.
@@ -223,6 +255,12 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("verified=")
 	builder.WriteString(fmt.Sprintf("%v", u.Verified))
+	builder.WriteString(", ")
+	builder.WriteString("is_admin=")
+	builder.WriteString(fmt.Sprintf("%v", u.IsAdmin))
+	builder.WriteString(", ")
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", u.Role))
 	builder.WriteString(", ")
 	builder.WriteString("last_online=")
 	builder.WriteString(u.LastOnline.Format(time.ANSIC))

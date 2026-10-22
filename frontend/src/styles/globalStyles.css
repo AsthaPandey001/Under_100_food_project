@@ -1,0 +1,79 @@
+﻿@import './designTokens.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-main-bg);
+  color: var(--color-dark-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select {
+  font-family: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Hide scrollbar for carousels while allowing touch / scroll */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Veg / Non-veg indicators */
+.diet-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+  flex-shrink: 0;
+}
+.diet-veg {
+  border-color: #087443;
+}
+.diet-veg .diet-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #087443;
+}
+.diet-nonveg {
+  border-color: #E11D48;
+}
+.diet-nonveg .diet-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #E11D48;
+}

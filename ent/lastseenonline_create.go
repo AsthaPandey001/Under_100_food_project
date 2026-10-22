@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/lastseenonline"
@@ -20,7 +19,6 @@ type LastSeenOnlineCreate struct {
 	config
 	mutation *LastSeenOnlineMutation
 	hooks    []Hook
-	conflict []sql.ConflictOption
 }
 
 // SetSeenAt sets the "seen_at" field.
@@ -123,7 +121,6 @@ func (lsoc *LastSeenOnlineCreate) createSpec() (*LastSeenOnline, *sqlgraph.Creat
 		_node = &LastSeenOnline{config: lsoc.config}
 		_spec = sqlgraph.NewCreateSpec(lastseenonline.Table, sqlgraph.NewFieldSpec(lastseenonline.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = lsoc.conflict
 	if value, ok := lsoc.mutation.SeenAt(); ok {
 		_spec.SetField(lastseenonline.FieldSeenAt, field.TypeTime, value)
 		_node.SeenAt = value
@@ -148,139 +145,11 @@ func (lsoc *LastSeenOnlineCreate) createSpec() (*LastSeenOnline, *sqlgraph.Creat
 	return _node, _spec
 }
 
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.LastSeenOnline.Create().
-//		SetSeenAt(v).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.LastSeenOnlineUpsert) {
-//			SetSeenAt(v+v).
-//		}).
-//		Exec(ctx)
-func (lsoc *LastSeenOnlineCreate) OnConflict(opts ...sql.ConflictOption) *LastSeenOnlineUpsertOne {
-	lsoc.conflict = opts
-	return &LastSeenOnlineUpsertOne{
-		create: lsoc,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (lsoc *LastSeenOnlineCreate) OnConflictColumns(columns ...string) *LastSeenOnlineUpsertOne {
-	lsoc.conflict = append(lsoc.conflict, sql.ConflictColumns(columns...))
-	return &LastSeenOnlineUpsertOne{
-		create: lsoc,
-	}
-}
-
-type (
-	// LastSeenOnlineUpsertOne is the builder for "upsert"-ing
-	//  one LastSeenOnline node.
-	LastSeenOnlineUpsertOne struct {
-		create *LastSeenOnlineCreate
-	}
-
-	// LastSeenOnlineUpsert is the "OnConflict" setter.
-	LastSeenOnlineUpsert struct {
-		*sql.UpdateSet
-	}
-)
-
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
-// Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *LastSeenOnlineUpsertOne) UpdateNewValues() *LastSeenOnlineUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		if _, exists := u.create.mutation.SeenAt(); exists {
-			s.SetIgnore(lastseenonline.FieldSeenAt)
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
-func (u *LastSeenOnlineUpsertOne) Ignore() *LastSeenOnlineUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *LastSeenOnlineUpsertOne) DoNothing() *LastSeenOnlineUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the LastSeenOnlineCreate.OnConflict
-// documentation for more info.
-func (u *LastSeenOnlineUpsertOne) Update(set func(*LastSeenOnlineUpsert)) *LastSeenOnlineUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LastSeenOnlineUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// Exec executes the query.
-func (u *LastSeenOnlineUpsertOne) Exec(ctx context.Context) error {
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LastSeenOnlineCreate.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *LastSeenOnlineUpsertOne) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *LastSeenOnlineUpsertOne) ID(ctx context.Context) (id int, err error) {
-	node, err := u.create.Save(ctx)
-	if err != nil {
-		return id, err
-	}
-	return node.ID, nil
-}
-
-// IDX is like ID, but panics if an error occurs.
-func (u *LastSeenOnlineUpsertOne) IDX(ctx context.Context) int {
-	id, err := u.ID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // LastSeenOnlineCreateBulk is the builder for creating many LastSeenOnline entities in bulk.
 type LastSeenOnlineCreateBulk struct {
 	config
 	err      error
 	builders []*LastSeenOnlineCreate
-	conflict []sql.ConflictOption
 }
 
 // Save creates the LastSeenOnline entities in the database.
@@ -310,7 +179,6 @@ func (lsocb *LastSeenOnlineCreateBulk) Save(ctx context.Context) ([]*LastSeenOnl
 					_, err = mutators[i+1].Mutate(root, lsocb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = lsocb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, lsocb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -361,117 +229,6 @@ func (lsocb *LastSeenOnlineCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (lsocb *LastSeenOnlineCreateBulk) ExecX(ctx context.Context) {
 	if err := lsocb.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.LastSeenOnline.CreateBulk(builders...).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.LastSeenOnlineUpsert) {
-//			SetSeenAt(v+v).
-//		}).
-//		Exec(ctx)
-func (lsocb *LastSeenOnlineCreateBulk) OnConflict(opts ...sql.ConflictOption) *LastSeenOnlineUpsertBulk {
-	lsocb.conflict = opts
-	return &LastSeenOnlineUpsertBulk{
-		create: lsocb,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (lsocb *LastSeenOnlineCreateBulk) OnConflictColumns(columns ...string) *LastSeenOnlineUpsertBulk {
-	lsocb.conflict = append(lsocb.conflict, sql.ConflictColumns(columns...))
-	return &LastSeenOnlineUpsertBulk{
-		create: lsocb,
-	}
-}
-
-// LastSeenOnlineUpsertBulk is the builder for "upsert"-ing
-// a bulk of LastSeenOnline nodes.
-type LastSeenOnlineUpsertBulk struct {
-	create *LastSeenOnlineCreateBulk
-}
-
-// UpdateNewValues updates the mutable fields using the new values that
-// were set on create. Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *LastSeenOnlineUpsertBulk) UpdateNewValues() *LastSeenOnlineUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		for _, b := range u.create.builders {
-			if _, exists := b.mutation.SeenAt(); exists {
-				s.SetIgnore(lastseenonline.FieldSeenAt)
-			}
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.LastSeenOnline.Create().
-//		OnConflict(sql.ResolveWithIgnore()).
-//		Exec(ctx)
-func (u *LastSeenOnlineUpsertBulk) Ignore() *LastSeenOnlineUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *LastSeenOnlineUpsertBulk) DoNothing() *LastSeenOnlineUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the LastSeenOnlineCreateBulk.OnConflict
-// documentation for more info.
-func (u *LastSeenOnlineUpsertBulk) Update(set func(*LastSeenOnlineUpsert)) *LastSeenOnlineUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LastSeenOnlineUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// Exec executes the query.
-func (u *LastSeenOnlineUpsertBulk) Exec(ctx context.Context) error {
-	if u.create.err != nil {
-		return u.create.err
-	}
-	for i, b := range u.create.builders {
-		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LastSeenOnlineCreateBulk instead", i)
-		}
-	}
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LastSeenOnlineCreateBulk.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *LastSeenOnlineUpsertBulk) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

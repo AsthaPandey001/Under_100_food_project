@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// City is the predicate function for city builders.
+type City func(*sql.Selector)
+
 // EmailSubscription is the predicate function for emailsubscription builders.
 type EmailSubscription func(*sql.Selector)
 
@@ -20,6 +23,9 @@ type FCMSubscriptions func(*sql.Selector)
 
 // FileStorage is the predicate function for filestorage builders.
 type FileStorage func(*sql.Selector)
+
+// FoodItem is the predicate function for fooditem builders.
+type FoodItem func(*sql.Selector)
 
 // Image is the predicate function for image builders.
 type Image func(*sql.Selector)
@@ -56,6 +62,9 @@ type Profile func(*sql.Selector)
 
 // PwaPushSubscription is the predicate function for pwapushsubscription builders.
 type PwaPushSubscription func(*sql.Selector)
+
+// Restaurant is the predicate function for restaurant builders.
+type Restaurant func(*sql.Selector)
 
 // SentEmail is the predicate function for sentemail builders.
 type SentEmail func(*sql.Selector)

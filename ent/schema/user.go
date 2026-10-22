@@ -37,6 +37,11 @@ func (User) Fields() []ent.Field {
 			NotEmpty(),
 		field.Bool("verified").
 			Default(false),
+		field.Bool("is_admin").
+			Default(false),
+		field.Enum("role").
+			Values("customer", "merchant", "admin").
+			Default("customer"),
 		field.Time("last_online").
 			Optional(),
 	}
@@ -53,6 +58,7 @@ func (User) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("last_seen_at", LastSeenOnline.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("restaurants", Restaurant.Type),
 	}
 }
 

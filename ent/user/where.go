@@ -85,6 +85,11 @@ func Verified(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldVerified, v))
 }
 
+// IsAdmin applies equality check predicate on the "is_admin" field. It's identical to IsAdminEQ.
+func IsAdmin(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
+}
+
 // LastOnline applies equality check predicate on the "last_online" field. It's identical to LastOnlineEQ.
 func LastOnline(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastOnline, v))
@@ -375,6 +380,36 @@ func VerifiedNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldVerified, v))
 }
 
+// IsAdminEQ applies the EQ predicate on the "is_admin" field.
+func IsAdminEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldIsAdmin, v))
+}
+
+// IsAdminNEQ applies the NEQ predicate on the "is_admin" field.
+func IsAdminNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldIsAdmin, v))
+}
+
+// RoleEQ applies the EQ predicate on the "role" field.
+func RoleEQ(v Role) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldRole, v))
+}
+
+// RoleNEQ applies the NEQ predicate on the "role" field.
+func RoleNEQ(v Role) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldRole, v))
+}
+
+// RoleIn applies the In predicate on the "role" field.
+func RoleIn(vs ...Role) predicate.User {
+	return predicate.User(sql.FieldIn(FieldRole, vs...))
+}
+
+// RoleNotIn applies the NotIn predicate on the "role" field.
+func RoleNotIn(vs ...Role) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldRole, vs...))
+}
+
 // LastOnlineEQ applies the EQ predicate on the "last_online" field.
 func LastOnlineEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastOnline, v))
@@ -486,6 +521,29 @@ func HasLastSeenAt() predicate.User {
 func HasLastSeenAtWith(preds ...predicate.LastSeenOnline) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newLastSeenAtStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRestaurants applies the HasEdge predicate on the "restaurants" edge.
+func HasRestaurants() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RestaurantsTable, RestaurantsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRestaurantsWith applies the HasEdge predicate on the "restaurants" edge with a given conditions (other predicates).
+func HasRestaurantsWith(preds ...predicate.Restaurant) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRestaurantsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

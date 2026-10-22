@@ -71,6 +71,7 @@ type (
 		Phone       PhoneConfig
 		Recommender RecommenderConfig
 		Storage     StorageConfig
+		RateLimit   RateLimitConfig
 	}
 
 	// HTTPConfig stores HTTP configuration
@@ -195,6 +196,14 @@ type (
 		ProfilePhotoMaxFileSizeMB int64
 		PhotosMaxFileSizeMB       int64
 	}
+
+	RateLimitConfig struct {
+		Enabled             bool
+		LoginLimit          int
+		RegisterLimit       int
+		PasswordForgotLimit int
+		PasswordResetLimit  int
+	}
 )
 
 // GetConfig loads and returns configuration
@@ -247,5 +256,41 @@ func GetConfig() (Config, error) {
 		c.App.FirebaseJSONAccessKeys = jsonCreds
 	}
 
+	if c.RateLimit.LoginLimit <= 0 {
+		c.RateLimit.LoginLimit = 60
+	}
+	if c.RateLimit.RegisterLimit <= 0 {
+		c.RateLimit.RegisterLimit = 30
+	}
+	if c.RateLimit.PasswordForgotLimit <= 0 {
+		c.RateLimit.PasswordForgotLimit = 30
+	}
+	if c.RateLimit.PasswordResetLimit <= 0 {
+		c.RateLimit.PasswordResetLimit = 30
+	}
+
+	if err := c.Validate(); err != nil {
+		return c, err
+	}
+
 	return c, nil
+}
+
+// Validate validates configuration settings and fails safely if critical production secrets are missing or weak
+func (c *Config) Validate() error {
+	if c.App.Environment == EnvProduction {
+		if c.App.EncryptionKey == "" || c.App.EncryptionKey == "?E(G+KbPeShVmYq3t6w9z$C&F)J@McQf" {
+			return fmt.Errorf("production security failure: PAGODA_APP_ENCRYPTIONKEY must be set to a secure unique key and cannot use the development default")
+		}
+		if len(c.App.EncryptionKey) < 16 {
+			return fmt.Errorf("production security failure: PAGODA_APP_ENCRYPTIONKEY must be at least 16 characters")
+		}
+		if c.Database.DbMode == DBModeStandalone && c.Database.Password == "" {
+			return fmt.Errorf("production security failure: standalone database password must be configured in production")
+		}
+		if c.HTTP.Domain == "" {
+			return fmt.Errorf("production security failure: HTTP domain must be configured in production for trusted link generation")
+		}
+	}
+	return nil
 }

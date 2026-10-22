@@ -16,19 +16,21 @@ import (
 	"github.com/mikestefanello/pagoda/ent/passwordtoken"
 	"github.com/mikestefanello/pagoda/ent/predicate"
 	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/user"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx            *QueryContext
-	order          []user.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.User
-	withOwner      *PasswordTokenQuery
-	withProfile    *ProfileQuery
-	withLastSeenAt *LastSeenOnlineQuery
+	ctx             *QueryContext
+	order           []user.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.User
+	withOwner       *PasswordTokenQuery
+	withProfile     *ProfileQuery
+	withLastSeenAt  *LastSeenOnlineQuery
+	withRestaurants *RestaurantQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (uq *UserQuery) QueryLastSeenAt() *LastSeenOnlineQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(lastseenonline.Table, lastseenonline.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.LastSeenAtTable, user.LastSeenAtColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRestaurants chains the current query on the "restaurants" edge.
+func (uq *UserQuery) QueryRestaurants() *RestaurantQuery {
+	query := (&RestaurantClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(restaurant.Table, restaurant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RestaurantsTable, user.RestaurantsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -318,14 +342,15 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:         uq.config,
-		ctx:            uq.ctx.Clone(),
-		order:          append([]user.OrderOption{}, uq.order...),
-		inters:         append([]Interceptor{}, uq.inters...),
-		predicates:     append([]predicate.User{}, uq.predicates...),
-		withOwner:      uq.withOwner.Clone(),
-		withProfile:    uq.withProfile.Clone(),
-		withLastSeenAt: uq.withLastSeenAt.Clone(),
+		config:          uq.config,
+		ctx:             uq.ctx.Clone(),
+		order:           append([]user.OrderOption{}, uq.order...),
+		inters:          append([]Interceptor{}, uq.inters...),
+		predicates:      append([]predicate.User{}, uq.predicates...),
+		withOwner:       uq.withOwner.Clone(),
+		withProfile:     uq.withProfile.Clone(),
+		withLastSeenAt:  uq.withLastSeenAt.Clone(),
+		withRestaurants: uq.withRestaurants.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -362,6 +387,17 @@ func (uq *UserQuery) WithLastSeenAt(opts ...func(*LastSeenOnlineQuery)) *UserQue
 		opt(query)
 	}
 	uq.withLastSeenAt = query
+	return uq
+}
+
+// WithRestaurants tells the query-builder to eager-load the nodes that are connected to
+// the "restaurants" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRestaurants(opts ...func(*RestaurantQuery)) *UserQuery {
+	query := (&RestaurantClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withRestaurants = query
 	return uq
 }
 
@@ -443,10 +479,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			uq.withOwner != nil,
 			uq.withProfile != nil,
 			uq.withLastSeenAt != nil,
+			uq.withRestaurants != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -484,6 +521,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadLastSeenAt(ctx, query, nodes,
 			func(n *User) { n.Edges.LastSeenAt = []*LastSeenOnline{} },
 			func(n *User, e *LastSeenOnline) { n.Edges.LastSeenAt = append(n.Edges.LastSeenAt, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withRestaurants; query != nil {
+		if err := uq.loadRestaurants(ctx, query, nodes,
+			func(n *User) { n.Edges.Restaurants = []*Restaurant{} },
+			func(n *User, e *Restaurant) { n.Edges.Restaurants = append(n.Edges.Restaurants, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -575,6 +619,37 @@ func (uq *UserQuery) loadLastSeenAt(ctx context.Context, query *LastSeenOnlineQu
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_last_seen_at" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadRestaurants(ctx context.Context, query *RestaurantQuery, nodes []*User, init func(*User), assign func(*User, *Restaurant)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Restaurant(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RestaurantsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.user_restaurants
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "user_restaurants" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_restaurants" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

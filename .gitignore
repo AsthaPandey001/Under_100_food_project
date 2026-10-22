@@ -187,8 +187,15 @@ fastlane/test_output
 
 pwabuilder-android-wrapper/signing-key-info.txt
 pwabuilder-android-wrapper/signing.keystore
-bubblewrap
-
-
 deploy-real.yml
 .kamal/secrets
+
+# Compiled binaries and local builds
+*.exe
+server_linux
+dump.rdb
+.gobuild/
+.gobuild2/
+build_tmp/
+scratch/
+.env.dev

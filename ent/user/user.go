@@ -3,6 +3,7 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent"
@@ -27,6 +28,10 @@ const (
 	FieldPassword = "password"
 	// FieldVerified holds the string denoting the verified field in the database.
 	FieldVerified = "verified"
+	// FieldIsAdmin holds the string denoting the is_admin field in the database.
+	FieldIsAdmin = "is_admin"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// FieldLastOnline holds the string denoting the last_online field in the database.
 	FieldLastOnline = "last_online"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
@@ -35,6 +40,8 @@ const (
 	EdgeProfile = "profile"
 	// EdgeLastSeenAt holds the string denoting the last_seen_at edge name in mutations.
 	EdgeLastSeenAt = "last_seen_at"
+	// EdgeRestaurants holds the string denoting the restaurants edge name in mutations.
+	EdgeRestaurants = "restaurants"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -58,6 +65,13 @@ const (
 	LastSeenAtInverseTable = "last_seen_onlines"
 	// LastSeenAtColumn is the table column denoting the last_seen_at relation/edge.
 	LastSeenAtColumn = "user_last_seen_at"
+	// RestaurantsTable is the table that holds the restaurants relation/edge.
+	RestaurantsTable = "restaurants"
+	// RestaurantsInverseTable is the table name for the Restaurant entity.
+	// It exists in this package in order to avoid circular dependency with the "restaurant" package.
+	RestaurantsInverseTable = "restaurants"
+	// RestaurantsColumn is the table column denoting the restaurants relation/edge.
+	RestaurantsColumn = "user_restaurants"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -69,6 +83,8 @@ var Columns = []string{
 	FieldEmail,
 	FieldPassword,
 	FieldVerified,
+	FieldIsAdmin,
+	FieldRole,
 	FieldLastOnline,
 }
 
@@ -103,7 +119,36 @@ var (
 	PasswordValidator func(string) error
 	// DefaultVerified holds the default value on creation for the "verified" field.
 	DefaultVerified bool
+	// DefaultIsAdmin holds the default value on creation for the "is_admin" field.
+	DefaultIsAdmin bool
 )
+
+// Role defines the type for the "role" enum field.
+type Role string
+
+// RoleCustomer is the default value of the Role enum.
+const DefaultRole = RoleCustomer
+
+// Role values.
+const (
+	RoleCustomer Role = "customer"
+	RoleMerchant Role = "merchant"
+	RoleAdmin    Role = "admin"
+)
+
+func (r Role) String() string {
+	return string(r)
+}
+
+// RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
+func RoleValidator(r Role) error {
+	switch r {
+	case RoleCustomer, RoleMerchant, RoleAdmin:
+		return nil
+	default:
+		return fmt.Errorf("user: invalid enum value for role field: %q", r)
+	}
+}
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -141,6 +186,16 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 // ByVerified orders the results by the verified field.
 func ByVerified(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVerified, opts...).ToFunc()
+}
+
+// ByIsAdmin orders the results by the is_admin field.
+func ByIsAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsAdmin, opts...).ToFunc()
+}
+
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }
 
 // ByLastOnline orders the results by the last_online field.
@@ -182,6 +237,20 @@ func ByLastSeenAt(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLastSeenAtStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRestaurantsCount orders the results by restaurants count.
+func ByRestaurantsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRestaurantsStep(), opts...)
+	}
+}
+
+// ByRestaurants orders the results by restaurants terms.
+func ByRestaurants(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRestaurantsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -201,5 +270,12 @@ func newLastSeenAtStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LastSeenAtInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LastSeenAtTable, LastSeenAtColumn),
+	)
+}
+func newRestaurantsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RestaurantsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RestaurantsTable, RestaurantsColumn),
 	)
 }

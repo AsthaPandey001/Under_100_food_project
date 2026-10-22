@@ -5,11 +5,13 @@ package runtime
 import (
 	"time"
 
+	"github.com/mikestefanello/pagoda/ent/city"
 	"github.com/mikestefanello/pagoda/ent/emailsubscription"
 	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
 	"github.com/mikestefanello/pagoda/ent/emojis"
 	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
 	"github.com/mikestefanello/pagoda/ent/filestorage"
+	"github.com/mikestefanello/pagoda/ent/fooditem"
 	"github.com/mikestefanello/pagoda/ent/image"
 	"github.com/mikestefanello/pagoda/ent/imagesize"
 	"github.com/mikestefanello/pagoda/ent/invitation"
@@ -22,6 +24,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
 	"github.com/mikestefanello/pagoda/ent/profile"
 	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/schema"
 	"github.com/mikestefanello/pagoda/ent/sentemail"
 	"github.com/mikestefanello/pagoda/ent/user"
@@ -31,6 +34,37 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	cityMixin := schema.City{}.Mixin()
+	cityMixinFields0 := cityMixin[0].Fields()
+	_ = cityMixinFields0
+	cityFields := schema.City{}.Fields()
+	_ = cityFields
+	// cityDescCreatedAt is the schema descriptor for created_at field.
+	cityDescCreatedAt := cityMixinFields0[0].Descriptor()
+	// city.DefaultCreatedAt holds the default value on creation for the created_at field.
+	city.DefaultCreatedAt = cityDescCreatedAt.Default.(func() time.Time)
+	// cityDescUpdatedAt is the schema descriptor for updated_at field.
+	cityDescUpdatedAt := cityMixinFields0[1].Descriptor()
+	// city.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	city.DefaultUpdatedAt = cityDescUpdatedAt.Default.(func() time.Time)
+	// city.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	city.UpdateDefaultUpdatedAt = cityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cityDescName is the schema descriptor for name field.
+	cityDescName := cityFields[0].Descriptor()
+	// city.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	city.NameValidator = cityDescName.Validators[0].(func(string) error)
+	// cityDescState is the schema descriptor for state field.
+	cityDescState := cityFields[1].Descriptor()
+	// city.DefaultState holds the default value on creation for the state field.
+	city.DefaultState = cityDescState.Default.(string)
+	// cityDescLatitude is the schema descriptor for latitude field.
+	cityDescLatitude := cityFields[2].Descriptor()
+	// city.DefaultLatitude holds the default value on creation for the latitude field.
+	city.DefaultLatitude = cityDescLatitude.Default.(float64)
+	// cityDescLongitude is the schema descriptor for longitude field.
+	cityDescLongitude := cityFields[3].Descriptor()
+	// city.DefaultLongitude holds the default value on creation for the longitude field.
+	city.DefaultLongitude = cityDescLongitude.Default.(float64)
 	emailsubscriptionMixin := schema.EmailSubscription{}.Mixin()
 	emailsubscriptionMixinFields0 := emailsubscriptionMixin[0].Fields()
 	_ = emailsubscriptionMixinFields0
@@ -129,6 +163,37 @@ func init() {
 	filestorageDescObjectKey := filestorageFields[1].Descriptor()
 	// filestorage.ObjectKeyValidator is a validator for the "object_key" field. It is called by the builders before save.
 	filestorage.ObjectKeyValidator = filestorageDescObjectKey.Validators[0].(func(string) error)
+	fooditemMixin := schema.FoodItem{}.Mixin()
+	fooditemMixinFields0 := fooditemMixin[0].Fields()
+	_ = fooditemMixinFields0
+	fooditemFields := schema.FoodItem{}.Fields()
+	_ = fooditemFields
+	// fooditemDescCreatedAt is the schema descriptor for created_at field.
+	fooditemDescCreatedAt := fooditemMixinFields0[0].Descriptor()
+	// fooditem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	fooditem.DefaultCreatedAt = fooditemDescCreatedAt.Default.(func() time.Time)
+	// fooditemDescUpdatedAt is the schema descriptor for updated_at field.
+	fooditemDescUpdatedAt := fooditemMixinFields0[1].Descriptor()
+	// fooditem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	fooditem.DefaultUpdatedAt = fooditemDescUpdatedAt.Default.(func() time.Time)
+	// fooditem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	fooditem.UpdateDefaultUpdatedAt = fooditemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// fooditemDescName is the schema descriptor for name field.
+	fooditemDescName := fooditemFields[0].Descriptor()
+	// fooditem.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	fooditem.NameValidator = fooditemDescName.Validators[0].(func(string) error)
+	// fooditemDescCategory is the schema descriptor for category field.
+	fooditemDescCategory := fooditemFields[2].Descriptor()
+	// fooditem.DefaultCategory holds the default value on creation for the category field.
+	fooditem.DefaultCategory = fooditemDescCategory.Default.(string)
+	// fooditemDescPrice is the schema descriptor for price field.
+	fooditemDescPrice := fooditemFields[3].Descriptor()
+	// fooditem.PriceValidator is a validator for the "price" field. It is called by the builders before save.
+	fooditem.PriceValidator = fooditemDescPrice.Validators[0].(func(float64) error)
+	// fooditemDescAvailable is the schema descriptor for available field.
+	fooditemDescAvailable := fooditemFields[4].Descriptor()
+	// fooditem.DefaultAvailable holds the default value on creation for the available field.
+	fooditem.DefaultAvailable = fooditemDescAvailable.Default.(bool)
 	imageMixin := schema.Image{}.Mixin()
 	imageMixinFields0 := imageMixin[0].Fields()
 	_ = imageMixinFields0
@@ -367,6 +432,29 @@ func init() {
 	pwapushsubscriptionDescAuth := pwapushsubscriptionFields[2].Descriptor()
 	// pwapushsubscription.AuthValidator is a validator for the "auth" field. It is called by the builders before save.
 	pwapushsubscription.AuthValidator = pwapushsubscriptionDescAuth.Validators[0].(func(string) error)
+	restaurantMixin := schema.Restaurant{}.Mixin()
+	restaurantMixinFields0 := restaurantMixin[0].Fields()
+	_ = restaurantMixinFields0
+	restaurantFields := schema.Restaurant{}.Fields()
+	_ = restaurantFields
+	// restaurantDescCreatedAt is the schema descriptor for created_at field.
+	restaurantDescCreatedAt := restaurantMixinFields0[0].Descriptor()
+	// restaurant.DefaultCreatedAt holds the default value on creation for the created_at field.
+	restaurant.DefaultCreatedAt = restaurantDescCreatedAt.Default.(func() time.Time)
+	// restaurantDescUpdatedAt is the schema descriptor for updated_at field.
+	restaurantDescUpdatedAt := restaurantMixinFields0[1].Descriptor()
+	// restaurant.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	restaurant.DefaultUpdatedAt = restaurantDescUpdatedAt.Default.(func() time.Time)
+	// restaurant.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	restaurant.UpdateDefaultUpdatedAt = restaurantDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// restaurantDescName is the schema descriptor for name field.
+	restaurantDescName := restaurantFields[0].Descriptor()
+	// restaurant.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	restaurant.NameValidator = restaurantDescName.Validators[0].(func(string) error)
+	// restaurantDescAddress is the schema descriptor for address field.
+	restaurantDescAddress := restaurantFields[2].Descriptor()
+	// restaurant.AddressValidator is a validator for the "address" field. It is called by the builders before save.
+	restaurant.AddressValidator = restaurantDescAddress.Validators[0].(func(string) error)
 	sentemailMixin := schema.SentEmail{}.Mixin()
 	sentemailMixinFields0 := sentemailMixin[0].Fields()
 	_ = sentemailMixinFields0
@@ -415,6 +503,10 @@ func init() {
 	userDescVerified := userFields[3].Descriptor()
 	// user.DefaultVerified holds the default value on creation for the verified field.
 	user.DefaultVerified = userDescVerified.Default.(bool)
+	// userDescIsAdmin is the schema descriptor for is_admin field.
+	userDescIsAdmin := userFields[4].Descriptor()
+	// user.DefaultIsAdmin holds the default value on creation for the is_admin field.
+	user.DefaultIsAdmin = userDescIsAdmin.Default.(bool)
 }
 
 const (

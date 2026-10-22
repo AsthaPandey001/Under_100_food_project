@@ -12,6 +12,7 @@ import (
 
 	"github.com/mikestefanello/pagoda/pkg/routing/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/mikestefanello/pagoda/seeder"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -74,7 +75,9 @@ func main() {
 	// 	}
 	// }()
 
-	// seeder.RunIdempotentSeeder(c.Config, c.ORM)
+	if err := seeder.SeedFoodDiscovery(context.Background(), c.ORM); err != nil {
+		c.Web.Logger.Errorf("seeder failed: %v", err)
+	}
 
 	// // Start the scheduled tasks
 	// if err := c.Tasks.

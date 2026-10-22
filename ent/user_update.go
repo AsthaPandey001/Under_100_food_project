@@ -15,6 +15,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent/passwordtoken"
 	"github.com/mikestefanello/pagoda/ent/predicate"
 	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/user"
 )
 
@@ -93,6 +94,34 @@ func (uu *UserUpdate) SetNillableVerified(b *bool) *UserUpdate {
 	return uu
 }
 
+// SetIsAdmin sets the "is_admin" field.
+func (uu *UserUpdate) SetIsAdmin(b bool) *UserUpdate {
+	uu.mutation.SetIsAdmin(b)
+	return uu
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableIsAdmin(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetIsAdmin(*b)
+	}
+	return uu
+}
+
+// SetRole sets the "role" field.
+func (uu *UserUpdate) SetRole(u user.Role) *UserUpdate {
+	uu.mutation.SetRole(u)
+	return uu
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableRole(u *user.Role) *UserUpdate {
+	if u != nil {
+		uu.SetRole(*u)
+	}
+	return uu
+}
+
 // SetLastOnline sets the "last_online" field.
 func (uu *UserUpdate) SetLastOnline(t time.Time) *UserUpdate {
 	uu.mutation.SetLastOnline(t)
@@ -162,6 +191,21 @@ func (uu *UserUpdate) AddLastSeenAt(l ...*LastSeenOnline) *UserUpdate {
 	return uu.AddLastSeenAtIDs(ids...)
 }
 
+// AddRestaurantIDs adds the "restaurants" edge to the Restaurant entity by IDs.
+func (uu *UserUpdate) AddRestaurantIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddRestaurantIDs(ids...)
+	return uu
+}
+
+// AddRestaurants adds the "restaurants" edges to the Restaurant entity.
+func (uu *UserUpdate) AddRestaurants(r ...*Restaurant) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.AddRestaurantIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -213,6 +257,27 @@ func (uu *UserUpdate) RemoveLastSeenAt(l ...*LastSeenOnline) *UserUpdate {
 		ids[i] = l[i].ID
 	}
 	return uu.RemoveLastSeenAtIDs(ids...)
+}
+
+// ClearRestaurants clears all "restaurants" edges to the Restaurant entity.
+func (uu *UserUpdate) ClearRestaurants() *UserUpdate {
+	uu.mutation.ClearRestaurants()
+	return uu
+}
+
+// RemoveRestaurantIDs removes the "restaurants" edge to Restaurant entities by IDs.
+func (uu *UserUpdate) RemoveRestaurantIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveRestaurantIDs(ids...)
+	return uu
+}
+
+// RemoveRestaurants removes "restaurants" edges to Restaurant entities.
+func (uu *UserUpdate) RemoveRestaurants(r ...*Restaurant) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.RemoveRestaurantIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -274,6 +339,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -303,6 +373,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.Verified(); ok {
 		_spec.SetField(user.FieldVerified, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.LastOnline(); ok {
 		_spec.SetField(user.FieldLastOnline, field.TypeTime, value)
@@ -429,6 +505,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if uu.mutation.RestaurantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedRestaurantsIDs(); len(nodes) > 0 && !uu.mutation.RestaurantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RestaurantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -511,6 +632,34 @@ func (uuo *UserUpdateOne) SetNillableVerified(b *bool) *UserUpdateOne {
 	return uuo
 }
 
+// SetIsAdmin sets the "is_admin" field.
+func (uuo *UserUpdateOne) SetIsAdmin(b bool) *UserUpdateOne {
+	uuo.mutation.SetIsAdmin(b)
+	return uuo
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableIsAdmin(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetIsAdmin(*b)
+	}
+	return uuo
+}
+
+// SetRole sets the "role" field.
+func (uuo *UserUpdateOne) SetRole(u user.Role) *UserUpdateOne {
+	uuo.mutation.SetRole(u)
+	return uuo
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRole(u *user.Role) *UserUpdateOne {
+	if u != nil {
+		uuo.SetRole(*u)
+	}
+	return uuo
+}
+
 // SetLastOnline sets the "last_online" field.
 func (uuo *UserUpdateOne) SetLastOnline(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetLastOnline(t)
@@ -580,6 +729,21 @@ func (uuo *UserUpdateOne) AddLastSeenAt(l ...*LastSeenOnline) *UserUpdateOne {
 	return uuo.AddLastSeenAtIDs(ids...)
 }
 
+// AddRestaurantIDs adds the "restaurants" edge to the Restaurant entity by IDs.
+func (uuo *UserUpdateOne) AddRestaurantIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddRestaurantIDs(ids...)
+	return uuo
+}
+
+// AddRestaurants adds the "restaurants" edges to the Restaurant entity.
+func (uuo *UserUpdateOne) AddRestaurants(r ...*Restaurant) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.AddRestaurantIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -631,6 +795,27 @@ func (uuo *UserUpdateOne) RemoveLastSeenAt(l ...*LastSeenOnline) *UserUpdateOne 
 		ids[i] = l[i].ID
 	}
 	return uuo.RemoveLastSeenAtIDs(ids...)
+}
+
+// ClearRestaurants clears all "restaurants" edges to the Restaurant entity.
+func (uuo *UserUpdateOne) ClearRestaurants() *UserUpdateOne {
+	uuo.mutation.ClearRestaurants()
+	return uuo
+}
+
+// RemoveRestaurantIDs removes the "restaurants" edge to Restaurant entities by IDs.
+func (uuo *UserUpdateOne) RemoveRestaurantIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveRestaurantIDs(ids...)
+	return uuo
+}
+
+// RemoveRestaurants removes "restaurants" edges to Restaurant entities.
+func (uuo *UserUpdateOne) RemoveRestaurants(r ...*Restaurant) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.RemoveRestaurantIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -705,6 +890,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -751,6 +941,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Verified(); ok {
 		_spec.SetField(user.FieldVerified, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeEnum, value)
 	}
 	if value, ok := uuo.mutation.LastOnline(); ok {
 		_spec.SetField(user.FieldLastOnline, field.TypeTime, value)
@@ -870,6 +1066,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(lastseenonline.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.RestaurantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedRestaurantsIDs(); len(nodes) > 0 && !uuo.mutation.RestaurantsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RestaurantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

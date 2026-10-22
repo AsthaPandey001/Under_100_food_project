@@ -1,0 +1,101 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 44" fill="none">
+  <!-- Baseline -->
+  <path d="M0 42H280" stroke="#087443" stroke-width="1.8" stroke-linecap="round"/>
+  
+  <!-- 1. Left: Lalbagh Glass House Pavilion -->
+  <path d="M8 42H44V39C44 39 42 35 34 35C30 35 28 32 26 32C24 32 22 35 18 35C10 35 8 39 8 42Z" fill="#087443" fill-opacity="0.15" stroke="#087443" stroke-width="1.2"/>
+  <path d="M26 32V29M26 29C22 29 16 34 16 39M26 29C30 29 36 34 36 39" stroke="#087443" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="26" cy="28.5" r="1.5" fill="#087443"/>
+
+  <!-- 2. Colonnade tower 1 -->
+  <rect x="48" y="24" width="16" height="18" rx="1" fill="#087443" fill-opacity="0.2" stroke="#087443" stroke-width="1.2"/>
+  <!-- Windows / Pillars -->
+  <path d="M52 42V30M56 42V30M60 42V30" stroke="#087443" stroke-width="1"/>
+  <!-- Tower 1 Dome / Chhatri -->
+  <path d="M47 24H65L62 20C62 20 60 17 56 17C52 17 50 20 50 20L47 24Z" fill="#087443" stroke="#087443" stroke-width="1.2"/>
+  <path d="M56 17V14M55 14H57" stroke="#087443" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- 3. Connecting Arcade 1 -->
+  <rect x="66" y="29" width="18" height="13" fill="#087443" fill-opacity="0.25" stroke="#087443" stroke-width="1.2"/>
+  <!-- Arches -->
+  <path d="M69 42V34C69 32.5 72 32.5 72 34V42M77 42V34C77 32.5 80 32.5 80 34V42" stroke="#087443" stroke-width="1"/>
+  <!-- Pitched Roof -->
+  <path d="M65 29L75 22L85 29Z" fill="#087443" stroke="#087443" stroke-width="1.2"/>
+  <circle cx="75" cy="21" r="1" fill="#087443"/>
+
+  <!-- 4. CENTERPIECE: VIDHANA SOUDHA -->
+  <!-- Base Building -->
+  <rect x="88" y="19" width="46" height="23" rx="1.5" fill="#087443" fill-opacity="0.18" stroke="#087443" stroke-width="1.3"/>
+  <!-- Colonnaded Pillars -->
+  <path d="M94 42V25M99 42V25M104 42V25M118 42V25M123 42V25M128 42V25" stroke="#087443" stroke-width="1"/>
+  
+  <!-- Central Grand Portico Steps & Pillars -->
+  <rect x="106" y="25" width="10" height="17" fill="#087443" fill-opacity="0.4" stroke="#087443" stroke-width="1.2"/>
+  <path d="M107 42V29C107 27 115 27 115 29V42" fill="#087443"/>
+  
+  <!-- Entablature / Pediment above portico -->
+  <path d="M102 24L111 18L120 24Z" fill="#087443" stroke="#087443" stroke-width="1.2"/>
+
+  <!-- Vidhana Soudha Drum & Grand Central Dome -->
+  <rect x="98" y="14" width="26" height="6" fill="#087443" fill-opacity="0.3" stroke="#087443" stroke-width="1.2"/>
+  <!-- Arched windows in drum -->
+  <path d="M103 18V16M111 18V16M119 18V16" stroke="#087443" stroke-width="1.2"/>
+
+  <!-- Grand Ribbed Dome Arc -->
+  <path d="M99 14C99 4 123 4 123 14Z" fill="#087443" fill-opacity="0.35" stroke="#087443" stroke-width="1.4"/>
+  <!-- Dome Ribs -->
+  <path d="M111 4V14M105 6C107 9 107 12 107 14M117 6C115 9 115 12 115 14" stroke="#087443" stroke-width="1"/>
+
+  <!-- Kalasa Finial Spire -->
+  <path d="M111 4V-1M109 0H113" stroke="#087443" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="111" cy="-1.5" r="1.5" fill="#087443"/>
+
+  <!-- Side Chhatris / Minarets of Vidhana Soudha -->
+  <path d="M91 19V14L93 11L95 14V19" stroke="#087443" stroke-width="1"/>
+  <path d="M127 19V14L129 11L131 14V19" stroke="#087443" stroke-width="1"/>
+
+  <!-- 5. Connecting Arcade 2 -->
+  <rect x="137" y="29" width="18" height="13" fill="#087443" fill-opacity="0.25" stroke="#087443" stroke-width="1.2"/>
+  <!-- Arches -->
+  <path d="M140 42V34C140 32.5 143 32.5 143 34V42M148 42V34C148 32.5 151 32.5 151 34V42" stroke="#087443" stroke-width="1"/>
+  <!-- Pitched Roof -->
+  <path d="M136 29L146 22L156 29Z" fill="#087443" stroke="#087443" stroke-width="1.2"/>
+  <circle cx="146" cy="21" r="1" fill="#087443"/>
+
+  <!-- 6. Colonnade tower 2 -->
+  <rect x="158" y="24" width="16" height="18" rx="1" fill="#087443" fill-opacity="0.2" stroke="#087443" stroke-width="1.2"/>
+  <path d="M162 42V30M166 42V30M170 42V30" stroke="#087443" stroke-width="1"/>
+  <path d="M157 24H175L172 20C172 20 170 17 166 17C162 17 160 20 160 20L157 24Z" fill="#087443" stroke="#087443" stroke-width="1.2"/>
+  <path d="M166 17V14M165 14H167" stroke="#087443" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- 7. TALL CLOCK TOWER (Mayo Hall / Cantonment Spire) -->
+  <rect x="182" y="16" width="13" height="26" fill="#087443" fill-opacity="0.3" stroke="#087443" stroke-width="1.3"/>
+  <!-- Clock Face Circle -->
+  <circle cx="188.5" cy="21" r="3.2" fill="#EBF7EE" stroke="#087443" stroke-width="1"/>
+  <path d="M188.5 19.5V21H190" stroke="#087443" stroke-width="0.9"/>
+  <!-- Tower Windows -->
+  <rect x="186" y="27" width="5" height="10" rx="1" fill="#087443"/>
+  <!-- Spire Roof -->
+  <path d="M181 16H196L188.5 5Z" fill="#087443" stroke="#087443" stroke-width="1.3"/>
+  <!-- Finial Point -->
+  <path d="M188.5 5V1" stroke="#087443" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="188.5" cy="0.5" r="1.2" fill="#087443"/>
+
+  <!-- Small transition shrubs -->
+  <path d="M198 42C198 39 201 37 204 37C207 37 210 39 210 42Z" fill="#087443" stroke="#087443" stroke-width="1"/>
+
+  <!-- 8. BASILICA / MEMORIAL DOME (St. Mary's / Central Cathedral) -->
+  <rect x="212" y="23" width="26" height="19" fill="#087443" fill-opacity="0.2" stroke="#087443" stroke-width="1.3"/>
+  <!-- Cathedral Arches -->
+  <path d="M217 42V31C217 29 221 29 221 31V42M229 42V31C229 29 233 29 233 31V42" stroke="#087443" stroke-width="1"/>
+  <!-- Cathedral Drum -->
+  <rect x="216" y="17" width="18" height="6" fill="#087443" fill-opacity="0.35" stroke="#087443" stroke-width="1.2"/>
+  <!-- Dome -->
+  <path d="M216 17C216 8 234 8 234 17Z" fill="#087443" fill-opacity="0.4" stroke="#087443" stroke-width="1.3"/>
+  <path d="M225 8V17" stroke="#087443" stroke-width="1"/>
+  <!-- Finial Cross -->
+  <path d="M225 8V4M223 6H227" stroke="#087443" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- Small tree at right edge -->
+  <path d="M242 42C242 38 246 36 249 36C252 36 256 38 256 42Z" fill="#087443" stroke="#087443" stroke-width="1"/>
+</svg>

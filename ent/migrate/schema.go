@@ -9,6 +9,22 @@ import (
 )
 
 var (
+	// CitiesColumns holds the columns for the "cities" table.
+	CitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "state", Type: field.TypeString, Default: "Karnataka"},
+		{Name: "latitude", Type: field.TypeFloat64, Default: 12.9716},
+		{Name: "longitude", Type: field.TypeFloat64, Default: 77.5946},
+	}
+	// CitiesTable holds the schema information for the "cities" table.
+	CitiesTable = &schema.Table{
+		Name:       "cities",
+		Columns:    CitiesColumns,
+		PrimaryKey: []*schema.Column{CitiesColumns[0]},
+	}
 	// EmailSubscriptionsColumns holds the columns for the "email_subscriptions" table.
 	EmailSubscriptionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -103,6 +119,32 @@ var (
 				Name:    "filestorage_bucket_name_object_key",
 				Unique:  true,
 				Columns: []*schema.Column{FileStoragesColumns[3], FileStoragesColumns[4]},
+			},
+		},
+	}
+	// FoodItemsColumns holds the columns for the "food_items" table.
+	FoodItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "category", Type: field.TypeString, Default: "General"},
+		{Name: "price", Type: field.TypeFloat64},
+		{Name: "available", Type: field.TypeBool, Default: true},
+		{Name: "restaurant_food_items", Type: field.TypeInt},
+	}
+	// FoodItemsTable holds the schema information for the "food_items" table.
+	FoodItemsTable = &schema.Table{
+		Name:       "food_items",
+		Columns:    FoodItemsColumns,
+		PrimaryKey: []*schema.Column{FoodItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "food_items_restaurants_food_items",
+				Columns:    []*schema.Column{FoodItemsColumns[8]},
+				RefColumns: []*schema.Column{RestaurantsColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -242,7 +284,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"new_private_message", "mutual_question_answered", "connection_engaged_with_question", "increment_num_unseen_msg", "decrement_num_unseen_msg", "update_num_notifs", "connection_request_accepted", "platform_update", "connection_reacted_to_answer", "committed_relationship_request", "breakup", "contact_request", "new_homefeed_qa_object", "payment_failed", "daily_conversation_reminder"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"new_private_message", "connection_engaged_with_question", "increment_num_unseen_msg", "decrement_num_unseen_msg", "update_num_notifs", "platform_update", "payment_failed", "daily_conversation_reminder"}},
 		{Name: "title", Type: field.TypeString, Default: ""},
 		{Name: "text", Type: field.TypeString},
 		{Name: "link", Type: field.TypeString, Nullable: true},
@@ -303,7 +345,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"new_private_message", "mutual_question_answered", "connection_engaged_with_question", "increment_num_unseen_msg", "decrement_num_unseen_msg", "update_num_notifs", "connection_request_accepted", "platform_update", "connection_reacted_to_answer", "committed_relationship_request", "breakup", "contact_request", "new_homefeed_qa_object", "payment_failed", "daily_conversation_reminder"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"new_private_message", "connection_engaged_with_question", "increment_num_unseen_msg", "decrement_num_unseen_msg", "update_num_notifs", "platform_update", "payment_failed", "daily_conversation_reminder"}},
 		{Name: "send_minute", Type: field.TypeInt},
 		{Name: "profile_id", Type: field.TypeInt},
 	}
@@ -445,6 +487,43 @@ var (
 			},
 		},
 	}
+	// RestaurantsColumns holds the columns for the "restaurants" table.
+	RestaurantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "address", Type: field.TypeString},
+		{Name: "latitude", Type: field.TypeFloat64},
+		{Name: "longitude", Type: field.TypeFloat64},
+		{Name: "phone", Type: field.TypeString, Nullable: true},
+		{Name: "website", Type: field.TypeString, Nullable: true},
+		{Name: "opening_hours", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "approved", "rejected"}, Default: "pending"},
+		{Name: "city_restaurants", Type: field.TypeInt, Nullable: true},
+		{Name: "user_restaurants", Type: field.TypeInt, Nullable: true},
+	}
+	// RestaurantsTable holds the schema information for the "restaurants" table.
+	RestaurantsTable = &schema.Table{
+		Name:       "restaurants",
+		Columns:    RestaurantsColumns,
+		PrimaryKey: []*schema.Column{RestaurantsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "restaurants_cities_restaurants",
+				Columns:    []*schema.Column{RestaurantsColumns[12]},
+				RefColumns: []*schema.Column{CitiesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "restaurants_users_restaurants",
+				Columns:    []*schema.Column{RestaurantsColumns[13]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// SentEmailsColumns holds the columns for the "sent_emails" table.
 	SentEmailsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -476,6 +555,8 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
 		{Name: "verified", Type: field.TypeBool, Default: false},
+		{Name: "is_admin", Type: field.TypeBool, Default: false},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"customer", "merchant", "admin"}, Default: "customer"},
 		{Name: "last_online", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -561,11 +642,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CitiesTable,
 		EmailSubscriptionsTable,
 		EmailSubscriptionTypesTable,
 		EmojisTable,
 		FcmSubscriptionsTable,
 		FileStoragesTable,
+		FoodItemsTable,
 		ImagesTable,
 		ImageSizesTable,
 		InvitationsTable,
@@ -578,6 +661,7 @@ var (
 		PhoneVerificationCodesTable,
 		ProfilesTable,
 		PwaPushSubscriptionsTable,
+		RestaurantsTable,
 		SentEmailsTable,
 		UsersTable,
 		EmailSubscriptionSubscriptionsTable,
@@ -588,6 +672,7 @@ var (
 
 func init() {
 	FcmSubscriptionsTable.ForeignKeys[0].RefTable = ProfilesTable
+	FoodItemsTable.ForeignKeys[0].RefTable = RestaurantsTable
 	ImagesTable.ForeignKeys[0].RefTable = ProfilesTable
 	ImageSizesTable.ForeignKeys[0].RefTable = ImagesTable
 	ImageSizesTable.ForeignKeys[1].RefTable = FileStoragesTable
@@ -602,6 +687,8 @@ func init() {
 	ProfilesTable.ForeignKeys[0].RefTable = ImagesTable
 	ProfilesTable.ForeignKeys[1].RefTable = UsersTable
 	PwaPushSubscriptionsTable.ForeignKeys[0].RefTable = ProfilesTable
+	RestaurantsTable.ForeignKeys[0].RefTable = CitiesTable
+	RestaurantsTable.ForeignKeys[1].RefTable = UsersTable
 	SentEmailsTable.ForeignKeys[0].RefTable = ProfilesTable
 	EmailSubscriptionSubscriptionsTable.ForeignKeys[0].RefTable = EmailSubscriptionsTable
 	EmailSubscriptionSubscriptionsTable.ForeignKeys[1].RefTable = EmailSubscriptionTypesTable

@@ -71,6 +71,11 @@ func (c *AuthClient) Login(ctx echo.Context, userID int) error {
 
 	sess.Values[authSessionKeyUserID] = userID
 	sess.Values[authSessionKeyAuthenticated] = true
+	sess.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30, // 30 days persistent across restarts & refreshes
+		HttpOnly: true,
+	}
 	return sess.Save(ctx.Request(), ctx.Response())
 }
 

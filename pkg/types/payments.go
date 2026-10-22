@@ -14,7 +14,7 @@ type (
 
 	CreateCheckoutSessionForm struct {
 		Submission controller.FormSubmission
-		PriceID    string `form:"price_id", validate:required`
+		PriceID    string `form:"price_id" validate:"required"`
 	}
 
 	ProductDescription struct {

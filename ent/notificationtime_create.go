@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/notificationtime"
@@ -20,7 +19,6 @@ type NotificationTimeCreate struct {
 	config
 	mutation *NotificationTimeMutation
 	hooks    []Hook
-	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -175,7 +173,6 @@ func (ntc *NotificationTimeCreate) createSpec() (*NotificationTime, *sqlgraph.Cr
 		_node = &NotificationTime{config: ntc.config}
 		_spec = sqlgraph.NewCreateSpec(notificationtime.Table, sqlgraph.NewFieldSpec(notificationtime.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = ntc.conflict
 	if value, ok := ntc.mutation.CreatedAt(); ok {
 		_spec.SetField(notificationtime.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -212,256 +209,11 @@ func (ntc *NotificationTimeCreate) createSpec() (*NotificationTime, *sqlgraph.Cr
 	return _node, _spec
 }
 
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.NotificationTime.Create().
-//		SetCreatedAt(v).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.NotificationTimeUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (ntc *NotificationTimeCreate) OnConflict(opts ...sql.ConflictOption) *NotificationTimeUpsertOne {
-	ntc.conflict = opts
-	return &NotificationTimeUpsertOne{
-		create: ntc,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (ntc *NotificationTimeCreate) OnConflictColumns(columns ...string) *NotificationTimeUpsertOne {
-	ntc.conflict = append(ntc.conflict, sql.ConflictColumns(columns...))
-	return &NotificationTimeUpsertOne{
-		create: ntc,
-	}
-}
-
-type (
-	// NotificationTimeUpsertOne is the builder for "upsert"-ing
-	//  one NotificationTime node.
-	NotificationTimeUpsertOne struct {
-		create *NotificationTimeCreate
-	}
-
-	// NotificationTimeUpsert is the "OnConflict" setter.
-	NotificationTimeUpsert struct {
-		*sql.UpdateSet
-	}
-)
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *NotificationTimeUpsert) SetUpdatedAt(v time.Time) *NotificationTimeUpsert {
-	u.Set(notificationtime.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *NotificationTimeUpsert) UpdateUpdatedAt() *NotificationTimeUpsert {
-	u.SetExcluded(notificationtime.FieldUpdatedAt)
-	return u
-}
-
-// SetType sets the "type" field.
-func (u *NotificationTimeUpsert) SetType(v notificationtime.Type) *NotificationTimeUpsert {
-	u.Set(notificationtime.FieldType, v)
-	return u
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *NotificationTimeUpsert) UpdateType() *NotificationTimeUpsert {
-	u.SetExcluded(notificationtime.FieldType)
-	return u
-}
-
-// SetSendMinute sets the "send_minute" field.
-func (u *NotificationTimeUpsert) SetSendMinute(v int) *NotificationTimeUpsert {
-	u.Set(notificationtime.FieldSendMinute, v)
-	return u
-}
-
-// UpdateSendMinute sets the "send_minute" field to the value that was provided on create.
-func (u *NotificationTimeUpsert) UpdateSendMinute() *NotificationTimeUpsert {
-	u.SetExcluded(notificationtime.FieldSendMinute)
-	return u
-}
-
-// AddSendMinute adds v to the "send_minute" field.
-func (u *NotificationTimeUpsert) AddSendMinute(v int) *NotificationTimeUpsert {
-	u.Add(notificationtime.FieldSendMinute, v)
-	return u
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *NotificationTimeUpsert) SetProfileID(v int) *NotificationTimeUpsert {
-	u.Set(notificationtime.FieldProfileID, v)
-	return u
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *NotificationTimeUpsert) UpdateProfileID() *NotificationTimeUpsert {
-	u.SetExcluded(notificationtime.FieldProfileID)
-	return u
-}
-
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
-// Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *NotificationTimeUpsertOne) UpdateNewValues() *NotificationTimeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(notificationtime.FieldCreatedAt)
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
-func (u *NotificationTimeUpsertOne) Ignore() *NotificationTimeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *NotificationTimeUpsertOne) DoNothing() *NotificationTimeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the NotificationTimeCreate.OnConflict
-// documentation for more info.
-func (u *NotificationTimeUpsertOne) Update(set func(*NotificationTimeUpsert)) *NotificationTimeUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&NotificationTimeUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *NotificationTimeUpsertOne) SetUpdatedAt(v time.Time) *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *NotificationTimeUpsertOne) UpdateUpdatedAt() *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetType sets the "type" field.
-func (u *NotificationTimeUpsertOne) SetType(v notificationtime.Type) *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *NotificationTimeUpsertOne) UpdateType() *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateType()
-	})
-}
-
-// SetSendMinute sets the "send_minute" field.
-func (u *NotificationTimeUpsertOne) SetSendMinute(v int) *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetSendMinute(v)
-	})
-}
-
-// AddSendMinute adds v to the "send_minute" field.
-func (u *NotificationTimeUpsertOne) AddSendMinute(v int) *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.AddSendMinute(v)
-	})
-}
-
-// UpdateSendMinute sets the "send_minute" field to the value that was provided on create.
-func (u *NotificationTimeUpsertOne) UpdateSendMinute() *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateSendMinute()
-	})
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *NotificationTimeUpsertOne) SetProfileID(v int) *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetProfileID(v)
-	})
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *NotificationTimeUpsertOne) UpdateProfileID() *NotificationTimeUpsertOne {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateProfileID()
-	})
-}
-
-// Exec executes the query.
-func (u *NotificationTimeUpsertOne) Exec(ctx context.Context) error {
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for NotificationTimeCreate.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *NotificationTimeUpsertOne) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *NotificationTimeUpsertOne) ID(ctx context.Context) (id int, err error) {
-	node, err := u.create.Save(ctx)
-	if err != nil {
-		return id, err
-	}
-	return node.ID, nil
-}
-
-// IDX is like ID, but panics if an error occurs.
-func (u *NotificationTimeUpsertOne) IDX(ctx context.Context) int {
-	id, err := u.ID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // NotificationTimeCreateBulk is the builder for creating many NotificationTime entities in bulk.
 type NotificationTimeCreateBulk struct {
 	config
 	err      error
 	builders []*NotificationTimeCreate
-	conflict []sql.ConflictOption
 }
 
 // Save creates the NotificationTime entities in the database.
@@ -491,7 +243,6 @@ func (ntcb *NotificationTimeCreateBulk) Save(ctx context.Context) ([]*Notificati
 					_, err = mutators[i+1].Mutate(root, ntcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = ntcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ntcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -542,180 +293,6 @@ func (ntcb *NotificationTimeCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ntcb *NotificationTimeCreateBulk) ExecX(ctx context.Context) {
 	if err := ntcb.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.NotificationTime.CreateBulk(builders...).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.NotificationTimeUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (ntcb *NotificationTimeCreateBulk) OnConflict(opts ...sql.ConflictOption) *NotificationTimeUpsertBulk {
-	ntcb.conflict = opts
-	return &NotificationTimeUpsertBulk{
-		create: ntcb,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (ntcb *NotificationTimeCreateBulk) OnConflictColumns(columns ...string) *NotificationTimeUpsertBulk {
-	ntcb.conflict = append(ntcb.conflict, sql.ConflictColumns(columns...))
-	return &NotificationTimeUpsertBulk{
-		create: ntcb,
-	}
-}
-
-// NotificationTimeUpsertBulk is the builder for "upsert"-ing
-// a bulk of NotificationTime nodes.
-type NotificationTimeUpsertBulk struct {
-	create *NotificationTimeCreateBulk
-}
-
-// UpdateNewValues updates the mutable fields using the new values that
-// were set on create. Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *NotificationTimeUpsertBulk) UpdateNewValues() *NotificationTimeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		for _, b := range u.create.builders {
-			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(notificationtime.FieldCreatedAt)
-			}
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.NotificationTime.Create().
-//		OnConflict(sql.ResolveWithIgnore()).
-//		Exec(ctx)
-func (u *NotificationTimeUpsertBulk) Ignore() *NotificationTimeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *NotificationTimeUpsertBulk) DoNothing() *NotificationTimeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the NotificationTimeCreateBulk.OnConflict
-// documentation for more info.
-func (u *NotificationTimeUpsertBulk) Update(set func(*NotificationTimeUpsert)) *NotificationTimeUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&NotificationTimeUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *NotificationTimeUpsertBulk) SetUpdatedAt(v time.Time) *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *NotificationTimeUpsertBulk) UpdateUpdatedAt() *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetType sets the "type" field.
-func (u *NotificationTimeUpsertBulk) SetType(v notificationtime.Type) *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetType(v)
-	})
-}
-
-// UpdateType sets the "type" field to the value that was provided on create.
-func (u *NotificationTimeUpsertBulk) UpdateType() *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateType()
-	})
-}
-
-// SetSendMinute sets the "send_minute" field.
-func (u *NotificationTimeUpsertBulk) SetSendMinute(v int) *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetSendMinute(v)
-	})
-}
-
-// AddSendMinute adds v to the "send_minute" field.
-func (u *NotificationTimeUpsertBulk) AddSendMinute(v int) *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.AddSendMinute(v)
-	})
-}
-
-// UpdateSendMinute sets the "send_minute" field to the value that was provided on create.
-func (u *NotificationTimeUpsertBulk) UpdateSendMinute() *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateSendMinute()
-	})
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *NotificationTimeUpsertBulk) SetProfileID(v int) *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.SetProfileID(v)
-	})
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *NotificationTimeUpsertBulk) UpdateProfileID() *NotificationTimeUpsertBulk {
-	return u.Update(func(s *NotificationTimeUpsert) {
-		s.UpdateProfileID()
-	})
-}
-
-// Exec executes the query.
-func (u *NotificationTimeUpsertBulk) Exec(ctx context.Context) error {
-	if u.create.err != nil {
-		return u.create.err
-	}
-	for i, b := range u.create.builders {
-		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NotificationTimeCreateBulk instead", i)
-		}
-	}
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for NotificationTimeCreateBulk.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *NotificationTimeUpsertBulk) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

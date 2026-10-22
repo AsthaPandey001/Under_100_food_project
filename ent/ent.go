@@ -12,11 +12,13 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/mikestefanello/pagoda/ent/city"
 	"github.com/mikestefanello/pagoda/ent/emailsubscription"
 	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
 	"github.com/mikestefanello/pagoda/ent/emojis"
 	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
 	"github.com/mikestefanello/pagoda/ent/filestorage"
+	"github.com/mikestefanello/pagoda/ent/fooditem"
 	"github.com/mikestefanello/pagoda/ent/image"
 	"github.com/mikestefanello/pagoda/ent/imagesize"
 	"github.com/mikestefanello/pagoda/ent/invitation"
@@ -29,6 +31,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
 	"github.com/mikestefanello/pagoda/ent/profile"
 	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/sentemail"
 	"github.com/mikestefanello/pagoda/ent/user"
 )
@@ -91,11 +94,13 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			city.Table:                   city.ValidColumn,
 			emailsubscription.Table:      emailsubscription.ValidColumn,
 			emailsubscriptiontype.Table:  emailsubscriptiontype.ValidColumn,
 			emojis.Table:                 emojis.ValidColumn,
 			fcmsubscriptions.Table:       fcmsubscriptions.ValidColumn,
 			filestorage.Table:            filestorage.ValidColumn,
+			fooditem.Table:               fooditem.ValidColumn,
 			image.Table:                  image.ValidColumn,
 			imagesize.Table:              imagesize.ValidColumn,
 			invitation.Table:             invitation.ValidColumn,
@@ -108,6 +113,7 @@ func checkColumn(table, column string) error {
 			phoneverificationcode.Table:  phoneverificationcode.ValidColumn,
 			profile.Table:                profile.ValidColumn,
 			pwapushsubscription.Table:    pwapushsubscription.ValidColumn,
+			restaurant.Table:             restaurant.ValidColumn,
 			sentemail.Table:              sentemail.ValidColumn,
 			user.Table:                   user.ValidColumn,
 		})

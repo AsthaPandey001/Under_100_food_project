@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_pkg_routing_routenames_routenames_go", "label": "routenames.go", "file_type": "code", "source_file": "pkg/routing/routenames/routenames.go", "source_location": "L1"}], "edges": [], "raw_calls": [], "go_imports": {}}

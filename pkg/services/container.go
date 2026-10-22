@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
-
 	"os"
+	"strings"
+	"time"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
@@ -35,6 +35,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent/migrate"
 	_ "github.com/mikestefanello/pagoda/ent/runtime"
 	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/mikestefanello/pagoda/pkg/repos/fooddiscovery"
 )
 
 type SentryHook struct{}
@@ -85,6 +86,9 @@ type Container struct {
 
 	// Tasks stores the task client
 	Tasks *TaskClient
+
+	// FoodDiscovery handles all food discovery operations
+	FoodDiscovery *fooddiscovery.Repo
 }
 
 // NewContainer creates and initializes a new Container
@@ -93,9 +97,10 @@ func NewContainer() *Container {
 	c.initConfig()
 	c.initValidator()
 	c.initWeb()
-	// c.initCache()
+	c.initCache()
 	c.initDatabase()
 	c.initORM()
+	c.FoodDiscovery = fooddiscovery.NewRepo(c.ORM, c.Database)
 	c.initAuth()
 	// c.initNotifier()
 	c.initMail()
@@ -106,17 +111,25 @@ func NewContainer() *Container {
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-	if err := c.Tasks.Close(); err != nil {
-		return err
+	if c.Tasks != nil {
+		if err := c.Tasks.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.Cache.Close(); err != nil {
-		return err
+	if c.Cache != nil {
+		if err := c.Cache.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.ORM.Close(); err != nil {
-		return err
+	if c.ORM != nil {
+		if err := c.ORM.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.Database.Close(); err != nil {
-		return err
+	if c.Database != nil {
+		if err := c.Database.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -194,11 +207,14 @@ func (c *Container) initWeb() {
 	c.Web.Validator = c.Validator
 }
 
-// initCache initializes the cache
+// initCache initializes the cache with graceful fallback
 func (c *Container) initCache() {
 	var err error
 	if c.Cache, err = NewCacheClient(c.Config); err != nil {
-		panic(err)
+		if c.Logger != nil {
+			c.Logger.Warnf("redis cache initialization deferred or failed: %v; running with in-memory fallback", err)
+		}
+		c.Cache = nil
 	}
 }
 
@@ -279,11 +295,14 @@ func (c *Container) initDatabase() {
 				panic(fmt.Sprintf("failed to connect to database: %v", err))
 			}
 		}
-		// Create the pgvector extension
-		_, err = c.Database.Exec("CREATE EXTENSION IF NOT EXISTS vector")
-		if err != nil {
-			panic(fmt.Sprintf("failed to enable pgvector: %v", err))
-		}
+		// Create the pgvector extension if available
+		_, _ = c.Database.Exec("CREATE EXTENSION IF NOT EXISTS vector")
+
+		// Configure PostgreSQL connection pool settings for production reliability
+		c.Database.SetMaxOpenConns(25)
+		c.Database.SetMaxIdleConns(10)
+		c.Database.SetConnMaxLifetime(15 * time.Minute)
+		c.Database.SetConnMaxIdleTime(5 * time.Minute)
 	}
 }
 
@@ -382,19 +401,32 @@ func (c *Container) initNotifier() {
 		pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 }
 
-// initMail initialize the mail client
+// initMail initializes the mail client
 func (c *Container) initMail() {
 	var err error
 	var mailClientImplementation mailer.MailClientInterface
 
-	if c.Config.App.Environment == config.EnvProduction {
+	switch {
+	case c.Config.App.Environment == config.EnvProduction && c.Config.Mail.ResendAPIKey != "":
 		mailClientImplementation = mailer.NewResendMailClient(c.Config.Mail.ResendAPIKey)
-	} else {
-		mailClientImplementation = mailer.NewSMTPMailClient("localhost", int(c.Config.Mail.SmtpPort))
+	case c.Config.App.Environment == config.EnvTest || c.Config.Mail.Hostname == "mock":
+		mailClientImplementation = mailer.NewMockMailClient()
+	default:
+		mailHost := c.Config.Mail.Hostname
+		if mailHost == "" {
+			mailHost = "localhost"
+		}
+		mailPort := int(c.Config.Mail.SmtpPort)
+		if mailPort <= 0 {
+			mailPort = 1025
+		}
+		mailClientImplementation = mailer.NewSMTPMailClient(mailHost, mailPort)
 	}
 	c.Mail, err = mailer.NewMailClient(c.Config, mailClientImplementation)
 	if err != nil {
-		panic(fmt.Sprintf("failed to create mail client: %v", err))
+		if c.Logger != nil {
+			c.Logger.Errorf("failed to create mail client: %v", err)
+		}
 	}
 }
 

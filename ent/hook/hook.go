@@ -9,6 +9,18 @@ import (
 	"github.com/mikestefanello/pagoda/ent"
 )
 
+// The CityFunc type is an adapter to allow the use of ordinary
+// function as City mutator.
+type CityFunc func(context.Context, *ent.CityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CityMutation", m)
+}
+
 // The EmailSubscriptionFunc type is an adapter to allow the use of ordinary
 // function as EmailSubscription mutator.
 type EmailSubscriptionFunc func(context.Context, *ent.EmailSubscriptionMutation) (ent.Value, error)
@@ -67,6 +79,18 @@ func (f FileStorageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FileStorageMutation", m)
+}
+
+// The FoodItemFunc type is an adapter to allow the use of ordinary
+// function as FoodItem mutator.
+type FoodItemFunc func(context.Context, *ent.FoodItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FoodItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FoodItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FoodItemMutation", m)
 }
 
 // The ImageFunc type is an adapter to allow the use of ordinary
@@ -211,6 +235,18 @@ func (f PwaPushSubscriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PwaPushSubscriptionMutation", m)
+}
+
+// The RestaurantFunc type is an adapter to allow the use of ordinary
+// function as Restaurant mutator.
+type RestaurantFunc func(context.Context, *ent.RestaurantMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RestaurantFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RestaurantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RestaurantMutation", m)
 }
 
 // The SentEmailFunc type is an adapter to allow the use of ordinary

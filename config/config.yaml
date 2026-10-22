@@ -61,14 +61,14 @@ cache:
     page: "0h"
 
 database:
-  dbMode: "embedded"
+  dbMode: "standalone"
   embeddedDriver: "sqlite3"
   embeddedConnection: "dbs/main.db?_journal=WAL&_timeout=5000&_fk=true"
   embeddedTestConnection: ":memory:?_journal=WAL&_timeout=5000&_fk=true"
   hostname: "localhost"
   port: 5432
   user: "admin"
-  password: "admin"
+  password: ""
   databaseNameLocal: "goship_db"
   testDatabase: "goship_testdb"
   sslCertPath: "prod-ca-2021.cer"
@@ -101,3 +101,11 @@ storage:
   s3UseSSL: true
   profilePhotoMaxFileSizeMB: 2
   photosMaxFileSizeMB: 5
+
+ratelimit:
+  enabled: true
+  loginlimit: 60
+  registerlimit: 30
+  passwordforgotlimit: 30
+  passwordresetlimit: 30
+

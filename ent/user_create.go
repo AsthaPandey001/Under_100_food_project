@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/lastseenonline"
 	"github.com/mikestefanello/pagoda/ent/passwordtoken"
 	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/user"
 )
 
@@ -22,7 +22,6 @@ type UserCreate struct {
 	config
 	mutation *UserMutation
 	hooks    []Hook
-	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -81,6 +80,34 @@ func (uc *UserCreate) SetVerified(b bool) *UserCreate {
 func (uc *UserCreate) SetNillableVerified(b *bool) *UserCreate {
 	if b != nil {
 		uc.SetVerified(*b)
+	}
+	return uc
+}
+
+// SetIsAdmin sets the "is_admin" field.
+func (uc *UserCreate) SetIsAdmin(b bool) *UserCreate {
+	uc.mutation.SetIsAdmin(b)
+	return uc
+}
+
+// SetNillableIsAdmin sets the "is_admin" field if the given value is not nil.
+func (uc *UserCreate) SetNillableIsAdmin(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetIsAdmin(*b)
+	}
+	return uc
+}
+
+// SetRole sets the "role" field.
+func (uc *UserCreate) SetRole(u user.Role) *UserCreate {
+	uc.mutation.SetRole(u)
+	return uc
+}
+
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uc *UserCreate) SetNillableRole(u *user.Role) *UserCreate {
+	if u != nil {
+		uc.SetRole(*u)
 	}
 	return uc
 }
@@ -148,6 +175,21 @@ func (uc *UserCreate) AddLastSeenAt(l ...*LastSeenOnline) *UserCreate {
 	return uc.AddLastSeenAtIDs(ids...)
 }
 
+// AddRestaurantIDs adds the "restaurants" edge to the Restaurant entity by IDs.
+func (uc *UserCreate) AddRestaurantIDs(ids ...int) *UserCreate {
+	uc.mutation.AddRestaurantIDs(ids...)
+	return uc
+}
+
+// AddRestaurants adds the "restaurants" edges to the Restaurant entity.
+func (uc *UserCreate) AddRestaurants(r ...*Restaurant) *UserCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uc.AddRestaurantIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -203,6 +245,14 @@ func (uc *UserCreate) defaults() error {
 		v := user.DefaultVerified
 		uc.mutation.SetVerified(v)
 	}
+	if _, ok := uc.mutation.IsAdmin(); !ok {
+		v := user.DefaultIsAdmin
+		uc.mutation.SetIsAdmin(v)
+	}
+	if _, ok := uc.mutation.Role(); !ok {
+		v := user.DefaultRole
+		uc.mutation.SetRole(v)
+	}
 	return nil
 }
 
@@ -241,6 +291,17 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Verified(); !ok {
 		return &ValidationError{Name: "verified", err: errors.New(`ent: missing required field "User.verified"`)}
 	}
+	if _, ok := uc.mutation.IsAdmin(); !ok {
+		return &ValidationError{Name: "is_admin", err: errors.New(`ent: missing required field "User.is_admin"`)}
+	}
+	if _, ok := uc.mutation.Role(); !ok {
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "User.role"`)}
+	}
+	if v, ok := uc.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
+			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -267,7 +328,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_node = &User{config: uc.config}
 		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = uc.conflict
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -291,6 +351,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Verified(); ok {
 		_spec.SetField(user.FieldVerified, field.TypeBool, value)
 		_node.Verified = value
+	}
+	if value, ok := uc.mutation.IsAdmin(); ok {
+		_spec.SetField(user.FieldIsAdmin, field.TypeBool, value)
+		_node.IsAdmin = value
+	}
+	if value, ok := uc.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeEnum, value)
+		_node.Role = value
 	}
 	if value, ok := uc.mutation.LastOnline(); ok {
 		_spec.SetField(user.FieldLastOnline, field.TypeTime, value)
@@ -344,303 +412,23 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return _node, _spec
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.User.Create().
-//		SetCreatedAt(v).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.UserUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (uc *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
-	uc.conflict = opts
-	return &UserUpsertOne{
-		create: uc,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.User.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (uc *UserCreate) OnConflictColumns(columns ...string) *UserUpsertOne {
-	uc.conflict = append(uc.conflict, sql.ConflictColumns(columns...))
-	return &UserUpsertOne{
-		create: uc,
-	}
-}
-
-type (
-	// UserUpsertOne is the builder for "upsert"-ing
-	//  one User node.
-	UserUpsertOne struct {
-		create *UserCreate
-	}
-
-	// UserUpsert is the "OnConflict" setter.
-	UserUpsert struct {
-		*sql.UpdateSet
-	}
-)
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
-	u.Set(user.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsert) UpdateUpdatedAt() *UserUpsert {
-	u.SetExcluded(user.FieldUpdatedAt)
-	return u
-}
-
-// SetName sets the "name" field.
-func (u *UserUpsert) SetName(v string) *UserUpsert {
-	u.Set(user.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *UserUpsert) UpdateName() *UserUpsert {
-	u.SetExcluded(user.FieldName)
-	return u
-}
-
-// SetEmail sets the "email" field.
-func (u *UserUpsert) SetEmail(v string) *UserUpsert {
-	u.Set(user.FieldEmail, v)
-	return u
-}
-
-// UpdateEmail sets the "email" field to the value that was provided on create.
-func (u *UserUpsert) UpdateEmail() *UserUpsert {
-	u.SetExcluded(user.FieldEmail)
-	return u
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsert) SetPassword(v string) *UserUpsert {
-	u.Set(user.FieldPassword, v)
-	return u
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsert) UpdatePassword() *UserUpsert {
-	u.SetExcluded(user.FieldPassword)
-	return u
-}
-
-// SetVerified sets the "verified" field.
-func (u *UserUpsert) SetVerified(v bool) *UserUpsert {
-	u.Set(user.FieldVerified, v)
-	return u
-}
-
-// UpdateVerified sets the "verified" field to the value that was provided on create.
-func (u *UserUpsert) UpdateVerified() *UserUpsert {
-	u.SetExcluded(user.FieldVerified)
-	return u
-}
-
-// SetLastOnline sets the "last_online" field.
-func (u *UserUpsert) SetLastOnline(v time.Time) *UserUpsert {
-	u.Set(user.FieldLastOnline, v)
-	return u
-}
-
-// UpdateLastOnline sets the "last_online" field to the value that was provided on create.
-func (u *UserUpsert) UpdateLastOnline() *UserUpsert {
-	u.SetExcluded(user.FieldLastOnline)
-	return u
-}
-
-// ClearLastOnline clears the value of the "last_online" field.
-func (u *UserUpsert) ClearLastOnline() *UserUpsert {
-	u.SetNull(user.FieldLastOnline)
-	return u
-}
-
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
-// Using this option is equivalent to using:
-//
-//	client.User.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *UserUpsertOne) UpdateNewValues() *UserUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(user.FieldCreatedAt)
+	if nodes := uc.mutation.RestaurantsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RestaurantsTable,
+			Columns: []string{user.RestaurantsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(restaurant.FieldID, field.TypeInt),
+			},
 		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.User.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
-func (u *UserUpsertOne) Ignore() *UserUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *UserUpsertOne) DoNothing() *UserUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the UserCreate.OnConflict
-// documentation for more info.
-func (u *UserUpsertOne) Update(set func(*UserUpsert)) *UserUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&UserUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsertOne) SetUpdatedAt(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateUpdatedAt() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *UserUpsertOne) SetName(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateName() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetEmail sets the "email" field.
-func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetEmail(v)
-	})
-}
-
-// UpdateEmail sets the "email" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateEmail()
-	})
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsertOne) SetPassword(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPassword(v)
-	})
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePassword()
-	})
-}
-
-// SetVerified sets the "verified" field.
-func (u *UserUpsertOne) SetVerified(v bool) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetVerified(v)
-	})
-}
-
-// UpdateVerified sets the "verified" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateVerified() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateVerified()
-	})
-}
-
-// SetLastOnline sets the "last_online" field.
-func (u *UserUpsertOne) SetLastOnline(v time.Time) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetLastOnline(v)
-	})
-}
-
-// UpdateLastOnline sets the "last_online" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateLastOnline() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateLastOnline()
-	})
-}
-
-// ClearLastOnline clears the value of the "last_online" field.
-func (u *UserUpsertOne) ClearLastOnline() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearLastOnline()
-	})
-}
-
-// Exec executes the query.
-func (u *UserUpsertOne) Exec(ctx context.Context) error {
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for UserCreate.OnConflict")
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *UserUpsertOne) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *UserUpsertOne) ID(ctx context.Context) (id int, err error) {
-	node, err := u.create.Save(ctx)
-	if err != nil {
-		return id, err
-	}
-	return node.ID, nil
-}
-
-// IDX is like ID, but panics if an error occurs.
-func (u *UserUpsertOne) IDX(ctx context.Context) int {
-	id, err := u.ID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
+	return _node, _spec
 }
 
 // UserCreateBulk is the builder for creating many User entities in bulk.
@@ -648,7 +436,6 @@ type UserCreateBulk struct {
 	config
 	err      error
 	builders []*UserCreate
-	conflict []sql.ConflictOption
 }
 
 // Save creates the User entities in the database.
@@ -678,7 +465,6 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = ucb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -729,208 +515,6 @@ func (ucb *UserCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
 	if err := ucb.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.User.CreateBulk(builders...).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.UserUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (ucb *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
-	ucb.conflict = opts
-	return &UserUpsertBulk{
-		create: ucb,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.User.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (ucb *UserCreateBulk) OnConflictColumns(columns ...string) *UserUpsertBulk {
-	ucb.conflict = append(ucb.conflict, sql.ConflictColumns(columns...))
-	return &UserUpsertBulk{
-		create: ucb,
-	}
-}
-
-// UserUpsertBulk is the builder for "upsert"-ing
-// a bulk of User nodes.
-type UserUpsertBulk struct {
-	create *UserCreateBulk
-}
-
-// UpdateNewValues updates the mutable fields using the new values that
-// were set on create. Using this option is equivalent to using:
-//
-//	client.User.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *UserUpsertBulk) UpdateNewValues() *UserUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		for _, b := range u.create.builders {
-			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(user.FieldCreatedAt)
-			}
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.User.Create().
-//		OnConflict(sql.ResolveWithIgnore()).
-//		Exec(ctx)
-func (u *UserUpsertBulk) Ignore() *UserUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *UserUpsertBulk) DoNothing() *UserUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the UserCreateBulk.OnConflict
-// documentation for more info.
-func (u *UserUpsertBulk) Update(set func(*UserUpsert)) *UserUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&UserUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *UserUpsertBulk) SetUpdatedAt(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateUpdatedAt() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *UserUpsertBulk) SetName(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateName() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetEmail sets the "email" field.
-func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetEmail(v)
-	})
-}
-
-// UpdateEmail sets the "email" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateEmail()
-	})
-}
-
-// SetPassword sets the "password" field.
-func (u *UserUpsertBulk) SetPassword(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPassword(v)
-	})
-}
-
-// UpdatePassword sets the "password" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePassword()
-	})
-}
-
-// SetVerified sets the "verified" field.
-func (u *UserUpsertBulk) SetVerified(v bool) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetVerified(v)
-	})
-}
-
-// UpdateVerified sets the "verified" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateVerified() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateVerified()
-	})
-}
-
-// SetLastOnline sets the "last_online" field.
-func (u *UserUpsertBulk) SetLastOnline(v time.Time) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetLastOnline(v)
-	})
-}
-
-// UpdateLastOnline sets the "last_online" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateLastOnline() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateLastOnline()
-	})
-}
-
-// ClearLastOnline clears the value of the "last_online" field.
-func (u *UserUpsertBulk) ClearLastOnline() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearLastOnline()
-	})
-}
-
-// Exec executes the query.
-func (u *UserUpsertBulk) Exec(ctx context.Context) error {
-	if u.create.err != nil {
-		return u.create.err
-	}
-	for i, b := range u.create.builders {
-		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserCreateBulk instead", i)
-		}
-	}
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for UserCreateBulk.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *UserUpsertBulk) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

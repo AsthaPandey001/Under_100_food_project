@@ -1,0 +1,26 @@
+﻿:root {
+  --color-primary-orange: #FF5A1F;
+  --color-primary-orange-hover: #E04810;
+  --color-deep-green: #087443;
+  --color-deep-green-hover: #065F36;
+  --color-dark-text: #171C24;
+  --color-secondary-text: #646B73;
+  --color-main-bg: #FFFDF9;
+  --color-card-bg: #FFFFFF;
+  --color-soft-green-bg: #EEF8EB;
+  --color-soft-orange-bg: #FFF0E6;
+  --color-border: #EAE8E3;
+  --color-border-hover: #D5D2C9;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  --shadow-subtle: 0 2px 8px rgba(23, 28, 36, 0.04);
+  --shadow-card: 0 4px 16px rgba(23, 28, 36, 0.06);
+  --shadow-elevated: 0 10px 30px rgba(23, 28, 36, 0.08);
+  
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --container-max-width: 1240px;
+}

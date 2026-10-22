@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_ent_runtime_go", "label": "runtime.go", "file_type": "code", "source_file": "ent/runtime.go", "source_location": "L1"}], "edges": [], "raw_calls": [], "go_imports": {}}

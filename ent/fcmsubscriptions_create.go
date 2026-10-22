@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
@@ -20,7 +19,6 @@ type FCMSubscriptionsCreate struct {
 	config
 	mutation *FCMSubscriptionsMutation
 	hooks    []Hook
-	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -161,7 +159,6 @@ func (fsc *FCMSubscriptionsCreate) createSpec() (*FCMSubscriptions, *sqlgraph.Cr
 		_node = &FCMSubscriptions{config: fsc.config}
 		_spec = sqlgraph.NewCreateSpec(fcmsubscriptions.Table, sqlgraph.NewFieldSpec(fcmsubscriptions.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = fsc.conflict
 	if value, ok := fsc.mutation.CreatedAt(); ok {
 		_spec.SetField(fcmsubscriptions.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -194,217 +191,11 @@ func (fsc *FCMSubscriptionsCreate) createSpec() (*FCMSubscriptions, *sqlgraph.Cr
 	return _node, _spec
 }
 
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.FCMSubscriptions.Create().
-//		SetCreatedAt(v).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.FCMSubscriptionsUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (fsc *FCMSubscriptionsCreate) OnConflict(opts ...sql.ConflictOption) *FCMSubscriptionsUpsertOne {
-	fsc.conflict = opts
-	return &FCMSubscriptionsUpsertOne{
-		create: fsc,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (fsc *FCMSubscriptionsCreate) OnConflictColumns(columns ...string) *FCMSubscriptionsUpsertOne {
-	fsc.conflict = append(fsc.conflict, sql.ConflictColumns(columns...))
-	return &FCMSubscriptionsUpsertOne{
-		create: fsc,
-	}
-}
-
-type (
-	// FCMSubscriptionsUpsertOne is the builder for "upsert"-ing
-	//  one FCMSubscriptions node.
-	FCMSubscriptionsUpsertOne struct {
-		create *FCMSubscriptionsCreate
-	}
-
-	// FCMSubscriptionsUpsert is the "OnConflict" setter.
-	FCMSubscriptionsUpsert struct {
-		*sql.UpdateSet
-	}
-)
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *FCMSubscriptionsUpsert) SetUpdatedAt(v time.Time) *FCMSubscriptionsUpsert {
-	u.Set(fcmsubscriptions.FieldUpdatedAt, v)
-	return u
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsert) UpdateUpdatedAt() *FCMSubscriptionsUpsert {
-	u.SetExcluded(fcmsubscriptions.FieldUpdatedAt)
-	return u
-}
-
-// SetToken sets the "token" field.
-func (u *FCMSubscriptionsUpsert) SetToken(v string) *FCMSubscriptionsUpsert {
-	u.Set(fcmsubscriptions.FieldToken, v)
-	return u
-}
-
-// UpdateToken sets the "token" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsert) UpdateToken() *FCMSubscriptionsUpsert {
-	u.SetExcluded(fcmsubscriptions.FieldToken)
-	return u
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *FCMSubscriptionsUpsert) SetProfileID(v int) *FCMSubscriptionsUpsert {
-	u.Set(fcmsubscriptions.FieldProfileID, v)
-	return u
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsert) UpdateProfileID() *FCMSubscriptionsUpsert {
-	u.SetExcluded(fcmsubscriptions.FieldProfileID)
-	return u
-}
-
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
-// Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *FCMSubscriptionsUpsertOne) UpdateNewValues() *FCMSubscriptionsUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(fcmsubscriptions.FieldCreatedAt)
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
-func (u *FCMSubscriptionsUpsertOne) Ignore() *FCMSubscriptionsUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *FCMSubscriptionsUpsertOne) DoNothing() *FCMSubscriptionsUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the FCMSubscriptionsCreate.OnConflict
-// documentation for more info.
-func (u *FCMSubscriptionsUpsertOne) Update(set func(*FCMSubscriptionsUpsert)) *FCMSubscriptionsUpsertOne {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&FCMSubscriptionsUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *FCMSubscriptionsUpsertOne) SetUpdatedAt(v time.Time) *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertOne) UpdateUpdatedAt() *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetToken sets the "token" field.
-func (u *FCMSubscriptionsUpsertOne) SetToken(v string) *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetToken(v)
-	})
-}
-
-// UpdateToken sets the "token" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertOne) UpdateToken() *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateToken()
-	})
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *FCMSubscriptionsUpsertOne) SetProfileID(v int) *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetProfileID(v)
-	})
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertOne) UpdateProfileID() *FCMSubscriptionsUpsertOne {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateProfileID()
-	})
-}
-
-// Exec executes the query.
-func (u *FCMSubscriptionsUpsertOne) Exec(ctx context.Context) error {
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for FCMSubscriptionsCreate.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *FCMSubscriptionsUpsertOne) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *FCMSubscriptionsUpsertOne) ID(ctx context.Context) (id int, err error) {
-	node, err := u.create.Save(ctx)
-	if err != nil {
-		return id, err
-	}
-	return node.ID, nil
-}
-
-// IDX is like ID, but panics if an error occurs.
-func (u *FCMSubscriptionsUpsertOne) IDX(ctx context.Context) int {
-	id, err := u.ID(ctx)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
 // FCMSubscriptionsCreateBulk is the builder for creating many FCMSubscriptions entities in bulk.
 type FCMSubscriptionsCreateBulk struct {
 	config
 	err      error
 	builders []*FCMSubscriptionsCreate
-	conflict []sql.ConflictOption
 }
 
 // Save creates the FCMSubscriptions entities in the database.
@@ -434,7 +225,6 @@ func (fscb *FCMSubscriptionsCreateBulk) Save(ctx context.Context) ([]*FCMSubscri
 					_, err = mutators[i+1].Mutate(root, fscb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = fscb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, fscb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -485,159 +275,6 @@ func (fscb *FCMSubscriptionsCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (fscb *FCMSubscriptionsCreateBulk) ExecX(ctx context.Context) {
 	if err := fscb.Exec(ctx); err != nil {
-		panic(err)
-	}
-}
-
-// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
-// of the `INSERT` statement. For example:
-//
-//	client.FCMSubscriptions.CreateBulk(builders...).
-//		OnConflict(
-//			// Update the row with the new values
-//			// the was proposed for insertion.
-//			sql.ResolveWithNewValues(),
-//		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.FCMSubscriptionsUpsert) {
-//			SetCreatedAt(v+v).
-//		}).
-//		Exec(ctx)
-func (fscb *FCMSubscriptionsCreateBulk) OnConflict(opts ...sql.ConflictOption) *FCMSubscriptionsUpsertBulk {
-	fscb.conflict = opts
-	return &FCMSubscriptionsUpsertBulk{
-		create: fscb,
-	}
-}
-
-// OnConflictColumns calls `OnConflict` and configures the columns
-// as conflict target. Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//		OnConflict(sql.ConflictColumns(columns...)).
-//		Exec(ctx)
-func (fscb *FCMSubscriptionsCreateBulk) OnConflictColumns(columns ...string) *FCMSubscriptionsUpsertBulk {
-	fscb.conflict = append(fscb.conflict, sql.ConflictColumns(columns...))
-	return &FCMSubscriptionsUpsertBulk{
-		create: fscb,
-	}
-}
-
-// FCMSubscriptionsUpsertBulk is the builder for "upsert"-ing
-// a bulk of FCMSubscriptions nodes.
-type FCMSubscriptionsUpsertBulk struct {
-	create *FCMSubscriptionsCreateBulk
-}
-
-// UpdateNewValues updates the mutable fields using the new values that
-// were set on create. Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//		OnConflict(
-//			sql.ResolveWithNewValues(),
-//		).
-//		Exec(ctx)
-func (u *FCMSubscriptionsUpsertBulk) UpdateNewValues() *FCMSubscriptionsUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
-		for _, b := range u.create.builders {
-			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(fcmsubscriptions.FieldCreatedAt)
-			}
-		}
-	}))
-	return u
-}
-
-// Ignore sets each column to itself in case of conflict.
-// Using this option is equivalent to using:
-//
-//	client.FCMSubscriptions.Create().
-//		OnConflict(sql.ResolveWithIgnore()).
-//		Exec(ctx)
-func (u *FCMSubscriptionsUpsertBulk) Ignore() *FCMSubscriptionsUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
-	return u
-}
-
-// DoNothing configures the conflict_action to `DO NOTHING`.
-// Supported only by SQLite and PostgreSQL.
-func (u *FCMSubscriptionsUpsertBulk) DoNothing() *FCMSubscriptionsUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.DoNothing())
-	return u
-}
-
-// Update allows overriding fields `UPDATE` values. See the FCMSubscriptionsCreateBulk.OnConflict
-// documentation for more info.
-func (u *FCMSubscriptionsUpsertBulk) Update(set func(*FCMSubscriptionsUpsert)) *FCMSubscriptionsUpsertBulk {
-	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&FCMSubscriptionsUpsert{UpdateSet: update})
-	}))
-	return u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (u *FCMSubscriptionsUpsertBulk) SetUpdatedAt(v time.Time) *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetUpdatedAt(v)
-	})
-}
-
-// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertBulk) UpdateUpdatedAt() *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateUpdatedAt()
-	})
-}
-
-// SetToken sets the "token" field.
-func (u *FCMSubscriptionsUpsertBulk) SetToken(v string) *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetToken(v)
-	})
-}
-
-// UpdateToken sets the "token" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertBulk) UpdateToken() *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateToken()
-	})
-}
-
-// SetProfileID sets the "profile_id" field.
-func (u *FCMSubscriptionsUpsertBulk) SetProfileID(v int) *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.SetProfileID(v)
-	})
-}
-
-// UpdateProfileID sets the "profile_id" field to the value that was provided on create.
-func (u *FCMSubscriptionsUpsertBulk) UpdateProfileID() *FCMSubscriptionsUpsertBulk {
-	return u.Update(func(s *FCMSubscriptionsUpsert) {
-		s.UpdateProfileID()
-	})
-}
-
-// Exec executes the query.
-func (u *FCMSubscriptionsUpsertBulk) Exec(ctx context.Context) error {
-	if u.create.err != nil {
-		return u.create.err
-	}
-	for i, b := range u.create.builders {
-		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the FCMSubscriptionsCreateBulk instead", i)
-		}
-	}
-	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for FCMSubscriptionsCreateBulk.OnConflict")
-	}
-	return u.create.Exec(ctx)
-}
-
-// ExecX is like Exec, but panics if an error occurs.
-func (u *FCMSubscriptionsUpsertBulk) ExecX(ctx context.Context) {
-	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

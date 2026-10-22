@@ -15,11 +15,13 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/mikestefanello/pagoda/ent/city"
 	"github.com/mikestefanello/pagoda/ent/emailsubscription"
 	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
 	"github.com/mikestefanello/pagoda/ent/emojis"
 	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
 	"github.com/mikestefanello/pagoda/ent/filestorage"
+	"github.com/mikestefanello/pagoda/ent/fooditem"
 	"github.com/mikestefanello/pagoda/ent/image"
 	"github.com/mikestefanello/pagoda/ent/imagesize"
 	"github.com/mikestefanello/pagoda/ent/invitation"
@@ -32,10 +34,9 @@ import (
 	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
 	"github.com/mikestefanello/pagoda/ent/profile"
 	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/mikestefanello/pagoda/ent/restaurant"
 	"github.com/mikestefanello/pagoda/ent/sentemail"
 	"github.com/mikestefanello/pagoda/ent/user"
-
-	stdsql "database/sql"
 )
 
 // Client is the client that holds all ent builders.
@@ -43,6 +44,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// City is the client for interacting with the City builders.
+	City *CityClient
 	// EmailSubscription is the client for interacting with the EmailSubscription builders.
 	EmailSubscription *EmailSubscriptionClient
 	// EmailSubscriptionType is the client for interacting with the EmailSubscriptionType builders.
@@ -53,6 +56,8 @@ type Client struct {
 	FCMSubscriptions *FCMSubscriptionsClient
 	// FileStorage is the client for interacting with the FileStorage builders.
 	FileStorage *FileStorageClient
+	// FoodItem is the client for interacting with the FoodItem builders.
+	FoodItem *FoodItemClient
 	// Image is the client for interacting with the Image builders.
 	Image *ImageClient
 	// ImageSize is the client for interacting with the ImageSize builders.
@@ -77,6 +82,8 @@ type Client struct {
 	Profile *ProfileClient
 	// PwaPushSubscription is the client for interacting with the PwaPushSubscription builders.
 	PwaPushSubscription *PwaPushSubscriptionClient
+	// Restaurant is the client for interacting with the Restaurant builders.
+	Restaurant *RestaurantClient
 	// SentEmail is the client for interacting with the SentEmail builders.
 	SentEmail *SentEmailClient
 	// User is the client for interacting with the User builders.
@@ -92,11 +99,13 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.City = NewCityClient(c.config)
 	c.EmailSubscription = NewEmailSubscriptionClient(c.config)
 	c.EmailSubscriptionType = NewEmailSubscriptionTypeClient(c.config)
 	c.Emojis = NewEmojisClient(c.config)
 	c.FCMSubscriptions = NewFCMSubscriptionsClient(c.config)
 	c.FileStorage = NewFileStorageClient(c.config)
+	c.FoodItem = NewFoodItemClient(c.config)
 	c.Image = NewImageClient(c.config)
 	c.ImageSize = NewImageSizeClient(c.config)
 	c.Invitation = NewInvitationClient(c.config)
@@ -109,6 +118,7 @@ func (c *Client) init() {
 	c.PhoneVerificationCode = NewPhoneVerificationCodeClient(c.config)
 	c.Profile = NewProfileClient(c.config)
 	c.PwaPushSubscription = NewPwaPushSubscriptionClient(c.config)
+	c.Restaurant = NewRestaurantClient(c.config)
 	c.SentEmail = NewSentEmailClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -203,11 +213,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                    ctx,
 		config:                 cfg,
+		City:                   NewCityClient(cfg),
 		EmailSubscription:      NewEmailSubscriptionClient(cfg),
 		EmailSubscriptionType:  NewEmailSubscriptionTypeClient(cfg),
 		Emojis:                 NewEmojisClient(cfg),
 		FCMSubscriptions:       NewFCMSubscriptionsClient(cfg),
 		FileStorage:            NewFileStorageClient(cfg),
+		FoodItem:               NewFoodItemClient(cfg),
 		Image:                  NewImageClient(cfg),
 		ImageSize:              NewImageSizeClient(cfg),
 		Invitation:             NewInvitationClient(cfg),
@@ -220,6 +232,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PhoneVerificationCode:  NewPhoneVerificationCodeClient(cfg),
 		Profile:                NewProfileClient(cfg),
 		PwaPushSubscription:    NewPwaPushSubscriptionClient(cfg),
+		Restaurant:             NewRestaurantClient(cfg),
 		SentEmail:              NewSentEmailClient(cfg),
 		User:                   NewUserClient(cfg),
 	}, nil
@@ -241,11 +254,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                    ctx,
 		config:                 cfg,
+		City:                   NewCityClient(cfg),
 		EmailSubscription:      NewEmailSubscriptionClient(cfg),
 		EmailSubscriptionType:  NewEmailSubscriptionTypeClient(cfg),
 		Emojis:                 NewEmojisClient(cfg),
 		FCMSubscriptions:       NewFCMSubscriptionsClient(cfg),
 		FileStorage:            NewFileStorageClient(cfg),
+		FoodItem:               NewFoodItemClient(cfg),
 		Image:                  NewImageClient(cfg),
 		ImageSize:              NewImageSizeClient(cfg),
 		Invitation:             NewInvitationClient(cfg),
@@ -258,6 +273,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PhoneVerificationCode:  NewPhoneVerificationCodeClient(cfg),
 		Profile:                NewProfileClient(cfg),
 		PwaPushSubscription:    NewPwaPushSubscriptionClient(cfg),
+		Restaurant:             NewRestaurantClient(cfg),
 		SentEmail:              NewSentEmailClient(cfg),
 		User:                   NewUserClient(cfg),
 	}, nil
@@ -266,7 +282,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		EmailSubscription.
+//		City.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -289,11 +305,12 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.EmailSubscription, c.EmailSubscriptionType, c.Emojis, c.FCMSubscriptions,
-		c.FileStorage, c.Image, c.ImageSize, c.Invitation, c.LastSeenOnline,
-		c.MonthlySubscription, c.Notification, c.NotificationPermission,
-		c.NotificationTime, c.PasswordToken, c.PhoneVerificationCode, c.Profile,
-		c.PwaPushSubscription, c.SentEmail, c.User,
+		c.City, c.EmailSubscription, c.EmailSubscriptionType, c.Emojis,
+		c.FCMSubscriptions, c.FileStorage, c.FoodItem, c.Image, c.ImageSize,
+		c.Invitation, c.LastSeenOnline, c.MonthlySubscription, c.Notification,
+		c.NotificationPermission, c.NotificationTime, c.PasswordToken,
+		c.PhoneVerificationCode, c.Profile, c.PwaPushSubscription, c.Restaurant,
+		c.SentEmail, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -303,11 +320,12 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.EmailSubscription, c.EmailSubscriptionType, c.Emojis, c.FCMSubscriptions,
-		c.FileStorage, c.Image, c.ImageSize, c.Invitation, c.LastSeenOnline,
-		c.MonthlySubscription, c.Notification, c.NotificationPermission,
-		c.NotificationTime, c.PasswordToken, c.PhoneVerificationCode, c.Profile,
-		c.PwaPushSubscription, c.SentEmail, c.User,
+		c.City, c.EmailSubscription, c.EmailSubscriptionType, c.Emojis,
+		c.FCMSubscriptions, c.FileStorage, c.FoodItem, c.Image, c.ImageSize,
+		c.Invitation, c.LastSeenOnline, c.MonthlySubscription, c.Notification,
+		c.NotificationPermission, c.NotificationTime, c.PasswordToken,
+		c.PhoneVerificationCode, c.Profile, c.PwaPushSubscription, c.Restaurant,
+		c.SentEmail, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -316,6 +334,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *CityMutation:
+		return c.City.mutate(ctx, m)
 	case *EmailSubscriptionMutation:
 		return c.EmailSubscription.mutate(ctx, m)
 	case *EmailSubscriptionTypeMutation:
@@ -326,6 +346,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FCMSubscriptions.mutate(ctx, m)
 	case *FileStorageMutation:
 		return c.FileStorage.mutate(ctx, m)
+	case *FoodItemMutation:
+		return c.FoodItem.mutate(ctx, m)
 	case *ImageMutation:
 		return c.Image.mutate(ctx, m)
 	case *ImageSizeMutation:
@@ -350,12 +372,163 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Profile.mutate(ctx, m)
 	case *PwaPushSubscriptionMutation:
 		return c.PwaPushSubscription.mutate(ctx, m)
+	case *RestaurantMutation:
+		return c.Restaurant.mutate(ctx, m)
 	case *SentEmailMutation:
 		return c.SentEmail.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// CityClient is a client for the City schema.
+type CityClient struct {
+	config
+}
+
+// NewCityClient returns a client for the City from the given config.
+func NewCityClient(c config) *CityClient {
+	return &CityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `city.Hooks(f(g(h())))`.
+func (c *CityClient) Use(hooks ...Hook) {
+	c.hooks.City = append(c.hooks.City, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `city.Intercept(f(g(h())))`.
+func (c *CityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.City = append(c.inters.City, interceptors...)
+}
+
+// Create returns a builder for creating a City entity.
+func (c *CityClient) Create() *CityCreate {
+	mutation := newCityMutation(c.config, OpCreate)
+	return &CityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of City entities.
+func (c *CityClient) CreateBulk(builders ...*CityCreate) *CityCreateBulk {
+	return &CityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CityClient) MapCreateBulk(slice any, setFunc func(*CityCreate, int)) *CityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CityCreateBulk{err: fmt.Errorf("calling to CityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for City.
+func (c *CityClient) Update() *CityUpdate {
+	mutation := newCityMutation(c.config, OpUpdate)
+	return &CityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CityClient) UpdateOne(ci *City) *CityUpdateOne {
+	mutation := newCityMutation(c.config, OpUpdateOne, withCity(ci))
+	return &CityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CityClient) UpdateOneID(id int) *CityUpdateOne {
+	mutation := newCityMutation(c.config, OpUpdateOne, withCityID(id))
+	return &CityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for City.
+func (c *CityClient) Delete() *CityDelete {
+	mutation := newCityMutation(c.config, OpDelete)
+	return &CityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CityClient) DeleteOne(ci *City) *CityDeleteOne {
+	return c.DeleteOneID(ci.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CityClient) DeleteOneID(id int) *CityDeleteOne {
+	builder := c.Delete().Where(city.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CityDeleteOne{builder}
+}
+
+// Query returns a query builder for City.
+func (c *CityClient) Query() *CityQuery {
+	return &CityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a City entity by its id.
+func (c *CityClient) Get(ctx context.Context, id int) (*City, error) {
+	return c.Query().Where(city.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CityClient) GetX(ctx context.Context, id int) *City {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRestaurants queries the restaurants edge of a City.
+func (c *CityClient) QueryRestaurants(ci *City) *RestaurantQuery {
+	query := (&RestaurantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ci.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(city.Table, city.FieldID, id),
+			sqlgraph.To(restaurant.Table, restaurant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, city.RestaurantsTable, city.RestaurantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ci.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *CityClient) Hooks() []Hook {
+	return c.hooks.City
+}
+
+// Interceptors returns the client interceptors.
+func (c *CityClient) Interceptors() []Interceptor {
+	return c.inters.City
+}
+
+func (c *CityClient) mutate(ctx context.Context, m *CityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown City mutation op: %q", m.Op())
 	}
 }
 
@@ -1069,6 +1242,155 @@ func (c *FileStorageClient) mutate(ctx context.Context, m *FileStorageMutation) 
 		return (&FileStorageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FileStorage mutation op: %q", m.Op())
+	}
+}
+
+// FoodItemClient is a client for the FoodItem schema.
+type FoodItemClient struct {
+	config
+}
+
+// NewFoodItemClient returns a client for the FoodItem from the given config.
+func NewFoodItemClient(c config) *FoodItemClient {
+	return &FoodItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `fooditem.Hooks(f(g(h())))`.
+func (c *FoodItemClient) Use(hooks ...Hook) {
+	c.hooks.FoodItem = append(c.hooks.FoodItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `fooditem.Intercept(f(g(h())))`.
+func (c *FoodItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FoodItem = append(c.inters.FoodItem, interceptors...)
+}
+
+// Create returns a builder for creating a FoodItem entity.
+func (c *FoodItemClient) Create() *FoodItemCreate {
+	mutation := newFoodItemMutation(c.config, OpCreate)
+	return &FoodItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FoodItem entities.
+func (c *FoodItemClient) CreateBulk(builders ...*FoodItemCreate) *FoodItemCreateBulk {
+	return &FoodItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FoodItemClient) MapCreateBulk(slice any, setFunc func(*FoodItemCreate, int)) *FoodItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FoodItemCreateBulk{err: fmt.Errorf("calling to FoodItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FoodItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FoodItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FoodItem.
+func (c *FoodItemClient) Update() *FoodItemUpdate {
+	mutation := newFoodItemMutation(c.config, OpUpdate)
+	return &FoodItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FoodItemClient) UpdateOne(fi *FoodItem) *FoodItemUpdateOne {
+	mutation := newFoodItemMutation(c.config, OpUpdateOne, withFoodItem(fi))
+	return &FoodItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FoodItemClient) UpdateOneID(id int) *FoodItemUpdateOne {
+	mutation := newFoodItemMutation(c.config, OpUpdateOne, withFoodItemID(id))
+	return &FoodItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FoodItem.
+func (c *FoodItemClient) Delete() *FoodItemDelete {
+	mutation := newFoodItemMutation(c.config, OpDelete)
+	return &FoodItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FoodItemClient) DeleteOne(fi *FoodItem) *FoodItemDeleteOne {
+	return c.DeleteOneID(fi.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FoodItemClient) DeleteOneID(id int) *FoodItemDeleteOne {
+	builder := c.Delete().Where(fooditem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FoodItemDeleteOne{builder}
+}
+
+// Query returns a query builder for FoodItem.
+func (c *FoodItemClient) Query() *FoodItemQuery {
+	return &FoodItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFoodItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FoodItem entity by its id.
+func (c *FoodItemClient) Get(ctx context.Context, id int) (*FoodItem, error) {
+	return c.Query().Where(fooditem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FoodItemClient) GetX(ctx context.Context, id int) *FoodItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRestaurant queries the restaurant edge of a FoodItem.
+func (c *FoodItemClient) QueryRestaurant(fi *FoodItem) *RestaurantQuery {
+	query := (&RestaurantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := fi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(fooditem.Table, fooditem.FieldID, id),
+			sqlgraph.To(restaurant.Table, restaurant.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, fooditem.RestaurantTable, fooditem.RestaurantColumn),
+		)
+		fromV = sqlgraph.Neighbors(fi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FoodItemClient) Hooks() []Hook {
+	return c.hooks.FoodItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *FoodItemClient) Interceptors() []Interceptor {
+	return c.inters.FoodItem
+}
+
+func (c *FoodItemClient) mutate(ctx context.Context, m *FoodItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FoodItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FoodItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FoodItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FoodItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FoodItem mutation op: %q", m.Op())
 	}
 }
 
@@ -3085,6 +3407,187 @@ func (c *PwaPushSubscriptionClient) mutate(ctx context.Context, m *PwaPushSubscr
 	}
 }
 
+// RestaurantClient is a client for the Restaurant schema.
+type RestaurantClient struct {
+	config
+}
+
+// NewRestaurantClient returns a client for the Restaurant from the given config.
+func NewRestaurantClient(c config) *RestaurantClient {
+	return &RestaurantClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `restaurant.Hooks(f(g(h())))`.
+func (c *RestaurantClient) Use(hooks ...Hook) {
+	c.hooks.Restaurant = append(c.hooks.Restaurant, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `restaurant.Intercept(f(g(h())))`.
+func (c *RestaurantClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Restaurant = append(c.inters.Restaurant, interceptors...)
+}
+
+// Create returns a builder for creating a Restaurant entity.
+func (c *RestaurantClient) Create() *RestaurantCreate {
+	mutation := newRestaurantMutation(c.config, OpCreate)
+	return &RestaurantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Restaurant entities.
+func (c *RestaurantClient) CreateBulk(builders ...*RestaurantCreate) *RestaurantCreateBulk {
+	return &RestaurantCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RestaurantClient) MapCreateBulk(slice any, setFunc func(*RestaurantCreate, int)) *RestaurantCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RestaurantCreateBulk{err: fmt.Errorf("calling to RestaurantClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RestaurantCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RestaurantCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Restaurant.
+func (c *RestaurantClient) Update() *RestaurantUpdate {
+	mutation := newRestaurantMutation(c.config, OpUpdate)
+	return &RestaurantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RestaurantClient) UpdateOne(r *Restaurant) *RestaurantUpdateOne {
+	mutation := newRestaurantMutation(c.config, OpUpdateOne, withRestaurant(r))
+	return &RestaurantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RestaurantClient) UpdateOneID(id int) *RestaurantUpdateOne {
+	mutation := newRestaurantMutation(c.config, OpUpdateOne, withRestaurantID(id))
+	return &RestaurantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Restaurant.
+func (c *RestaurantClient) Delete() *RestaurantDelete {
+	mutation := newRestaurantMutation(c.config, OpDelete)
+	return &RestaurantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RestaurantClient) DeleteOne(r *Restaurant) *RestaurantDeleteOne {
+	return c.DeleteOneID(r.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RestaurantClient) DeleteOneID(id int) *RestaurantDeleteOne {
+	builder := c.Delete().Where(restaurant.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RestaurantDeleteOne{builder}
+}
+
+// Query returns a query builder for Restaurant.
+func (c *RestaurantClient) Query() *RestaurantQuery {
+	return &RestaurantQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRestaurant},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Restaurant entity by its id.
+func (c *RestaurantClient) Get(ctx context.Context, id int) (*Restaurant, error) {
+	return c.Query().Where(restaurant.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RestaurantClient) GetX(ctx context.Context, id int) *Restaurant {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCity queries the city edge of a Restaurant.
+func (c *RestaurantClient) QueryCity(r *Restaurant) *CityQuery {
+	query := (&CityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(restaurant.Table, restaurant.FieldID, id),
+			sqlgraph.To(city.Table, city.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, restaurant.CityTable, restaurant.CityColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOwner queries the owner edge of a Restaurant.
+func (c *RestaurantClient) QueryOwner(r *Restaurant) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(restaurant.Table, restaurant.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, restaurant.OwnerTable, restaurant.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFoodItems queries the food_items edge of a Restaurant.
+func (c *RestaurantClient) QueryFoodItems(r *Restaurant) *FoodItemQuery {
+	query := (&FoodItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(restaurant.Table, restaurant.FieldID, id),
+			sqlgraph.To(fooditem.Table, fooditem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, restaurant.FoodItemsTable, restaurant.FoodItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RestaurantClient) Hooks() []Hook {
+	return c.hooks.Restaurant
+}
+
+// Interceptors returns the client interceptors.
+func (c *RestaurantClient) Interceptors() []Interceptor {
+	return c.inters.Restaurant
+}
+
+func (c *RestaurantClient) mutate(ctx context.Context, m *RestaurantMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RestaurantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RestaurantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RestaurantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RestaurantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Restaurant mutation op: %q", m.Op())
+	}
+}
+
 // SentEmailClient is a client for the SentEmail schema.
 type SentEmailClient struct {
 	config
@@ -3390,6 +3893,22 @@ func (c *UserClient) QueryLastSeenAt(u *User) *LastSeenOnlineQuery {
 	return query
 }
 
+// QueryRestaurants queries the restaurants edge of a User.
+func (c *UserClient) QueryRestaurants(u *User) *RestaurantQuery {
+	query := (&RestaurantClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(restaurant.Table, restaurant.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RestaurantsTable, user.RestaurantsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	hooks := c.hooks.User
@@ -3419,40 +3938,17 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		EmailSubscription, EmailSubscriptionType, Emojis, FCMSubscriptions, FileStorage,
-		Image, ImageSize, Invitation, LastSeenOnline, MonthlySubscription,
-		Notification, NotificationPermission, NotificationTime, PasswordToken,
-		PhoneVerificationCode, Profile, PwaPushSubscription, SentEmail, User []ent.Hook
+		City, EmailSubscription, EmailSubscriptionType, Emojis, FCMSubscriptions,
+		FileStorage, FoodItem, Image, ImageSize, Invitation, LastSeenOnline,
+		MonthlySubscription, Notification, NotificationPermission, NotificationTime,
+		PasswordToken, PhoneVerificationCode, Profile, PwaPushSubscription, Restaurant,
+		SentEmail, User []ent.Hook
 	}
 	inters struct {
-		EmailSubscription, EmailSubscriptionType, Emojis, FCMSubscriptions, FileStorage,
-		Image, ImageSize, Invitation, LastSeenOnline, MonthlySubscription,
-		Notification, NotificationPermission, NotificationTime, PasswordToken,
-		PhoneVerificationCode, Profile, PwaPushSubscription, SentEmail,
-		User []ent.Interceptor
+		City, EmailSubscription, EmailSubscriptionType, Emojis, FCMSubscriptions,
+		FileStorage, FoodItem, Image, ImageSize, Invitation, LastSeenOnline,
+		MonthlySubscription, Notification, NotificationPermission, NotificationTime,
+		PasswordToken, PhoneVerificationCode, Profile, PwaPushSubscription, Restaurant,
+		SentEmail, User []ent.Interceptor
 	}
 )
-
-// ExecContext allows calling the underlying ExecContext method of the driver if it is supported by it.
-// See, database/sql#DB.ExecContext for more information.
-func (c *config) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
-	ex, ok := c.driver.(interface {
-		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
-	})
-	if !ok {
-		return nil, fmt.Errorf("Driver.ExecContext is not supported")
-	}
-	return ex.ExecContext(ctx, query, args...)
-}
-
-// QueryContext allows calling the underlying QueryContext method of the driver if it is supported by it.
-// See, database/sql#DB.QueryContext for more information.
-func (c *config) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
-	q, ok := c.driver.(interface {
-		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
-	})
-	if !ok {
-		return nil, fmt.Errorf("Driver.QueryContext is not supported")
-	}
-	return q.QueryContext(ctx, query, args...)
-}

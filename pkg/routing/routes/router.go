@@ -16,9 +16,11 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	foodroutes "github.com/mikestefanello/pagoda/pkg/routing/fooddiscovery"
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/ziflex/lecho/v3"
+	"strings"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
@@ -45,6 +47,23 @@ func BuildRouter(c *services.Container) {
 	// after each server restart
 	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
+	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
+		Static("static", config.StaticDir)
+
+	// Direct root static assets mapping for images and svg
+	imageFiles := []string{
+		"crispy_dosa.jpg", "idli_sambar.jpg", "veg_pulao.jpg", "kathi_roll.jpg",
+		"aloo_paratha.jpg", "indori_poha.jpg", "steamed_momos.jpg", "medu_vada.jpg",
+		"onion_uttapam.jpg", "hero_food.jpg", "samosa_plate.jpg", "bombay_sandwich.jpg",
+		"pani_puri.jpg", "onion_pakora.jpg", "filter_coffee.jpg", "bengaluru_skyline.svg",
+		"bite100_logo.jpg", "favicon.png", "favicon.svg",
+	}
+	for _, img := range imageFiles {
+		imgName := img
+		c.Web.GET("/"+imgName, func(ctx echo.Context) error {
+			return ctx.File("static/" + imgName)
+		})
+	}
 
 	// Custom handler for serving the service worker script with specific headers
 	c.Web.GET("/service-worker.js", func(ctx echo.Context) error {
@@ -114,6 +133,10 @@ func BuildRouter(c *services.Container) {
 		middleware.LoadAuthenticatedUser(c.Auth, profileRepo, subscriptionsRepo),
 		// middleware.ServeCachedPage(c.Cache), // NOTE: turn on if you use a cache
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
+			Skipper: func(ctx echo.Context) bool {
+				p := ctx.Path()
+				return p == "/" || p == "/login" || p == "/register" || p == "/live" || p == "/ready" || p == "/up" || strings.HasPrefix(p, "/partner") || strings.HasPrefix(p, "/merchant") || strings.HasPrefix(p, "/admin") || strings.HasPrefix(p, "/nearby") || strings.HasPrefix(p, "/restaurant") || strings.HasPrefix(p, "/api") || strings.HasPrefix(p, "/food") || strings.HasPrefix(p, "/profile") || strings.HasPrefix(p, "/password") || strings.HasPrefix(p, "/favorites") || strings.HasPrefix(p, "/reviews") || strings.HasPrefix(p, "/category")
+			},
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h
 		}),
@@ -226,14 +249,18 @@ func generalRoutes(c *services.Container, g *echo.Group, ctr controller.Controll
 	)
 	notificationSendPermissionRepo := notifierrepo.NewNotificationSendPermissionRepo(c.ORM)
 
-	landingPage := NewLandingPageRoute(ctr)
-	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
+	foodHandler := foodroutes.NewHandler(c)
+	foodHandler.RegisterRoutes(g)
 
 	clearCookie := NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = "clearCookie"
 
 	healthcheck := NewHealthCheckRoute(ctr)
 	g.GET("/up", healthcheck.Get).Name = "healthcheck"
+
+	healthHandler := NewHealthHandler(c)
+	g.GET("/live", healthHandler.Live).Name = "health_live"
+	g.GET("/ready", healthHandler.Ready).Name = "health_ready"
 
 	// TODO: remove once sentry is working fine
 	// TODO: sentry is not set up correctly
