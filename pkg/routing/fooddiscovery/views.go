@@ -82,9 +82,30 @@ func RenderHomePage(currentUser *ent.User) string {
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
-  
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script>
+    document.addEventListener('htmx:configRequest', function(evt) {
+      var match = document.cookie.match(new RegExp('(^| )_csrf=([^;]+)'));
+      if (match) {
+        evt.detail.headers['X-CSRF-Token'] = decodeURIComponent(match[2]);
+        evt.detail.parameters['csrf'] = decodeURIComponent(match[2]);
+      }
+    });
+    document.addEventListener('submit', function(e) {
+      if (e.target && e.target.method && e.target.method.toUpperCase() === 'POST') {
+        if (!e.target.querySelector('input[name="csrf"]')) {
+          var match = document.cookie.match(new RegExp('(^| )_csrf=([^;]+)'));
+          if (match) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'csrf';
+            inp.value = decodeURIComponent(match[2]);
+            e.target.appendChild(inp);
+          }
+        }
+      }
+    });
+  </script>
 
   <style>
     :root {

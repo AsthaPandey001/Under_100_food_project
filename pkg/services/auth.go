@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -69,12 +70,22 @@ func (c *AuthClient) Login(ctx echo.Context, userID int) error {
 		return err
 	}
 
+	isSecure := c.config.App.Environment == config.EnvProduction || c.config.HTTP.TLS.Enabled || ctx.Scheme() == "https"
+
 	sess.Values[authSessionKeyUserID] = userID
 	sess.Values[authSessionKeyAuthenticated] = true
+
+	// Store password hash signature to support instant session revocation on password reset
+	if u, uErr := c.orm.User.Query().Where(user.ID(userID)).Only(ctx.Request().Context()); uErr == nil && u != nil && len(u.Password) >= 12 {
+		sess.Values["pass_sig"] = u.Password[:12]
+	}
+
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 30, // 30 days persistent across restarts & refreshes
 		HttpOnly: true,
+		Secure:   isSecure,
+		SameSite: http.SameSiteLaxMode,
 	}
 	return sess.Save(ctx.Request(), ctx.Response())
 }
@@ -88,14 +99,17 @@ func (c *AuthClient) Logout(ctx echo.Context) error {
 
 	// Overwrite session values
 	sess.Values[authSessionKeyAuthenticated] = false
+	delete(sess.Values, authSessionKeyUserID)
+	delete(sess.Values, "pass_sig")
 
-	// TODO: not quite sure why, but resetting the cookie is not needed in the vanilla
-	// starter kit from Pagoda. Not sure which one of my changes broke that.
-	// Set the cookie to expire immediately
+	isSecure := c.config.App.Environment == config.EnvProduction || c.config.HTTP.TLS.Enabled || ctx.Scheme() == "https"
+
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   -1, // Set MaxAge to -1 to delete the session
 		HttpOnly: true,
+		Secure:   isSecure,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	return sess.Save(ctx.Request(), ctx.Response())
@@ -118,7 +132,7 @@ func (c *AuthClient) GetAuthenticatedUserID(ctx echo.Context) (int, error) {
 // GetAuthenticatedUser returns the authenticated user if the user is logged in
 func (c *AuthClient) GetAuthenticatedUser(ctx echo.Context) (*ent.User, error) {
 	if userID, err := c.GetAuthenticatedUserID(ctx); err == nil {
-		return c.orm.User.Query().
+		u, err := c.orm.User.Query().
 			Where(user.ID(userID)).
 			WithProfile(func(q *ent.ProfileQuery) {
 				q.WithProfileImage(func(pi *ent.ImageQuery) {
@@ -128,6 +142,21 @@ func (c *AuthClient) GetAuthenticatedUser(ctx echo.Context) (*ent.User, error) {
 				})
 			}).
 			Only(ctx.Request().Context())
+		if err != nil {
+			return nil, err
+		}
+
+		// Immediate server-side session revocation: if password was changed or reset, revoke session
+		if sess, sErr := session.Get(authSessionName, ctx); sErr == nil && sess != nil {
+			if sig, ok := sess.Values["pass_sig"].(string); ok && sig != "" {
+				if len(u.Password) >= 12 && u.Password[:12] != sig {
+					_ = c.Logout(ctx)
+					return nil, NotAuthenticatedError{}
+				}
+			}
+		}
+
+		return u, nil
 	}
 
 	return nil, NotAuthenticatedError{}

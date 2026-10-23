@@ -3,10 +3,12 @@ package fooddiscovery
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -37,8 +39,6 @@ type authOTPEntry struct {
 	code      string
 	expiresAt time.Time
 }
-
-const OllastackAPIToken = "fmd_b97feb16ce57fcd14ece9be75553aa5ad73c0dbc8a326efe"
 
 func NewHandler(c *services.Container) *Handler {
 	return &Handler{c: c}
@@ -106,6 +106,42 @@ func (h *Handler) RegisterRoutes(g *echo.Group) {
 		RedisClient: redisClient,
 	})
 
+	otpSendLimiter := middleware.RateLimit(middleware.RateLimiterConfig{
+		Action:      "send-otp",
+		Limit:       5,
+		Window:      time.Minute,
+		RedisClient: redisClient,
+		KeyFunc: func(c echo.Context) string {
+			id := strings.ToLower(strings.TrimSpace(c.FormValue("identifier")))
+			if id == "" {
+				id = strings.TrimSpace(c.FormValue("phone"))
+			}
+			ip := middleware.SafeExtractIP(c)
+			if id != "" {
+				return ip + ":" + id
+			}
+			return ip
+		},
+	})
+
+	otpVerifyLimiter := middleware.RateLimit(middleware.RateLimiterConfig{
+		Action:      "verify-otp",
+		Limit:       10,
+		Window:      time.Minute,
+		RedisClient: redisClient,
+		KeyFunc: func(c echo.Context) string {
+			id := strings.ToLower(strings.TrimSpace(c.FormValue("identifier")))
+			if id == "" {
+				id = strings.TrimSpace(c.FormValue("phone"))
+			}
+			ip := middleware.SafeExtractIP(c)
+			if id != "" {
+				return ip + ":" + id
+			}
+			return ip
+		},
+	})
+
 	// User authentication routes
 	g.GET("/login", h.LoginPage)
 	g.POST("/login", h.LoginSubmit, loginLimiter)
@@ -114,9 +150,9 @@ func (h *Handler) RegisterRoutes(g *echo.Group) {
 	g.POST("/api/phone-login", h.PhoneOrEmailLogin)
 	g.GET("/logout", h.Logout)
 
-	// OTP API endpoints (Ollastack-backed with in-memory & Redis fallbacks)
-	g.POST("/api/auth/send-otp", h.SendAuthOTP)
-	g.POST("/api/auth/verify-otp", h.VerifyAuthOTP)
+	// OTP API endpoints protected by rate limiters
+	g.POST("/api/auth/send-otp", h.SendAuthOTP, otpSendLimiter)
+	g.POST("/api/auth/verify-otp", h.VerifyAuthOTP, otpVerifyLimiter)
 
 	// Merchant entry point & registration
 	g.GET("/merchant/login", h.MerchantLoginPage)
@@ -636,14 +672,23 @@ func dispatchCarrierSMS(phone, otp, portal string) error {
 	}
 
 	// Fallback notice
-	log.Printf("[SMS GATEWAY] Notice: No active telecom SMS gateway key configured in environment (FAST2SMS_API_KEY, TWILIO_*, MSG91_*, or SMS_GATEWAY_URL). Live SMS skipped for +91 %s. Code: %s (Master test code 123456 accepted).", cleanPhone, otp)
+	log.Printf("[SMS GATEWAY] Notice: No active telecom SMS gateway configured. Dispatched for +91 %s.", cleanPhone)
 	return nil
 }
 
-// generateAndSaveOTP generates a 6-digit verification code and persists it
+// generateAndSaveOTP generates a cryptographically secure 6-digit verification code and persists it
 func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 	normID := normalizeAuthIdentifier(identifier)
-	code := fmt.Sprintf("%06d", (time.Now().UnixNano()%900000)+100000)
+
+	// Cryptographically secure 6-digit OTP generation
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	var code string
+	if err != nil {
+		// Secure fallback
+		code = fmt.Sprintf("%06d", (time.Now().UnixNano()%900000)+100000)
+	} else {
+		code = fmt.Sprintf("%06d", n.Int64()+100000)
+	}
 
 	key := fmt.Sprintf("otp:%s:%s", portal, normID)
 
@@ -658,30 +703,6 @@ func (h *Handler) generateAndSaveOTP(portal, identifier string) string {
 		expiresAt: time.Now().Add(5 * time.Minute),
 	})
 
-	// Optional audit/webhook submission
-	go func(target, otpVal, p string) {
-		payload, err := json.Marshal(map[string]interface{}{
-			"recipient": target,
-			"otp":       otpVal,
-			"portal":    p,
-			"app":       "Under100 Food Discovery",
-			"timestamp": time.Now().UTC().Format(time.RFC3339),
-		})
-		if err != nil {
-			return
-		}
-		client := &http.Client{Timeout: 3 * time.Second}
-		req, reqErr := http.NewRequest("POST", "https://ollastack.com/api/submit/"+OllastackAPIToken, bytes.NewBuffer(payload))
-		if reqErr == nil {
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+OllastackAPIToken)
-			resp, _ := client.Do(req)
-			if resp != nil {
-				_ = resp.Body.Close()
-			}
-		}
-	}(normID, code, portal)
-
 	return code
 }
 
@@ -691,11 +712,6 @@ func (h *Handler) verifyOTP(portal, identifier, inputCode string) bool {
 	inputCode = strings.TrimSpace(inputCode)
 	if inputCode == "" {
 		return false
-	}
-
-	// Master test OTP for testing suites
-	if inputCode == "123456" {
-		return true
 	}
 
 	key := fmt.Sprintf("otp:%s:%s", portal, normID)
@@ -817,16 +833,11 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 	}
 
 	if portal == "admin" {
-		if err != nil || (!usr.IsAdmin && usr.Role != user.RoleAdmin) {
-			if targetEmail == "admin@fooddiscovery.com" {
-				usr, _ = h.c.ORM.User.Query().Where(user.EmailEQ("admin@fooddiscovery.com")).Only(ctxReq)
-			}
-			if usr == nil || (!usr.IsAdmin && usr.Role != user.RoleAdmin) {
-				return ctx.JSON(http.StatusForbidden, map[string]interface{}{
-					"success": false,
-					"error":   "Access denied: No administrator account linked to this identifier.",
-				})
-			}
+		if err != nil || usr == nil || (!usr.IsAdmin && usr.Role != user.RoleAdmin) {
+			return ctx.JSON(http.StatusForbidden, map[string]interface{}{
+				"success": false,
+				"error":   "Access denied: No administrator account linked to this identifier.",
+			})
 		}
 		_ = h.c.Auth.Login(ctx, usr.ID)
 		return ctx.JSON(http.StatusOK, map[string]interface{}{
@@ -834,10 +845,7 @@ func (h *Handler) VerifyAuthOTP(ctx echo.Context) error {
 			"redirect": "/admin",
 		})
 	} else if portal == "merchant" {
-		if err != nil || (usr.Role != user.RoleMerchant && !usr.IsAdmin && usr.Role != user.RoleAdmin) {
-			if targetEmail == "merchant.ctr@fooddiscovery.com" {
-				usr, _ = h.c.ORM.User.Query().Where(user.EmailEQ("merchant.ctr@fooddiscovery.com")).Only(ctxReq)
-			}
+		if err != nil || usr == nil || (usr.Role != user.RoleMerchant && !usr.IsAdmin && usr.Role != user.RoleAdmin) {
 			// Auto-provision merchant partner account if registering or signing in through OTP
 			if usr == nil {
 				hash, _ := bcrypt.GenerateFromPassword([]byte("Merchant@123"), bcrypt.DefaultCost)
@@ -1014,12 +1022,13 @@ func (h *Handler) AdminRegisterSubmit(ctx echo.Context) error {
 	password := ctx.FormValue("password")
 	adminKey := strings.TrimSpace(ctx.FormValue("admin_key"))
 
-	if name == "" || inputEmail == "" || len(password) < 6 {
-		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Administrator name, valid email/mobile, and password (min 6 characters) are required."))
+	if name == "" || inputEmail == "" || len(password) < 8 {
+		return ctx.HTML(http.StatusOK, RenderAdminLoginPage("", "Administrator name, valid email/mobile, and password (min 8 characters) are required."))
 	}
 
-	if adminKey != "Admin@123" && adminKey != "Under100AdminSecret2026" {
-		return ctx.HTML(http.StatusForbidden, RenderAdminLoginPage("", "Invalid Administrator Security Key. Authorization denied."))
+	requiredAdminKey := os.Getenv("ADMIN_REGISTRATION_KEY")
+	if requiredAdminKey == "" || adminKey != requiredAdminKey {
+		return ctx.HTML(http.StatusForbidden, RenderAdminLoginPage("", "Invalid or unconfigured Administrator Security Key. Authorization denied."))
 	}
 
 	normID := normalizeAuthIdentifier(inputEmail)
@@ -1039,25 +1048,13 @@ func (h *Handler) AdminRegisterSubmit(ctx echo.Context) error {
 		)).
 		First(ctxReq)
 
+	if existingUser != nil {
+		return ctx.HTML(http.StatusConflict, RenderAdminLoginPage("", "An account with this email/mobile already exists. Please log in."))
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return ctx.HTML(http.StatusInternalServerError, "Failed to hash password")
-	}
-
-	if existingUser != nil {
-		// Existing account provided valid admin key: promote to Administrator
-		updatedAdmin, uErr := h.c.ORM.User.UpdateOne(existingUser).
-			SetIsAdmin(true).
-			SetRole(user.RoleAdmin).
-			SetVerified(true).
-			SetPassword(string(hash)).
-			SetName(name).
-			Save(ctxReq)
-		if uErr != nil {
-			return ctx.HTML(http.StatusInternalServerError, "Failed to update administrator account: "+uErr.Error())
-		}
-		_ = h.c.Auth.Login(ctx, updatedAdmin.ID)
-		return ctx.Redirect(http.StatusSeeOther, "/admin?msg=admin_created")
 	}
 
 	// New account
@@ -1261,8 +1258,13 @@ func (h *Handler) PartnerRegisterSubmit(ctx echo.Context) error {
 	return ctx.Redirect(http.StatusSeeOther, fmt.Sprintf("/merchant?restaurant_id=%d&msg=welcome_merchant", activeRestID))
 }
 
-// QuickLogin allows 1-click demo login for admin, merchant, and normal user
+// QuickLogin allows 1-click demo login for admin, merchant, and normal user in local development only
 func (h *Handler) QuickLogin(ctx echo.Context) error {
+	// Strictly prohibit 1-click administrative bypass outside local environment
+	if h.c.Config.App.Environment != "local" {
+		return ctx.HTML(http.StatusForbidden, "Quick demo login is disabled on non-development environments for security.")
+	}
+
 	role := ctx.FormValue("role")
 	targetEmail := "user@fooddiscovery.com"
 	redirectURL := "/"
@@ -1298,7 +1300,7 @@ func (h *Handler) Logout(ctx echo.Context) error {
 	return ctx.Redirect(http.StatusSeeOther, "/")
 }
 
-// PhoneOrEmailLogin handles quick mobile number or email login from the popup modal
+// PhoneOrEmailLogin handles mobile number or email login requiring verified password
 func (h *Handler) PhoneOrEmailLogin(ctx echo.Context) error {
 	identifier := strings.TrimSpace(ctx.FormValue("phone"))
 	if identifier == "" {
@@ -1314,6 +1316,14 @@ func (h *Handler) PhoneOrEmailLogin(ctx echo.Context) error {
 		})
 	}
 
+	password := ctx.FormValue("password")
+	if password == "" {
+		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"success": false,
+			"error":   "Password or OTP verification code is required to sign in.",
+		})
+	}
+
 	cleanID := strings.TrimPrefix(identifier, "+91")
 	cleanID = strings.TrimSpace(cleanID)
 
@@ -1324,34 +1334,34 @@ func (h *Handler) PhoneOrEmailLogin(ctx echo.Context) error {
 		targetEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", cleanID)
 	}
 
-	// 1. Try finding existing user with this exact email
 	usr, err := h.c.ORM.User.Query().
 		Where(user.EmailEQ(targetEmail)).
 		Only(ctx.Request().Context())
 
-	// 2. Fallback to pre-seeded customer user to avoid database inflation
 	if err != nil {
-		usr, err = h.c.ORM.User.Query().
-			Where(user.EmailEQ("user@fooddiscovery.com")).
-			Only(ctx.Request().Context())
+		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"success": false,
+			"error":   "Invalid credentials. Please register or verify with OTP.",
+		})
 	}
 
+	err = h.c.Auth.CheckPassword(password, usr.Password)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"success": false,
-			"error":   "User account could not be found",
+			"error":   "Invalid password. Please try again.",
 		})
 	}
 
 	_ = h.c.Auth.Login(ctx, usr.ID)
 
-	// Persist entered phone number in session so user stays logged in with their number
+	// Persist entered phone number in session
 	if sess, sErr := session.Get("ua", ctx); sErr == nil && sess != nil {
 		sess.Values["user_phone"] = cleanID
 		_ = sess.Save(ctx.Request(), ctx.Response())
 	}
 
-	redirectURL := ctx.FormValue("redirect")
+	redirectURL := sanitizeReturnURL(ctx.FormValue("redirect"))
 	if redirectURL == "" {
 		redirectURL = "/"
 	}
@@ -1378,14 +1388,7 @@ func (h *Handler) AccountPage(ctx echo.Context) error {
 
 	usr, _ := h.c.Auth.GetAuthenticatedUser(ctx)
 	if usr == nil {
-		// Log into demo customer user so user can inspect all account features immediately
-		demoUser, err := h.c.ORM.User.Query().
-			Where(user.EmailEQ("user@fooddiscovery.com")).
-			Only(ctx.Request().Context())
-		if err == nil && demoUser != nil {
-			_ = h.c.Auth.Login(ctx, demoUser.ID)
-			usr = demoUser
-		}
+		return ctx.Redirect(http.StatusSeeOther, "/login?return_to=/account&msg=login_required")
 	}
 
 	html := RenderAccountDashboardPage(usr, tab)

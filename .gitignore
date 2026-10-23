@@ -193,6 +193,8 @@ deploy-real.yml
 # Compiled binaries and local builds
 *.exe
 server_linux
+under100_web_linux
+under100-web*
 dump.rdb
 .gobuild/
 .gobuild2/

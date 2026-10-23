@@ -144,7 +144,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 
 	event, err := webhook.ConstructEvent(payload, c.Request().Header.Get("Stripe-Signature"), secret)
 	if err != nil {
-		log.Error().Err(err).Str("StripeWebhookSecret", secret).Msg("error verifying webhook signature")
+		log.Error().Err(err).Msg("error verifying webhook signature")
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "error verifying webhook signature"})
 	}
 

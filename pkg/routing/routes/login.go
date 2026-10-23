@@ -134,10 +134,13 @@ func redirectAfterLogin(ctx echo.Context) (bool, error) {
 	if ok && redirectURL != "" {
 		// Clear the redirect URL from session
 		delete(sess.Values, "redirectAfterLogin")
-		sess.Save(ctx.Request(), ctx.Response())
+		_ = sess.Save(ctx.Request(), ctx.Response())
 
-		// Redirect to the originally requested URL
-		return true, ctx.Redirect(http.StatusFound, redirectURL)
+		// Prevent open redirects: allow only relative URLs starting with a single '/'
+		redirectURL = strings.TrimSpace(redirectURL)
+		if strings.HasPrefix(redirectURL, "/") && !strings.HasPrefix(redirectURL, "//") && !strings.HasPrefix(redirectURL, "/\\") && !strings.Contains(redirectURL, ":") {
+			return true, ctx.Redirect(http.StatusFound, redirectURL)
+		}
 	}
-	return false, nil // Or redirect to a default route if nothing is in the session
+	return false, nil
 }

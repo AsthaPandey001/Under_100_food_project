@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -114,10 +115,12 @@ func RequireAuthentication() echo.MiddlewareFunc {
 				if err != nil {
 					log.Error().Err(err).Msg("failed to open session to save redirectAfterLogin URL to it")
 				} else {
-					// Store the original URL they were trying to access
-					currentURL := c.Request().RequestURI
-					sess.Values["redirectAfterLogin"] = currentURL
-					sess.Save(c.Request(), c.Response())
+					// Store the original URL they were trying to access safely
+					currentURL := strings.TrimSpace(c.Request().RequestURI)
+					if strings.HasPrefix(currentURL, "/") && !strings.HasPrefix(currentURL, "//") && !strings.HasPrefix(currentURL, "/\\") && !strings.Contains(currentURL, ":") {
+						sess.Values["redirectAfterLogin"] = currentURL
+						_ = sess.Save(c.Request(), c.Response())
+					}
 
 				}
 

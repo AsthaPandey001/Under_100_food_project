@@ -81,12 +81,12 @@ func deleteAccountPage(page *controller.Page, data *types.DeleteAccountData) tem
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span>By clicking the below button, all your data will be immediately deleted.</span> <a")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span>By clicking the below button, all your data will be immediately deleted.</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if !data.HasUncancelledSubscription {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " id=\"deleteAccountLink\" href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<form id=\"deleteAccountForm\" method=\"POST\" action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -95,46 +95,20 @@ func deleteAccountPage(page *controller.Page, data *types.DeleteAccountData) tem
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.FormCSRF(page.CSRF).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button type=\"button\" class=\"w-full focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900\" _=\"on click\n\t\t\t\tcall event.preventDefault()\n\t\t\t\tcall event.stopPropagation()\n\t\t\t\tthen call Swal.fire({\n\t\t\t\t\ttitle: &#39;Confirm&#39;,\n\t\t\t\t\ttext: &#39;Are you sure you want to delete your account and data?&#39;,\n\t\t\t\t\ticon: &#39;warning&#39;,\n\t\t\t\t\tshowCancelButton: true,\n\t\t\t\t\tcancelButtonText: &#39;Cancel&#39;,\n\t\t\t\t\tconfirmButtonText: &#39;Yes, delete it!&#39;\n\t\t\t\t})\n\t\t\t\tthen if result.isConfirmed document.querySelector(&#39;#deleteAccountForm&#39;).submit()\">Delete account and data right now</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, ">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var4 = []any{"w-full focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 ",
-			templ.KV("text-white bg-red-400 dark:bg-red-500 cursor-not-allowed text-center", data.HasUncancelledSubscription),
-			templ.KV("text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900", !data.HasUncancelledSubscription)}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var4...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button type=\"button\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if data.HasUncancelledSubscription {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " disabled")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " class=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var4).String())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/delete_account.templ`, Line: 1, Col: 0}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"on click\n\t\t\t\tcall event.preventDefault()\n\t\t\t\tcall event.stopPropagation()\n\t\t\t\tif not @disabled\n\t\t\t\tthen call Swal.fire({\n\t\t\t\t\ttitle: &#39;Confirm&#39;,\n\t\t\t\t\ttext: &#39;Are you sure you want to delete your account and data?&#39;,\n\t\t\t\t\ticon: &#39;warning&#39;,\n\t\t\t\t\tshowCancelButton: true,\n\t\t\t\t\tcancelButtonText: &#39;Cancel&#39;,\n\t\t\t\t\tconfirmButtonText: &#39;Yes, delete it!&#39;\n\t\t\t\t})\n\t\t\t\tthen if result.isConfirmed document.querySelector(&#39;#deleteAccountLink&#39;).click()\">Delete account and data right now</button></a></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

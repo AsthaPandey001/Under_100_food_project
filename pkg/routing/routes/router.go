@@ -108,6 +108,16 @@ func BuildRouter(c *services.Container) {
 		e.Use(echomw.HTTPSRedirect())
 	}
 
+	cookieAuthKey := []byte(c.Config.App.EncryptionKey)
+	var cookieKeys [][]byte
+	cookieKeys = append(cookieKeys, cookieAuthKey)
+	if len(cookieAuthKey) >= 32 {
+		cookieKeys = append(cookieKeys, cookieAuthKey[:32])
+	} else if len(cookieAuthKey) >= 16 {
+		cookieKeys = append(cookieKeys, cookieAuthKey[:16])
+	}
+	cookieStore := sessions.NewCookieStore(cookieKeys...)
+
 	// User routes router
 	g.Use(
 		echomw.RemoveTrailingSlashWithConfig(echomw.TrailingSlashConfig{
@@ -129,13 +139,22 @@ func BuildRouter(c *services.Container) {
 			Skipper: sseSkipper,
 			Timeout: c.Config.App.Timeout,
 		}),
-		session.Middleware(sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))),
+		session.Middleware(cookieStore),
 		middleware.LoadAuthenticatedUser(c.Auth, profileRepo, subscriptionsRepo),
 		// middleware.ServeCachedPage(c.Cache), // NOTE: turn on if you use a cache
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			Skipper: func(ctx echo.Context) bool {
 				p := ctx.Path()
-				return p == "/" || p == "/login" || p == "/register" || p == "/live" || p == "/ready" || p == "/up" || strings.HasPrefix(p, "/partner") || strings.HasPrefix(p, "/merchant") || strings.HasPrefix(p, "/admin") || strings.HasPrefix(p, "/nearby") || strings.HasPrefix(p, "/restaurant") || strings.HasPrefix(p, "/api") || strings.HasPrefix(p, "/food") || strings.HasPrefix(p, "/profile") || strings.HasPrefix(p, "/password") || strings.HasPrefix(p, "/favorites") || strings.HasPrefix(p, "/reviews") || strings.HasPrefix(p, "/category")
+				// Skip health probes and external Stripe webhooks
+				if p == "/live" || p == "/ready" || p == "/up" || strings.Contains(p, "/payments/webhooks") {
+					return true
+				}
+				// Safe read-only HTTP methods do not mutate state
+				m := ctx.Request().Method
+				if m == http.MethodGet || m == http.MethodHead || m == http.MethodOptions {
+					return true
+				}
+				return false
 			},
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h
@@ -162,7 +181,7 @@ func BuildRouter(c *services.Container) {
 		middleware.LogRequestID(),
 		echomw.Secure(),
 		echomw.Logger(),
-		session.Middleware(sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))),
+		session.Middleware(cookieStore),
 		middleware.LoadAuthenticatedUser(c.Auth, profileRepo, subscriptionsRepo),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
@@ -363,7 +382,7 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 
 	deleteAccountRoute := NewDeleteAccountRoute(ctr, &profileRepo, subscriptionsRepo)
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
-	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
+	onboardingGroup.POST("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
 	// TODO: move all pref routes to the preferences route (and not have a gazillion different ..)
 	finishOnboarding := NewOnboardingRoute(ctr, c.ORM, c.Tasks)

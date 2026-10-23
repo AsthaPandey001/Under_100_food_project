@@ -66,6 +66,9 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 }
 
 func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
+	if ctx.Request().Method != "POST" {
+		return echo.NewHTTPError(405, "Method not allowed. Account deletion requires a POST request.")
+	}
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profileId := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
 
