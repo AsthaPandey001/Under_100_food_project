@@ -1855,28 +1855,255 @@ func RenderHomePage(currentUser *ent.User) string {
       text-align: center;
     }
 
-    /* 11. FOOTER */
+    /* 11. REDESIGNED FOOTER (EXACT SAME #171C24 DARK THEME) */
     .footer-dark {
       background-color: #171C24;
       color: #94A3B8;
-      padding: 64px 0 32px;
+      padding: 64px 0 36px;
       border-top: 1px solid #2D3748;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
     }
-    .footer-grid {
+    .footer-usp-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 40px;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
       margin-bottom: 48px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .footer-bottom-row {
-      border-top: 1px solid #2D3748;
-      padding-top: 24px;
+    .footer-usp-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: all 0.25s ease;
+    }
+    .footer-usp-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 90, 31, 0.35);
+      transform: translateY(-2px);
+    }
+    .footer-usp-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.2px;
+    }
+    .footer-usp-desc {
+      font-size: 12.5px;
+      color: #94A3B8;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .footer-grid-redesigned {
+      display: grid;
+      grid-template-columns: 2.2fr 1.2fr 1.2fr 1.2fr 1.2fr;
+      gap: 36px;
+      margin-bottom: 44px;
+    }
+    @media (max-width: 1080px) {
+      .footer-grid-redesigned {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
+      }
+    }
+    @media (max-width: 640px) {
+      .footer-grid-redesigned {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+    }
+    .footer-brand-col {
+      padding-right: 24px;
+    }
+    .footer-brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      margin-bottom: 16px;
+    }
+    .footer-brand-link .brand-wordmark .under {
+      font-size: 25px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.6px;
+    }
+    .footer-brand-link .brand-wordmark .num {
+      font-size: 25px;
+      font-weight: 900;
+      color: #FF5A1F;
+      letter-spacing: -0.6px;
+    }
+    .footer-tagline-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      background: rgba(255, 90, 31, 0.12);
+      color: #FF5A1F;
+      border: 1px solid rgba(255, 90, 31, 0.25);
+      border-radius: 6px;
+      padding: 3px 8px;
+      margin-bottom: 14px;
+    }
+    .footer-mission-text {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #94A3B8;
+      margin-bottom: 18px;
+    }
+    .footer-service-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #E2E8F0;
+      background: rgba(8, 116, 67, 0.18);
+      border: 1px solid rgba(8, 116, 67, 0.4);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+    .footer-service-pill::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+    }
+    .footer-trust-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11.5px;
+      color: #64748B;
+    }
+    .footer-col-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 16px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      position: relative;
+    }
+    .footer-col-title::after {
+      content: "";
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #FF5A1F;
+      border-radius: 2px;
+      margin-top: 6px;
+    }
+    .footer-link-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-link-list a {
+      color: #94A3B8;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .footer-link-list a:hover {
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+    .footer-badge-hot {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: rgba(255, 90, 31, 0.18);
+      color: #FF7A45;
+      border-radius: 4px;
+      padding: 2px 5px;
+      letter-spacing: 0.3px;
+    }
+    .footer-badge-new {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: rgba(16, 185, 129, 0.18);
+      color: #34D399;
+      border-radius: 4px;
+      padding: 2px 5px;
+      letter-spacing: 0.3px;
+    }
+    .footer-searches-box {
+      padding: 20px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 28px;
+    }
+    .footer-searches-header {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #CBD5E1;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+    }
+    .footer-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .footer-tag-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94A3B8;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 11px;
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .footer-tag-link:hover {
+      background: rgba(255, 90, 31, 0.15);
+      border-color: rgba(255, 90, 31, 0.35);
+      color: #ffffff;
+    }
+    .footer-bottom-flex {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
-      font-size: 13px;
+      font-size: 12.5px;
+      color: #64748B;
+    }
+    .footer-legal-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .footer-legal-links a {
+      color: #94A3B8;
+      text-decoration: none;
+      font-size: 12.5px;
+      transition: color 0.2s ease;
+    }
+    .footer-legal-links a:hover {
+      color: #ffffff;
     }
 
     /* 12. BLINKIT-STYLE CART DRAWER */
@@ -6029,62 +6256,135 @@ func RenderHomePage(currentUser *ent.User) string {
 
   </main>
 
-  <!-- 15. FOOTER -->
+  <!-- 15. REDESIGNED PREMIUM FOOTER (EXACT SAME #171C24 DARK PALETTE & HEADER LOGO) -->
   <footer class="footer-dark">
     <div class="container">
-      <div class="footer-grid">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-            <div style="width: 32px; height: 32px; border-radius: 8px; background-color: var(--color-primary-orange); display: flex; align-items: center; justify-content: center; color: #ffffff;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="2" x2="6" y2="22"></line><line x1="6" y1="2" x2="18" y2="22"></line></svg>
-            </div>
-            <div style="display: flex; align-items: baseline;">
-              <span style="font-size: 20px; font-weight: 900; color: #ffffff;">Under</span>
-              <span style="font-size: 20px; font-weight: 900; color: var(--color-primary-orange);">100</span>
-            </div>
+      <!-- A. VALUE PROPOSITION PILLARS -->
+      <div class="footer-usp-grid">
+        <div class="footer-usp-card">
+          <div class="footer-usp-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Strictly &#8377;100 Ceiling</span>
           </div>
-          <p style="font-size: 14px; line-height: 1.6; color: #94A3B8; margin-bottom: 20px;">
-            Bengaluru&#39;s dedicated food platform where customers discover satisfying local meals for under &#8377;100. Transparent prices, zero hidden fees.
+          <p class="footer-usp-desc">Every single menu item is strictly capped at or under &#8377;100. Delicious meals without the wallet burn.</p>
+        </div>
+        <div class="footer-usp-card">
+          <div class="footer-usp-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Zero Price Markups</span>
+          </div>
+          <p class="footer-usp-desc">Dine-in menu prices honored directly. No inflated dish rates, zero hidden service fees.</p>
+        </div>
+        <div class="footer-usp-card">
+          <div class="footer-usp-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span>Namma Bengaluru First</span>
+          </div>
+          <p class="footer-usp-desc">From iconic Indiranagar darshinis to Koramangala roll stalls and VV Puram chaats.</p>
+        </div>
+        <div class="footer-usp-card">
+          <div class="footer-usp-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+            <span>Instant UPI &amp; Cards</span>
+          </div>
+          <p class="footer-usp-desc">Seamless checkout via Razorpay, Stripe, GPay, PhonePe, and instant counter collection.</p>
+        </div>
+      </div>
+
+      <!-- B. MAIN 4-COLUMN FOOTER NAVIGATION -->
+      <div class="footer-grid-redesigned">
+        <!-- Col 1: Brand & Bengaluru Pride -->
+        <div class="footer-brand-col">
+          <a href="/" class="brand-logo-link footer-brand-link" title="Under100 Home">
+            <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+              <path d="M12 4C11 6.5 13 8.5 12 11" stroke="#FF5A1F" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M18 3C17 5.5 19 8 18 10.5" stroke="#FF5A1F" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M24 4C23 6.5 25 8.5 24 11" stroke="#FF5A1F" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M6 14H30" stroke="#FF5A1F" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 16C7.5 24 13.5 28 18 28C22.5 28 28.5 24 29 16H7Z" fill="#FF5A1F"/>
+              <path d="M13 28.5H23" stroke="#FF5A1F" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <div class="brand-wordmark">
+              <span class="under">under</span>
+              <span class="num">100</span>
+            </div>
+          </a>
+          <div class="footer-tagline-badge">Namma Bengaluru Food Discovery</div>
+          <p class="footer-mission-text">
+            Bengaluru&#39;s dedicated budget food discovery platform. Helping food lovers, students, and working professionals discover satisfying neighborhood meals, crisp dosas, and quick bites strictly under &#8377;100.
           </p>
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #E2E8F0;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF5A1F"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            <span>Service Area: Bengaluru, Karnataka</span>
+          <div class="footer-service-pill">
+            <span>Live across 18+ Bengaluru Localities</span>
+          </div>
+          <div class="footer-trust-tags">
+            <span>100% Certified Eateries</span> &bull; <span>Verified Menus</span>
           </div>
         </div>
 
+        <!-- Col 2: Curated Cuisines -->
         <div>
-          <h4 style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 16px; letter-spacing: 0.5px;">ABOUT UNDER100</h4>
-          <ul style="list-style: none; display: flex; flexDirection: column; gap: 10px; font-size: 14px;">
-            <li><a href="#how-it-works" style="color: #94A3B8;">How It Works</a></li>
-            <li><a href="#food-discovery" style="color: #94A3B8;">Affordable Kitchens</a></li>
-            <li><a href="#food-discovery" style="color: #94A3B8;">Bengaluru Neighbourhoods</a></li>
+          <div class="footer-col-title">Curated Flavors</div>
+          <ul class="footer-link-list">
+            <li><a href="/#food-discovery" onclick="filterByTag('South Indian')">South Indian Tiffins <span class="footer-badge-hot">Popular</span></a></li>
+            <li><a href="/#food-discovery" onclick="filterByTag('Rolls')">Kolkata Rolls &amp; Wraps</a></li>
+            <li><a href="/#food-discovery" onclick="filterByTag('Momos')">Steamed &amp; Fried Momos</a></li>
+            <li><a href="/#food-discovery" onclick="filterByTag('Street Food')">Street Chaat &amp; Pav Bhaji</a></li>
+            <li><a href="/#food-discovery" onclick="filterByTag('Beverages')">Filter Coffee &amp; Chai <span class="footer-badge-new">New</span></a></li>
+            <li><a href="/#food-discovery" onclick="filterByTag('Meals')">Mini Thalis &amp; Rice Bowls</a></li>
           </ul>
         </div>
 
+        <!-- Col 3: Popular Localities -->
         <div>
-          <h4 style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 16px; letter-spacing: 0.5px;">POPULAR HUBS</h4>
-          <ul style="list-style: none; display: flex; flexDirection: column; gap: 10px; font-size: 14px;">
-            <li><a href="#food-discovery" style="color: #94A3B8;">Indiranagar</a></li>
-            <li><a href="#food-discovery" style="color: #94A3B8;">Koramangala</a></li>
-            <li><a href="#food-discovery" style="color: #94A3B8;">HSR Layout</a></li>
-            <li><a href="#food-discovery" style="color: #94A3B8;">Whitefield</a></li>
+          <div class="footer-col-title">Popular Hubs</div>
+          <ul class="footer-link-list">
+            <li><a href="/#food-discovery" onclick="setLocality('Indiranagar')">Indiranagar 100ft Rd</a></li>
+            <li><a href="/#food-discovery" onclick="setLocality('Koramangala')">Koramangala 4th &amp; 5th Block</a></li>
+            <li><a href="/#food-discovery" onclick="setLocality('HSR Layout')">HSR Layout Sectors</a></li>
+            <li><a href="/#food-discovery" onclick="setLocality('Jayanagar')">Jayanagar 4th Block</a></li>
+            <li><a href="/#food-discovery" onclick="setLocality('Whitefield')">Whitefield Tech Hub</a></li>
+            <li><a href="/#food-discovery" onclick="setLocality('Malleshwaram')">Malleshwaram Heritage</a></li>
           </ul>
         </div>
 
+        <!-- Col 4: Customer Care & Trust -->
         <div>
-          <h4 style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 16px; letter-spacing: 0.5px;">CUSTOMER CARE</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
-            <li><a href="/about" style="color: #94A3B8;">About Under100</a></li>
-            <li><a href="/privacy-policy" style="color: #94A3B8;">Privacy &amp; Terms</a></li>
-            <li><a href="/account/orders" style="color: #94A3B8;">Order Help &amp; Support</a></li>
-            <li><a href="/favorites" style="color: #94A3B8;">Saved Favorites</a></li>
+          <div class="footer-col-title">Customer Care</div>
+          <ul class="footer-link-list">
+            <li><a href="/about">About Under100</a></li>
+            <li><a href="#how-it-works">How Discovery Works</a></li>
+            <li><a href="/privacy-policy">Privacy &amp; Terms</a></li>
+            <li><a href="/account/orders">My Order History</a></li>
+            <li><a href="/favorites">Saved Favorites</a></li>
+            <li><a href="mailto:support@under100.in">Help: support@under100.in</a></li>
           </ul>
         </div>
       </div>
 
-      <div class="footer-bottom-row">
-        <div>&copy; 2026 Under100 Technologies Pvt Ltd. All rights reserved.</div>
-        <div>Built with Go + HTMX + PostgreSQL + Redis</div>
+      <!-- C. POPULAR QUICK DISCOVERY SEARCH TAGS -->
+      <div class="footer-searches-box">
+        <div class="footer-searches-header">Popular Searches Under &#8377;100:</div>
+        <div class="footer-tags-row">
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Masala Dosa')">Masala Dosa Under &#8377;50</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Filter Coffee')">Filter Coffee Under &#8377;25</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Egg Roll')">Double Egg Roll Under &#8377;65</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Momos')">Veg Momos Under &#8377;50</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Pav Bhaji')">Butter Pav Bhaji Under &#8377;80</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Idli Vada')">Idli Vada Combo Under &#8377;45</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Curd Rice')">Curd Rice Under &#8377;55</a>
+          <a href="/#food-discovery" class="footer-tag-link" onclick="handleQuickSearch('Cold Coffee')">Cold Coffee Under &#8377;60</a>
+        </div>
+      </div>
+
+      <!-- D. BOTTOM LEGAL & ATTRIBUTION -->
+      <div class="footer-bottom-flex">
+        <div>&copy; 2026 Under100 Technologies Pvt Ltd. Made with <span style="color: #FF5A1F;">&#10084;</span> for Bengaluru foodies.</div>
+        <div style="font-size: 11.5px; color: #64748B;">Built with Go &bull; HTMX &bull; PostgreSQL &bull; Redis</div>
+        <div class="footer-legal-links">
+          <a href="/privacy-policy">Privacy Policy</a>
+          <a href="/privacy-policy#terms">Terms of Service</a>
+          <a href="/privacy-policy#refunds">Refund Policy</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -7590,6 +7890,8 @@ function processPaymentGateway() {
 
 function handleGlobalSearch(q) {
   var term = (q || '').toLowerCase().trim();
+  var searchInput = document.getElementById('globalSearchInput');
+  if (searchInput && searchInput.value !== q) searchInput.value = q;
   var cards = document.querySelectorAll('.product-card');
   cards.forEach(function(card) {
     var name = (card.getAttribute('data-name') || '').toLowerCase();
@@ -7599,6 +7901,37 @@ function handleGlobalSearch(q) {
       card.style.display = 'none';
     }
   });
+}
+
+function handleQuickSearch(dishName) {
+  var searchInput = document.getElementById('globalSearchInput');
+  if (searchInput) {
+    searchInput.value = dishName;
+    handleGlobalSearch(dishName);
+  }
+  var grid = document.getElementById('food-discovery') || document.getElementById('mainFoodGrid');
+  if (grid) grid.scrollIntoView({ behavior: 'smooth' });
+}
+
+function filterByTag(tag) {
+  var t = (tag || '').toLowerCase();
+  if (t.indexOf('south') !== -1) filterGridCategory('south-indian');
+  else if (t.indexOf('roll') !== -1) filterGridCategory('fast-food');
+  else if (t.indexOf('momo') !== -1) filterGridCategory('chinese');
+  else if (t.indexOf('street') !== -1 || t.indexOf('chaat') !== -1) filterGridCategory('street-food');
+  else if (t.indexOf('coffee') !== -1 || t.indexOf('chai') !== -1) handleQuickSearch('Coffee');
+  else if (t.indexOf('meal') !== -1 || t.indexOf('thali') !== -1) filterGridCategory('lunch');
+  else handleQuickSearch(tag);
+
+  var grid = document.getElementById('food-discovery') || document.getElementById('mainFoodGrid');
+  if (grid) grid.scrollIntoView({ behavior: 'smooth' });
+}
+
+function setLocality(loc) {
+  var locEl = document.getElementById('currentLocText');
+  if (locEl) locEl.textContent = loc + ', Bengaluru';
+  var grid = document.getElementById('food-discovery') || document.getElementById('mainFoodGrid');
+  if (grid) grid.scrollIntoView({ behavior: 'smooth' });
 }
 
 function filterGridCategory(catId, btn) {
