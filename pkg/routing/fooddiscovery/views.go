@@ -1544,61 +1544,78 @@ func RenderHomePage(currentUser *ent.User) string {
       color: var(--color-dark-text);
     }
     .btn-add-pill {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 8px 16px;
-      border-radius: var(--radius-full);
+      justify-content: center;
+      padding: 0 16px;
+      height: 32px;
+      min-width: 82px;
+      border-radius: 8px;
       background-color: #ffffff;
-      border: 1.5px solid var(--color-deep-green);
-      color: var(--color-deep-green);
+      border: 1.5px solid #0C831F;
+      color: #0C831F;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
       transition: all 0.15s ease;
-      box-shadow: 0 1px 4px rgba(8, 116, 67, 0.08);
+      box-shadow: 0 1px 3px rgba(12, 131, 31, 0.12);
       cursor: pointer;
       user-select: none;
+      box-sizing: border-box;
     }
     .btn-add-pill:hover {
-      background-color: var(--color-deep-green);
+      background-color: #0C831F;
       color: #ffffff;
+      box-shadow: 0 2px 6px rgba(12, 131, 31, 0.25);
     }
     .btn-add-pill:active {
-      transform: scale(0.94);
+      transform: scale(0.96);
     }
     .qty-counter-pill {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      background-color: var(--color-deep-green);
-      border-radius: var(--radius-full);
+      justify-content: space-between;
+      height: 32px;
+      min-width: 82px;
+      background-color: #0C831F;
+      border-radius: 8px;
       color: #ffffff;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(8, 116, 67, 0.2);
+      box-shadow: 0 2px 6px rgba(12, 131, 31, 0.25);
       user-select: none;
+      box-sizing: border-box;
     }
     .qty-btn {
-      padding: 6px 11px;
+      width: 28px;
+      height: 100%;
       color: #ffffff;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       user-select: none;
-      transition: background 0.12s, transform 0.1s;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1;
+      background: transparent;
+      border: none;
+      padding: 0;
+      transition: background 0.12s;
     }
     .qty-btn:hover {
-      background-color: rgba(0, 0, 0, 0.15);
+      background-color: rgba(0, 0, 0, 0.2);
     }
     .qty-btn:active {
-      transform: scale(0.88);
-      background-color: rgba(0, 0, 0, 0.28);
+      background-color: rgba(0, 0, 0, 0.35);
     }
     .qty-num {
-      padding: 0 6px;
+      padding: 0 4px;
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       min-width: 20px;
       text-align: center;
+      letter-spacing: 0.3px;
     }
 
     /* 6. HERO SECTION */
@@ -2043,6 +2060,607 @@ func RenderHomePage(currentUser *ent.User) string {
       .navbar-inner { flex-wrap: wrap; }
       .slide-right-img-wrap { width: 100%; height: 180px; }
     }
+
+    /* PAYMENT GATEWAY MODAL STYLES - ZERO ICONS, CORPORATE FINTECH DASHBOARD */
+    .pg-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.76);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: pgFadeIn 0.2s ease-out;
+    }
+    @keyframes pgFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .pg-modal-container {
+      background: #FFFFFF;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+      border: 1px solid #E2E8F0;
+      overflow: hidden;
+      animation: pgSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes pgSlideUp {
+      from { transform: translateY(18px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .pg-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #F8FAFC;
+    }
+    .pg-header-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #0C831F;
+    }
+    .pg-header-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 2px 0 0;
+      letter-spacing: -0.3px;
+    }
+    .pg-modal-close {
+      background: #EDF2F7;
+      border: 1px solid #CBD5E1;
+      font-size: 22px;
+      color: #475569;
+      cursor: pointer;
+      line-height: 1;
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .pg-modal-close:hover { background: #E2E8F0; color: #0F172A; }
+    .pg-modal-body {
+      display: flex;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 440px;
+    }
+    .pg-left-pane {
+      flex: 1.25;
+      border-right: 1px solid #E2E8F0;
+      display: flex;
+      flex-direction: column;
+      background: #FFFFFF;
+    }
+    .pg-right-pane {
+      flex: 1;
+      background: #F8FAFC;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .pg-tabs-bar {
+      display: flex;
+      border-bottom: 1px solid #E2E8F0;
+      background: #FFFFFF;
+      overflow-x: auto;
+      padding: 0 12px;
+      gap: 2px;
+    }
+    .pg-tab-btn {
+      padding: 13px 14px;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #64748B;
+      cursor: pointer;
+      border-bottom: 2.5px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .pg-tab-btn:hover { color: #0C831F; }
+    .pg-tab-btn.active {
+      color: #0C831F;
+      border-bottom-color: #0C831F;
+      background: #F0FDF4;
+    }
+    .pg-tab-content-area {
+      padding: 22px 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .pg-tab-pane { display: none; }
+    .pg-tab-pane.active { display: block; animation: pgFadeIn 0.2s ease-out; }
+    
+    /* UPI Option Cards (Zero Icons) */
+    .pg-upi-apps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .pg-upi-app {
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+      background: #ffffff;
+    }
+    .pg-upi-app:hover {
+      border-color: #0C831F;
+      background: #F0FDF4;
+    }
+    .pg-upi-app.active {
+      border-color: #0C831F;
+      background: #F0FDF4;
+      box-shadow: 0 0 0 1px #0C831F;
+    }
+    .pg-upi-badge-text {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      padding: 6px 0;
+      color: #0F172A;
+    }
+    .pg-upi-app-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      margin-top: 2px;
+    }
+    .pg-upi-check {
+      position: absolute;
+      top: 6px; right: 6px;
+      background: #0C831F;
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    .pg-upi-app.active .pg-upi-check { display: flex; }
+    .pg-qr-box {
+      border: 1.5px solid #BBF7D0;
+      background: #F0FDF4;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 6px;
+    }
+    .pg-qr-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .pg-timer-badge {
+      background: #FEF3C7;
+      color: #92400E;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .pg-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #CBD5E1;
+      font-size: 13.5px;
+      outline: none;
+      transition: border 0.15s;
+      font-family: inherit;
+    }
+    .pg-input:focus {
+      border-color: #0C831F;
+      box-shadow: 0 0 0 3px rgba(12, 131, 31, 0.12);
+    }
+    .pg-vpa-verify-btn {
+      padding: 10px 18px;
+      background: #0C831F;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .pg-vpa-verify-btn:hover { background: #086b19; }
+    .pg-form-group {
+      margin-bottom: 12px;
+    }
+    .pg-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #475569;
+      margin-bottom: 5px;
+    }
+    .pg-card-brand-badge {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #0F172A;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .pg-banks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .pg-bank-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: white;
+      transition: all 0.15s;
+    }
+    .pg-bank-btn:hover, .pg-bank-btn.active {
+      border-color: #0C831F;
+      background: #F0FDF4;
+    }
+    .pg-bank-badge {
+      width: 44px; height: 26px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+    .pg-bank-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1E293B;
+    }
+    .pg-wallet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pg-wallet-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: white;
+      transition: border 0.15s;
+    }
+    .pg-wallet-item:hover { border-color: #0C831F; }
+    
+    /* RIGHT PANE: ORDER & QUANTITY LEDGER */
+    .pg-recap-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .pg-dest-card {
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .pg-dest-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      color: #0C831F;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .pg-dest-address {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0F172A;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pg-dest-meta {
+      font-size: 11.5px;
+      color: #64748B;
+      margin-top: 1px;
+    }
+    .pg-order-ledger {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .pg-order-ledger-header {
+      background: #F1F5F9;
+      padding: 8px 12px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pg-ledger-title {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #475569;
+    }
+    .pg-ledger-count-badge {
+      background: #0C831F;
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.4px;
+    }
+    .pg-mini-items {
+      display: flex;
+      flex-direction: column;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .pg-ledger-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      background: #FFFFFF;
+    }
+    .pg-ledger-row:nth-child(even) { background: #FAFAFA; }
+    .pg-ledger-row:last-child { border-bottom: none; }
+    .pg-ledger-item-info {
+      flex: 1;
+      min-width: 0;
+      padding-right: 8px;
+    }
+    .pg-ledger-item-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0F172A;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pg-ledger-item-meta {
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 1px;
+    }
+    .pg-ledger-qty-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .pg-qty-tag {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #0F172A;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .pg-unit-price {
+      font-size: 11px;
+      color: #64748B;
+      font-weight: 600;
+      min-width: 48px;
+      text-align: right;
+    }
+    .pg-row-total {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0F172A;
+      min-width: 52px;
+      text-align: right;
+    }
+    .pg-bill-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .pg-bill-row {
+      display: flex;
+      justify-content: space-between;
+    }
+    .pg-bill-divider {
+      height: 1px;
+      background: #E2E8F0;
+      margin: 6px 0;
+    }
+    .pg-grand-total-row {
+      font-size: 14px;
+      color: #0F172A;
+    }
+    .pg-trust-strip {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #F1F5F9;
+    }
+    
+    /* MODAL FOOTER */
+    .pg-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #E2E8F0;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .pg-btn-cancel {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1.5px solid #CBD5E1;
+      background: white;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pg-btn-cancel:hover { background: #F8FAFC; color: #1E293B; }
+    .pg-btn-pay {
+      padding: 11px 26px;
+      border-radius: 8px;
+      border: none;
+      background: #0C831F;
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(12, 131, 31, 0.3);
+      transition: all 0.15s ease;
+    }
+    .pg-btn-pay:hover {
+      background: #086b19;
+      box-shadow: 0 4px 12px rgba(12, 131, 31, 0.4);
+    }
+    .pg-btn-pay:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    /* SUCCESS CONFIRMATION VIEW (Zero Icons) */
+    .pg-success-view {
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      animation: pgFadeIn 0.3s ease-out;
+    }
+    .pg-success-status-badge {
+      background: #DCFCE7;
+      border: 1px solid #86EFAC;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 6px;
+    }
+    .pg-order-id-pill {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      color: #1E293B;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 6px;
+      margin: 14px 0 22px;
+      letter-spacing: 0.5px;
+    }
+    .pg-tracking-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 24px;
+    }
+    .pg-track-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .pg-track-dot {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #64748B;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900;
+    }
+    .pg-track-step.done .pg-track-dot { background: #0C831F; border-color: #0C831F; color: white; }
+    .pg-track-step.active .pg-track-dot { background: #FEF3C7; border-color: #F59E0B; color: #92400E; }
+    .pg-track-label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px; }
+    .pg-track-line {
+      flex: 1;
+      height: 2px;
+      background: #E2E8F0;
+      margin: 0 4px -16px;
+    }
+    .pg-track-line.active { background: #0C831F; }
+    .pg-success-info-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      width: 100%;
+      max-width: 440px;
+      text-align: left;
+    }
+    .btn-track-order {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #0C831F;
+      color: white;
+      font-size: 13.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+    }
+    @media (max-width: 720px) {
+      .pg-modal-body { flex-direction: column; }
+      .pg-left-pane { border-right: none; border-bottom: 1px solid #E2E8F0; }
+      .pg-upi-apps-grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -2416,8 +3034,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f1">
             <button type="button" class="btn-add-pill" onclick="addToCart('f1', 'Crispy Masala Dosa', 79, 'Sri Krishna Cafe', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2460,8 +3077,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f2">
             <button type="button" class="btn-add-pill" onclick="addToCart('f2', 'Steamed Idli Sambar (2 pcs)', 49, 'Brahmin\'s Tiffin Room', '/static/idli_sambar.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2504,8 +3120,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f3">
             <button type="button" class="btn-add-pill" onclick="addToCart('f3', 'Aromatic Veg Pulao', 89, 'Meghana Bowl Corner', '/static/veg_pulao.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2548,8 +3163,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f4">
             <button type="button" class="btn-add-pill" onclick="addToCart('f4', 'Paneer Kathi Roll', 99, 'Kolkata Roll Express', '/static/kathi_roll.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2592,8 +3206,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f5">
             <button type="button" class="btn-add-pill" onclick="addToCart('f5', 'Schezwan Veg Fried Rice', 89, 'Wok & Bowl Express', '/static/veg_pulao.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2636,8 +3249,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f6">
             <button type="button" class="btn-add-pill" onclick="addToCart('f6', 'Stuffed Aloo Paratha with Curd', 69, 'Punjab Dhaba Point', '/static/aloo_paratha.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2680,8 +3292,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f7">
             <button type="button" class="btn-add-pill" onclick="addToCart('f7', 'Indori Spiced Poha', 39, 'Morning Fuel Co.', '/static/indori_poha.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2724,8 +3335,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f8">
             <button type="button" class="btn-add-pill" onclick="addToCart('f8', 'Steamed Veg Momos (6 pcs)', 79, 'Himalayan Momo Hut', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2768,8 +3378,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f12">
             <button type="button" class="btn-add-pill" onclick="addToCart('f12', 'South Indian Mini Meal Box', 89, 'MTR Heritage Canteen', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2812,8 +3421,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f18">
             <button type="button" class="btn-add-pill" onclick="addToCart('f18', 'Authentic Filter Coffee', 29, 'Brahmin\'s Coffee Bar', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2856,8 +3464,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f19">
             <button type="button" class="btn-add-pill" onclick="addToCart('f19', 'Bengaluru Khara Bath & Kesari Bath', 55, 'Veena Stores', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2900,8 +3507,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f20">
             <button type="button" class="btn-add-pill" onclick="addToCart('f20', 'Egg Kathi Roll', 79, 'Rolls King', '/static/kathi_roll.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -2944,8 +3550,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f21">
             <button type="button" class="btn-add-pill" onclick="addToCart('f21', 'Steamed Chicken Momos (5 pcs)', 89, 'Shillong Momo Corner', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3007,8 +3612,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f1">
             <button type="button" class="btn-add-pill" onclick="addToCart('f1', 'Crispy Masala Dosa', 79, 'Sri Krishna Cafe', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3051,8 +3655,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f2">
             <button type="button" class="btn-add-pill" onclick="addToCart('f2', 'Steamed Idli Sambar (2 pcs)', 49, 'Brahmin\'s Tiffin Room', '/static/idli_sambar.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3095,8 +3698,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f9">
             <button type="button" class="btn-add-pill" onclick="addToCart('f9', 'Crispy Plain Dosa & Podi', 59, 'Vidyarthi Bhavana Tiffins', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3139,8 +3741,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f10">
             <button type="button" class="btn-add-pill" onclick="addToCart('f10', 'Golden Medu Vada (2 pcs)', 45, 'Udupi Grand Tiffins', '/static/medu_vada.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3183,8 +3784,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f11">
             <button type="button" class="btn-add-pill" onclick="addToCart('f11', 'Onion Tomato Uttapam', 79, 'Taaza Thindi', '/static/onion_uttapam.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3227,8 +3827,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f12">
             <button type="button" class="btn-add-pill" onclick="addToCart('f12', 'South Indian Mini Meal Box', 89, 'MTR Heritage Canteen', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3271,8 +3870,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f19">
             <button type="button" class="btn-add-pill" onclick="addToCart('f19', 'Bengaluru Khara Bath & Kesari Bath', 55, 'Veena Stores', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3334,8 +3932,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f7">
             <button type="button" class="btn-add-pill" onclick="addToCart('f7', 'Indori Spiced Poha', 39, 'Morning Fuel Co.', '/static/indori_poha.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3378,8 +3975,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f8">
             <button type="button" class="btn-add-pill" onclick="addToCart('f8', 'Steamed Veg Momos (6 pcs)', 79, 'Himalayan Momo Hut', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3422,8 +4018,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f10">
             <button type="button" class="btn-add-pill" onclick="addToCart('f10', 'Golden Medu Vada (2 pcs)', 45, 'Udupi Grand Tiffins', '/static/medu_vada.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3466,8 +4061,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f13">
             <button type="button" class="btn-add-pill" onclick="addToCart('f13', 'Punjabi Samosa (2 pcs with Chutney)', 39, 'Delhi Chaat Bhandar', '/static/samosa_plate.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3510,8 +4104,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f14">
             <button type="button" class="btn-add-pill" onclick="addToCart('f14', 'Tangy Aloo Tikki Chaat', 59, 'Anand Sweets & Chaat', '/static/samosa_plate.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3554,8 +4147,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f15">
             <button type="button" class="btn-add-pill" onclick="addToCart('f15', 'Bombay Veg Grilled Sandwich', 69, 'Hari Super Sandwich', '/static/bombay_sandwich.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3598,8 +4190,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f16">
             <button type="button" class="btn-add-pill" onclick="addToCart('f16', 'Crispy Pani Puri (6 Puris)', 49, 'Chaat Junction', '/static/pani_puri.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3642,8 +4233,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f17">
             <button type="button" class="btn-add-pill" onclick="addToCart('f17', 'Hot Onion Pakora Plate', 45, 'Chai Point Canteen', '/static/onion_pakora.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3686,8 +4276,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f18">
             <button type="button" class="btn-add-pill" onclick="addToCart('f18', 'Authentic Filter Coffee', 29, 'Brahmin\'s Coffee Bar', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3730,8 +4319,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f21">
             <button type="button" class="btn-add-pill" onclick="addToCart('f21', 'Steamed Chicken Momos (5 pcs)', 89, 'Shillong Momo Corner', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3774,8 +4362,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f22">
             <button type="button" class="btn-add-pill" onclick="addToCart('f22', 'Bun Maska & Irani Chai', 49, 'Cafe Chai Days', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3837,8 +4424,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f1">
             <button type="button" class="btn-add-pill" onclick="addToCart('f1', 'Crispy Masala Dosa', 79, 'Sri Krishna Cafe', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3881,8 +4467,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f2">
             <button type="button" class="btn-add-pill" onclick="addToCart('f2', 'Steamed Idli Sambar (2 pcs)', 49, 'Brahmin\'s Tiffin Room', '/static/idli_sambar.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3925,8 +4510,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f9">
             <button type="button" class="btn-add-pill" onclick="addToCart('f9', 'Crispy Plain Dosa & Podi', 59, 'Vidyarthi Bhavana Tiffins', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -3969,8 +4553,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f10">
             <button type="button" class="btn-add-pill" onclick="addToCart('f10', 'Golden Medu Vada (2 pcs)', 45, 'Udupi Grand Tiffins', '/static/medu_vada.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4013,8 +4596,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f11">
             <button type="button" class="btn-add-pill" onclick="addToCart('f11', 'Onion Tomato Uttapam', 79, 'Taaza Thindi', '/static/onion_uttapam.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4057,8 +4639,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f12">
             <button type="button" class="btn-add-pill" onclick="addToCart('f12', 'South Indian Mini Meal Box', 89, 'MTR Heritage Canteen', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4101,8 +4682,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f15">
             <button type="button" class="btn-add-pill" onclick="addToCart('f15', 'Bombay Veg Grilled Sandwich', 69, 'Hari Super Sandwich', '/static/bombay_sandwich.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4145,8 +4725,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f18">
             <button type="button" class="btn-add-pill" onclick="addToCart('f18', 'Authentic Filter Coffee', 29, 'Brahmin\'s Coffee Bar', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4189,8 +4768,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f19">
             <button type="button" class="btn-add-pill" onclick="addToCart('f19', 'Bengaluru Khara Bath & Kesari Bath', 55, 'Veena Stores', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4233,8 +4811,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f22">
             <button type="button" class="btn-add-pill" onclick="addToCart('f22', 'Bun Maska & Irani Chai', 49, 'Cafe Chai Days', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4393,8 +4970,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f1">
             <button type="button" class="btn-add-pill" onclick="addToCart('f1', 'Crispy Masala Dosa', 79, 'Sri Krishna Cafe', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4437,8 +5013,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f2">
             <button type="button" class="btn-add-pill" onclick="addToCart('f2', 'Steamed Idli Sambar (2 pcs)', 49, 'Brahmin\'s Tiffin Room', '/static/idli_sambar.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4481,8 +5056,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f3">
             <button type="button" class="btn-add-pill" onclick="addToCart('f3', 'Aromatic Veg Pulao', 89, 'Meghana Bowl Corner', '/static/veg_pulao.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4525,8 +5099,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f4">
             <button type="button" class="btn-add-pill" onclick="addToCart('f4', 'Paneer Kathi Roll', 99, 'Kolkata Roll Express', '/static/kathi_roll.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4569,8 +5142,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f5">
             <button type="button" class="btn-add-pill" onclick="addToCart('f5', 'Schezwan Veg Fried Rice', 89, 'Wok & Bowl Express', '/static/veg_pulao.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4613,8 +5185,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f6">
             <button type="button" class="btn-add-pill" onclick="addToCart('f6', 'Stuffed Aloo Paratha with Curd', 69, 'Punjab Dhaba Point', '/static/aloo_paratha.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4657,8 +5228,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f7">
             <button type="button" class="btn-add-pill" onclick="addToCart('f7', 'Indori Spiced Poha', 39, 'Morning Fuel Co.', '/static/indori_poha.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4701,8 +5271,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f8">
             <button type="button" class="btn-add-pill" onclick="addToCart('f8', 'Steamed Veg Momos (6 pcs)', 79, 'Himalayan Momo Hut', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4745,8 +5314,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f9">
             <button type="button" class="btn-add-pill" onclick="addToCart('f9', 'Crispy Plain Dosa & Podi', 59, 'Vidyarthi Bhavana Tiffins', '/static/crispy_dosa.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4789,8 +5357,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f10">
             <button type="button" class="btn-add-pill" onclick="addToCart('f10', 'Golden Medu Vada (2 pcs)', 45, 'Udupi Grand Tiffins', '/static/medu_vada.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4833,8 +5400,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f11">
             <button type="button" class="btn-add-pill" onclick="addToCart('f11', 'Onion Tomato Uttapam', 79, 'Taaza Thindi', '/static/onion_uttapam.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4877,8 +5443,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f12">
             <button type="button" class="btn-add-pill" onclick="addToCart('f12', 'South Indian Mini Meal Box', 89, 'MTR Heritage Canteen', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4921,8 +5486,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f13">
             <button type="button" class="btn-add-pill" onclick="addToCart('f13', 'Punjabi Samosa (2 pcs with Chutney)', 39, 'Delhi Chaat Bhandar', '/static/samosa_plate.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -4965,8 +5529,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f14">
             <button type="button" class="btn-add-pill" onclick="addToCart('f14', 'Tangy Aloo Tikki Chaat', 59, 'Anand Sweets & Chaat', '/static/samosa_plate.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5009,8 +5572,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f15">
             <button type="button" class="btn-add-pill" onclick="addToCart('f15', 'Bombay Veg Grilled Sandwich', 69, 'Hari Super Sandwich', '/static/bombay_sandwich.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5053,8 +5615,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f16">
             <button type="button" class="btn-add-pill" onclick="addToCart('f16', 'Crispy Pani Puri (6 Puris)', 49, 'Chaat Junction', '/static/pani_puri.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5097,8 +5658,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f17">
             <button type="button" class="btn-add-pill" onclick="addToCart('f17', 'Hot Onion Pakora Plate', 45, 'Chai Point Canteen', '/static/onion_pakora.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5141,8 +5701,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f18">
             <button type="button" class="btn-add-pill" onclick="addToCart('f18', 'Authentic Filter Coffee', 29, 'Brahmin\'s Coffee Bar', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5185,8 +5744,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f19">
             <button type="button" class="btn-add-pill" onclick="addToCart('f19', 'Bengaluru Khara Bath & Kesari Bath', 55, 'Veena Stores', '/static/hero_food.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5229,8 +5787,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f20">
             <button type="button" class="btn-add-pill" onclick="addToCart('f20', 'Egg Kathi Roll', 79, 'Rolls King', '/static/kathi_roll.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5273,8 +5830,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f21">
             <button type="button" class="btn-add-pill" onclick="addToCart('f21', 'Steamed Chicken Momos (5 pcs)', 89, 'Shillong Momo Corner', '/static/steamed_momos.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5317,8 +5873,7 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
           <div class="add-btn-wrap" id="add-btn-f22">
             <button type="button" class="btn-add-pill" onclick="addToCart('f22', 'Bun Maska & Irani Chai', 49, 'Cafe Chai Days', '/static/filter_coffee.jpg')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>ADD</span>
+              ADD
             </button>
           </div>
         </div>
@@ -5549,6 +6104,342 @@ func RenderHomePage(currentUser *ent.User) string {
       <span id="cartItemCountLabel" style="display:none;">0 items</span>
     </div>
   </aside>
+
+  <!-- 19. ADVANCED PAYMENT GATEWAY CHECKOUT MODAL -->
+  <div class="pg-modal-overlay" id="paymentGatewayModal" style="display: none;" onclick="if(event.target === this) closePaymentModal()">
+    <div class="pg-modal-container">
+      <!-- Modal Header -->
+      <div class="pg-modal-header" id="pgHeaderBar">
+        <div>
+          <div class="pg-header-kicker">RBI CERTIFIED &bull; 256-BIT TLS ENCRYPTED</div>
+          <h3 class="pg-header-title">Payment Settlement Console</h3>
+        </div>
+        <button type="button" class="pg-modal-close" onclick="closePaymentModal()">&times;</button>
+      </div>
+
+      <!-- Main Payment Body -->
+      <div class="pg-modal-body" id="pgMainBody">
+        <!-- Left: Payment Options Tabs & Content -->
+        <div class="pg-left-pane">
+          <!-- Navigation Tabs (Zero Icons) -->
+          <div class="pg-tabs-bar">
+            <button type="button" class="pg-tab-btn active" id="pgTabUpi" onclick="selectPaymentTab('upi')">UPI / QR CODE</button>
+            <button type="button" class="pg-tab-btn" id="pgTabCard" onclick="selectPaymentTab('card')">CARDS</button>
+            <button type="button" class="pg-tab-btn" id="pgTabNet" onclick="selectPaymentTab('net')">NETBANKING</button>
+            <button type="button" class="pg-tab-btn" id="pgTabWallet" onclick="selectPaymentTab('wallet')">WALLETS</button>
+            <button type="button" class="pg-tab-btn" id="pgTabCod" onclick="selectPaymentTab('cod')">PAY ON DELIVERY</button>
+          </div>
+
+          <!-- Tab Content Panes -->
+          <div class="pg-tab-content-area">
+            <!-- 1. UPI Pane -->
+            <div class="pg-tab-pane active" id="paneUpi">
+              <div style="font-size: 12.5px; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Select UPI Instrument</div>
+              
+              <!-- Quick App Badges (Zero Icons) -->
+              <div class="pg-upi-apps-grid">
+                <div class="pg-upi-app active" onclick="selectUpiApp(this, 'Google Pay')">
+                  <div class="pg-upi-badge-text">G-PAY</div>
+                  <div class="pg-upi-app-name">Google Pay</div>
+                  <span class="pg-upi-check">&#10003;</span>
+                </div>
+                <div class="pg-upi-app" onclick="selectUpiApp(this, 'PhonePe')">
+                  <div class="pg-upi-badge-text">PHONEPE</div>
+                  <div class="pg-upi-app-name">PhonePe</div>
+                  <span class="pg-upi-check">&#10003;</span>
+                </div>
+                <div class="pg-upi-app" onclick="selectUpiApp(this, 'Paytm UPI')">
+                  <div class="pg-upi-badge-text">PAYTM</div>
+                  <div class="pg-upi-app-name">Paytm UPI</div>
+                  <span class="pg-upi-check">&#10003;</span>
+                </div>
+                <div class="pg-upi-app" onclick="selectUpiApp(this, 'BHIM UPI')">
+                  <div class="pg-upi-badge-text">BHIM</div>
+                  <div class="pg-upi-app-name">BHIM UPI</div>
+                  <span class="pg-upi-check">&#10003;</span>
+                </div>
+              </div>
+
+              <!-- Dynamic QR Code Container -->
+              <div class="pg-qr-box">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="font-size: 11.5px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Dynamic Merchant QR Code</span>
+                  <span class="pg-timer-badge" id="pgQrTimer">04:59</span>
+                </div>
+                <div class="pg-qr-wrapper">
+                  <svg width="130" height="130" viewBox="0 0 140 140" style="border-radius: 8px; background: white; padding: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                    <rect width="140" height="140" fill="#ffffff"/>
+                    <rect x="10" y="10" width="36" height="36" fill="#0F172A"/>
+                    <rect x="16" y="16" width="24" height="24" fill="#ffffff"/>
+                    <rect x="22" y="22" width="12" height="12" fill="#0C831F"/>
+                    <rect x="94" y="10" width="36" height="36" fill="#0F172A"/>
+                    <rect x="100" y="16" width="24" height="24" fill="#ffffff"/>
+                    <rect x="106" y="22" width="12" height="12" fill="#0C831F"/>
+                    <rect x="10" y="94" width="36" height="36" fill="#0F172A"/>
+                    <rect x="16" y="100" width="24" height="24" fill="#ffffff"/>
+                    <rect x="22" y="106" width="12" height="12" fill="#0C831F"/>
+                    <rect x="54" y="14" width="8" height="8" fill="#1E293B"/>
+                    <rect x="70" y="14" width="16" height="8" fill="#1E293B"/>
+                    <rect x="54" y="30" width="14" height="8" fill="#1E293B"/>
+                    <rect x="76" y="30" width="10" height="8" fill="#1E293B"/>
+                    <rect x="14" y="54" width="16" height="8" fill="#1E293B"/>
+                    <rect x="38" y="54" width="16" height="12" fill="#1E293B"/>
+                    <rect x="62" y="54" width="16" height="16" fill="#0C831F"/>
+                    <rect x="86" y="54" width="16" height="8" fill="#1E293B"/>
+                    <rect x="110" y="54" width="16" height="12" fill="#1E293B"/>
+                    <rect x="54" y="76" width="8" height="16" fill="#1E293B"/>
+                    <rect x="70" y="78" width="14" height="14" fill="#1E293B"/>
+                    <rect x="92" y="76" width="16" height="12" fill="#1E293B"/>
+                    <rect x="116" y="76" width="14" height="8" fill="#1E293B"/>
+                    <rect x="54" y="100" width="16" height="8" fill="#1E293B"/>
+                    <rect x="78" y="98" width="12" height="16" fill="#0C831F"/>
+                    <rect x="98" y="100" width="16" height="8" fill="#1E293B"/>
+                    <rect x="122" y="94" width="8" height="16" fill="#1E293B"/>
+                    <rect x="54" y="116" width="22" height="14" fill="#1E293B"/>
+                    <rect x="84" y="122" width="14" height="8" fill="#1E293B"/>
+                    <rect x="106" y="116" width="24" height="14" fill="#1E293B"/>
+                  </svg>
+                  <div style="font-size: 11.5px; color: #475569; margin-top: 8px; text-align: center;">
+                    Settlement VPA: <strong style="color: #0F172A;">under100bengaluru@axisbank</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Manual UPI ID -->
+              <div style="margin-top: 14px;">
+                <label class="pg-label">Or enter Virtual Payment Address (VPA / UPI ID)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="pgUpiVpaInput" class="pg-input" placeholder="e.g. mobile@upi or name@okaxis" style="flex: 1;">
+                  <button type="button" class="pg-vpa-verify-btn" onclick="verifyUpiVpa()">VERIFY</button>
+                </div>
+                <div id="pgVpaStatus" style="font-size: 11.5px; margin-top: 4px; display: none;"></div>
+              </div>
+            </div>
+
+            <!-- 2. Card Pane -->
+            <div class="pg-tab-pane" id="paneCard" style="display: none;">
+              <div style="font-size: 12.5px; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Credit / Debit / ATM Card</div>
+              <div class="pg-form-group">
+                <label class="pg-label">Card Number</label>
+                <div style="position: relative;">
+                  <input type="text" id="pgCardNumber" class="pg-input" placeholder="4532 0000 0000 1089" maxlength="19" oninput="formatCardNumber(this)">
+                  <span class="pg-card-brand-badge" id="pgCardBrand">VISA</span>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                <div class="pg-form-group">
+                  <label class="pg-label">Valid Thru (MM/YY)</label>
+                  <input type="text" id="pgCardExpiry" class="pg-input" placeholder="MM/YY" maxlength="5" oninput="formatCardExpiry(this)">
+                </div>
+                <div class="pg-form-group">
+                  <label class="pg-label">CVV / CVC</label>
+                  <input type="password" id="pgCardCvv" class="pg-input" placeholder="123" maxlength="4">
+                </div>
+              </div>
+              <div class="pg-form-group" style="margin-top: 10px;">
+                <label class="pg-label">Name on Card</label>
+                <input type="text" id="pgCardName" class="pg-input" placeholder="Cardholder's Full Legal Name">
+              </div>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #475569; margin-top: 12px; cursor: pointer;">
+                <input type="checkbox" checked style="accent-color: #0C831F;">
+                <span>Securely save this card for one-click checkout (RBI tokenized)</span>
+              </label>
+            </div>
+
+            <!-- 3. NetBanking Pane -->
+            <div class="pg-tab-pane" id="paneNet" style="display: none;">
+              <div style="font-size: 12.5px; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Direct NetBanking Partners</div>
+              <div class="pg-banks-grid">
+                <div class="pg-bank-btn active" onclick="selectQuickBank(this, 'HDFC Bank')">
+                  <div class="pg-bank-badge" style="background:#004C8F; color:white;">HDFC</div>
+                  <div class="pg-bank-name">HDFC Bank</div>
+                </div>
+                <div class="pg-bank-btn" onclick="selectQuickBank(this, 'State Bank of India')">
+                  <div class="pg-bank-badge" style="background:#280071; color:white;">SBI</div>
+                  <div class="pg-bank-name">State Bank of India</div>
+                </div>
+                <div class="pg-bank-btn" onclick="selectQuickBank(this, 'ICICI Bank')">
+                  <div class="pg-bank-badge" style="background:#B02A30; color:white;">ICICI</div>
+                  <div class="pg-bank-name">ICICI Bank</div>
+                </div>
+                <div class="pg-bank-btn" onclick="selectQuickBank(this, 'Axis Bank')">
+                  <div class="pg-bank-badge" style="background:#97144D; color:white;">AXIS</div>
+                  <div class="pg-bank-name">Axis Bank</div>
+                </div>
+                <div class="pg-bank-btn" onclick="selectQuickBank(this, 'Kotak Mahindra')">
+                  <div class="pg-bank-badge" style="background:#ED1C24; color:white;">KOTAK</div>
+                  <div class="pg-bank-name">Kotak Mahindra</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Wallet Pane -->
+            <div class="pg-tab-pane" id="paneWallet" style="display: none;">
+              <div style="font-size: 12.5px; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Digital Wallets &amp; Pay Later</div>
+              <div class="pg-wallet-list">
+                <label class="pg-wallet-item">
+                  <input type="radio" name="pgWallet" value="Paytm Wallet" checked onchange="updatePaymentButtonLabel()">
+                  <div>
+                    <div style="font-weight: 800; color: #0F172A; font-size: 13.5px;">Paytm Wallet</div>
+                    <div style="font-size: 11.5px; color: #64748B;">Linked directly via registered mobile number</div>
+                  </div>
+                </label>
+                <label class="pg-wallet-item">
+                  <input type="radio" name="pgWallet" value="Amazon Pay" onchange="updatePaymentButtonLabel()">
+                  <div>
+                    <div style="font-weight: 800; color: #0F172A; font-size: 13.5px;">Amazon Pay Balance</div>
+                    <div style="font-size: 11.5px; color: #64748B;">Instant 1-click settlement</div>
+                  </div>
+                </label>
+                <label class="pg-wallet-item">
+                  <input type="radio" name="pgWallet" value="Simpl Pay Later" onchange="updatePaymentButtonLabel()">
+                  <div>
+                    <div style="font-weight: 800; color: #0F172A; font-size: 13.5px;">Simpl Pay Later</div>
+                    <div style="font-size: 11.5px; color: #64748B;">Buy now, settle in 15 days &bull; Zero OTP required</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- 5. COD Pane -->
+            <div class="pg-tab-pane" id="paneCod" style="display: none;">
+              <div style="padding: 20px; background: #F8FAFC; border-radius: 10px; border: 1.5px dashed #CBD5E1; text-align: center;">
+                <div style="font-size: 14px; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;">Pay on Arrival (Doorstep Settlement)</div>
+                <p style="font-size: 12.5px; color: #64748B; margin-top: 6px; line-height: 1.5; max-width: 320px; margin-left: auto; margin-right: auto;">
+                  Pay via physical cash or dynamic merchant UPI QR code directly to the delivery logistics partner upon handover.
+                </p>
+                <div style="margin-top: 12px; font-size: 11px; font-weight: 800; color: #166534; background: #DCFCE7; padding: 4px 10px; border-radius: 5px; display: inline-block; letter-spacing: 0.4px;">
+                  ZERO HANDLING SURCHARGE ON CASH DELIVERIES
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Order & Bill Summary -->
+        <div class="pg-right-pane">
+          <div class="pg-recap-card">
+            <!-- Delivery Loc Preview -->
+            <div class="pg-dest-card">
+              <div class="pg-dest-kicker">DELIVERY DESTINATION</div>
+              <div class="pg-dest-address" id="pgDestSummary">Bengaluru Kitchens</div>
+              <div class="pg-dest-meta">Express fulfillment &bull; 8-12 minutes</div>
+            </div>
+
+            <!-- Professional Itemized Order Ledger -->
+            <div class="pg-order-ledger">
+              <div class="pg-order-ledger-header">
+                <span class="pg-ledger-title">ITEMIZED ORDER LEDGER</span>
+                <span class="pg-ledger-count-badge" id="pgLedgerTotalQty">0 ITEMS</span>
+              </div>
+              <div class="pg-mini-items" id="pgMiniItemsList"></div>
+            </div>
+
+            <!-- Bill Breakdown -->
+            <div class="pg-bill-rows">
+              <div class="pg-bill-row">
+                <span>Items Subtotal</span>
+                <span id="pgBillItemsTotal" style="font-weight: 700; color: #0F172A;">&#8377;0</span>
+              </div>
+              <div class="pg-bill-row">
+                <span>Delivery Partner Fee</span>
+                <span id="pgBillDelivery">&#8377;15</span>
+              </div>
+              <div class="pg-bill-row">
+                <span>Restaurant Packaging &amp; Handling</span>
+                <span id="pgBillHandling">&#8377;4</span>
+              </div>
+              <div class="pg-bill-row" id="pgBillSmallCartRow" style="display: none;">
+                <span>Small Cart Fee</span>
+                <span id="pgBillSmallCart">&#8377;15</span>
+              </div>
+              <div class="pg-bill-row" id="pgBillTipRow" style="display: none;">
+                <span>Delivery Partner Tip</span>
+                <span id="pgBillTip">&#8377;0</span>
+              </div>
+              <div class="pg-bill-row" id="pgBillDonationRow">
+                <span>Feeding India Donation</span>
+                <span id="pgBillDonation">&#8377;1</span>
+              </div>
+              <div class="pg-bill-divider"></div>
+              <div class="pg-bill-row pg-grand-total-row">
+                <span style="font-weight: 800; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.5px;">Net Payable</span>
+                <span style="font-weight: 900; font-size: 18px; color: #0C831F;" id="pgGrandTotalVal">&#8377;0</span>
+              </div>
+            </div>
+
+            <!-- Trust Badges Strip -->
+            <div class="pg-trust-strip">
+              <div style="font-size: 9.5px; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; text-align: center;">
+                PCI-DSS LEVEL 1 CERTIFIED &bull; RBI RECOGNIZED ESCROW
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer CTA Strip -->
+      <div class="pg-modal-footer" id="pgFooterBar">
+        <button type="button" class="pg-btn-cancel" onclick="closePaymentModal()">Cancel</button>
+        <button type="button" class="pg-btn-pay" id="pgPayButton" onclick="processPaymentGateway()">
+          <span id="pgPayBtnText">Pay &#8377;0 Securely</span>
+        </button>
+      </div>
+
+      <!-- Success Screen View (Zero Icons) -->
+      <div class="pg-success-view" id="pgSuccessView" style="display: none;">
+        <div class="pg-success-status-badge">PAYMENT AUTHORIZED &amp; CONFIRMED</div>
+        <h2 style="font-size: 20px; font-weight: 900; color: #0F172A; margin-top: 14px; margin-bottom: 4px;">Order Placed Successfully</h2>
+        <div style="font-size: 13px; color: #0C831F; font-weight: 700;">Live Kitchen Dispatch Order Active</div>
+
+        <div class="pg-order-id-pill" id="pgSuccessOrderId">Order #BITE-2026-92841</div>
+
+        <!-- Live Delivery Progress Bar -->
+        <div class="pg-tracking-bar">
+          <div class="pg-track-step done">
+            <div class="pg-track-dot">1</div>
+            <div class="pg-track-label">Placed</div>
+          </div>
+          <div class="pg-track-line active"></div>
+          <div class="pg-track-step active">
+            <div class="pg-track-dot">2</div>
+            <div class="pg-track-label">Kitchen</div>
+          </div>
+          <div class="pg-track-line"></div>
+          <div class="pg-track-step">
+            <div class="pg-track-dot">3</div>
+            <div class="pg-track-label">In Transit</div>
+          </div>
+          <div class="pg-track-line"></div>
+          <div class="pg-track-step">
+            <div class="pg-track-dot">4</div>
+            <div class="pg-track-label">Delivered</div>
+          </div>
+        </div>
+
+        <div class="pg-success-info-card">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+            <span style="color: #64748B;">Estimated Delivery:</span>
+            <strong style="color: #0C831F;">12-15 minutes (Express)</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
+            <span style="color: #64748B;">Payment Mode:</span>
+            <strong style="color: #0F172A;" id="pgSuccessMethod">UPI / Google Pay</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span style="color: #64748B;">Amount Paid:</span>
+            <strong style="color: #0F172A; font-size: 15px;" id="pgSuccessAmount">&#8377;0</strong>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; width: 100%; margin-top: 18px; max-width: 440px;">
+          <button type="button" class="btn-track-order" onclick="closePaymentModal()">
+            Order More Food
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 18. LOCATION & ORDER FOR SOMEONE ELSE MODAL -->
   <div class="loc-modal-overlay" id="locModalOverlay" onclick="if(event.target === this) closeLocationModal()">
@@ -6099,12 +6990,16 @@ function selectCustomTip() {
 }
 
 function addToCart(id, name, price, restaurant, image) {
+  id = String(id);
+  if (!itemsDB[id] && name) {
+    itemsDB[id] = { id: id, name: name, price: (typeof price === 'number' && !isNaN(price)) ? price : 79, restaurant: restaurant || 'Bengaluru Kitchen', image: image || '/static/crispy_dosa.jpg' };
+  }
   if (!cartItems[id]) {
     var item = itemsDB[id];
-    var n = item ? item.name : (name || 'Dish');
-    var p = item ? item.price : (price || 79);
-    var r = item ? item.restaurant : (restaurant || 'Bengaluru Kitchen');
-    var img = item ? item.image : (image || '/static/crispy_dosa.jpg');
+    var n = name || (item ? item.name : 'Delicious Dish');
+    var p = (typeof price === 'number' && !isNaN(price)) ? price : (item ? item.price : 79);
+    var r = restaurant || (item ? item.restaurant : 'Bengaluru Kitchen');
+    var img = image || (item ? item.image : '/static/crispy_dosa.jpg');
     cartItems[id] = { id: id, name: n, price: p, restaurant: r, image: img, qty: 1 };
   } else {
     cartItems[id].qty += 1;
@@ -6122,6 +7017,7 @@ function addToCart(id, name, price, restaurant, image) {
 }
 
 function updateQty(id, delta) {
+  id = String(id);
   if (!cartItems[id]) return;
   cartItems[id].qty += delta;
   if (cartItems[id].qty <= 0) {
@@ -6132,26 +7028,30 @@ function updateQty(id, delta) {
 }
 
 function removeItem(id) {
+  id = String(id);
   delete cartItems[id];
   renderCart();
   updateProductCardControls(id);
 }
 
 function updateProductCardControls(id) {
+  id = String(id);
   var btns = document.querySelectorAll('.add-btn-wrap-' + id + ', [id="add-btn-' + id + '"]');
   var item = cartItems[id];
+  var cached = itemsDB[id] || {};
   btns.forEach(function(btnWrap) {
     if (item && item.qty > 0) {
       btnWrap.innerHTML = '<div class="qty-counter-pill">' +
-        '<button type="button" class="qty-btn" onclick="updateQty(\' + id + \', -1)">&minus;</button>' +
+        '<button type="button" class="qty-btn" onclick="updateQty(\'' + id + '\', -1)">&minus;</button>' +
         '<span class="qty-num">' + item.qty + '</span>' +
-        '<button type="button" class="qty-btn" onclick="updateQty(\' + id + \', 1)">&#43;</button>' +
+        '<button type="button" class="qty-btn" onclick="updateQty(\'' + id + '\', 1)">&#43;</button>' +
       '</div>';
     } else {
-      btnWrap.innerHTML = '<button type="button" class="btn-add-pill" onclick="addToCart(\' + id + \')">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>' +
-        '<span>ADD</span>' +
-      '</button>';
+      var n = (cached.name || 'Dish').replace(/'/g, "\\'");
+      var p = cached.price || 79;
+      var r = (cached.restaurant || 'Bengaluru Kitchen').replace(/'/g, "\\'");
+      var img = cached.image || '/static/crispy_dosa.jpg';
+      btnWrap.innerHTML = '<button type="button" class="btn-add-pill" onclick="addToCart(\'' + id + '\', \'' + n + '\', ' + p + ', \'' + r + '\', \'' + img + '\')">ADD</button>';
     }
   });
 }
@@ -6231,21 +7131,21 @@ function renderCart() {
     '</div>' +
   '</div>';
 
-  // Recipient / Location Tag
+  // Recipient / Location Tag (Zero Icons)
   var locTag = '';
   if (activeDelivery.forSomeoneElse) {
-    locTag = '<div style="background-color: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">' +
+    locTag = '<div style="background-color: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">' +
       '<div>' +
-        '<div style="font-size: 11px; font-weight: 800; color: #EA580C; text-transform: uppercase; letter-spacing: 0.5px;">🎁 Ordering for Someone Else</div>' +
+        '<div style="font-size: 10.5px; font-weight: 800; color: #EA580C; text-transform: uppercase; letter-spacing: 0.5px;">ORDER FOR SOMEONE ELSE</div>' +
         '<div style="font-size: 13px; font-weight: 800; color: #1E293B; margin-top: 2px;">' + escapeSafe(activeDelivery.recipientName) + ' (' + escapeSafe(activeDelivery.recipientPhone) + ')</div>' +
         '<div style="font-size: 11.5px; color: #64748B; margin-top: 1px;">' + escapeSafe(activeDelivery.recipientAddress) + ', ' + escapeSafe(activeDelivery.locality) + '</div>' +
       '</div>' +
       '<button type="button" onclick="openLocationModal()" style="font-size: 11.5px; font-weight: 700; color: #FF5A1F; cursor: pointer; padding: 3px 8px; border-radius: 6px; background-color: #ffffff; border: 1px solid #FED7AA;">Change</button>' +
     '</div>';
   } else {
-    locTag = '<div style="background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">' +
+    locTag = '<div style="background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">' +
       '<div>' +
-        '<div style="font-size: 10.5px; font-weight: 800; color: #087443; text-transform: uppercase; letter-spacing: 0.5px;">📍 Delivering to</div>' +
+        '<div style="font-size: 10px; font-weight: 800; color: #087443; text-transform: uppercase; letter-spacing: 0.5px;">DELIVERING TO</div>' +
         '<div style="font-size: 13px; font-weight: 800; color: #1E293B; margin-top: 2px;">' + escapeSafe(activeDelivery.displayLabel) + '</div>' +
       '</div>' +
       '<button type="button" onclick="openLocationModal()" style="font-size: 11.5px; font-weight: 700; color: #0C831F; cursor: pointer; padding: 3px 8px; border-radius: 6px; background-color: #F0FDF4; border: 1px solid #BBF7D0;">Change</button>' +
@@ -6267,21 +7167,21 @@ function renderCart() {
         '</div>' +
       '</div>' +
       '<div class="b-cart-stepper">' +
-        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\' + id + \', -1)">&minus;</button>' +
+        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', -1)">&minus;</button>' +
         '<span class="b-cart-stepper-val">' + item.qty + '</span>' +
-        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\' + id + \', 1)">&#43;</button>' +
+        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', 1)">&#43;</button>' +
       '</div>' +
     '</div>';
   });
   itemsHtml += '</div>';
 
-  // 3. Bill details Card
+  // 3. Bill details Card (Zero Icons)
   var billHtml = '<div class="b-cart-card">' +
-    '<div style="font-size: 15px; font-weight: 800; color: #1E293B; margin-bottom: 12px;">Bill details</div>' +
+    '<div style="font-size: 14.5px; font-weight: 800; color: #1E293B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Bill Details</div>' +
     
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
       '<div style="display: flex; align-items: center; gap: 6px; color: #334155;">' +
-        '<span>🧾 Items total</span>' +
+        '<span>Items Subtotal</span>' +
         '<span style="background: #EEF2FF; color: #4F46E5; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px;">Saved &#8377;' + savedAmount + '</span>' +
       '</div>' +
       '<div>' +
@@ -6291,41 +7191,32 @@ function renderCart() {
     '</div>' +
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
-      '<div style="color: #334155; display: flex; align-items: center; gap: 4px;">' +
-        '<span>🛵 Delivery charge</span>' +
-        '<span style="color: #94A3B8; font-size: 12px; cursor: pointer;" title="Under100 ultra-fast localized delivery">ⓘ</span>' +
-      '</div>' +
+      '<div style="color: #334155;">Delivery Partner Fee</div>' +
       '<div style="font-weight: 700; color: #1E293B;">&#8377;' + deliveryCharge + '</div>' +
     '</div>' +
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
-      '<div style="color: #334155; display: flex; align-items: center; gap: 4px;">' +
-        '<span>🛍️ Handling charge</span>' +
-        '<span style="color: #94A3B8; font-size: 12px; cursor: pointer;" title="Direct partner restaurant kitchen hygiene">ⓘ</span>' +
-      '</div>' +
+      '<div style="color: #334155;">Restaurant Packaging &amp; Handling</div>' +
       '<div style="font-weight: 700; color: #1E293B;">&#8377;' + handlingCharge + '</div>' +
     '</div>' +
 
     (smallCartCharge > 0 ? (
       '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
-        '<div style="color: #334155; display: flex; align-items: center; gap: 4px;">' +
-          '<span>🛒 Small cart charge</span>' +
-          '<span style="color: #94A3B8; font-size: 12px; cursor: pointer;" title="Applies to orders below ₹99">ⓘ</span>' +
-        '</div>' +
+        '<div style="color: #334155;">Small Cart Surcharge</div>' +
         '<div style="font-weight: 700; color: #1E293B;">&#8377;' + smallCartCharge + '</div>' +
       '</div>'
     ) : '') +
 
     (selectedTip > 0 ? (
       '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
-        '<div style="color: #334155;">Tip your delivery partner</div>' +
+        '<div style="color: #334155;">Delivery Partner Tip</div>' +
         '<div style="font-weight: 700; color: #166534;">+&#8377;' + selectedTip + '</div>' +
       '</div>'
     ) : '') +
 
     (includeDonation ? (
       '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
-        '<div style="color: #334155;">Feeding India donation</div>' +
+        '<div style="color: #334155;">Feeding India Donation</div>' +
         '<div style="font-weight: 700; color: #1E293B;">&#8377;1</div>' +
       '</div>'
     ) : '') +
@@ -6333,23 +7224,20 @@ function renderCart() {
     '<div style="height: 1px; background: #F1F5F9; margin: 10px 0;"></div>' +
 
     '<div style="display: flex; justify-content: space-between; align-items: center; font-size: 14.5px;">' +
-      '<div style="font-weight: 800; color: #1E293B; display: flex; align-items: center; gap: 4px;">' +
-        '<span>Grand total</span>' +
-        '<span style="color: #94A3B8; font-size: 12px; cursor: pointer;">ⓘ</span>' +
-      '</div>' +
-      '<div style="font-weight: 800; color: #1E293B; font-size: 16px;">&#8377;' + grandTotal + '</div>' +
+      '<div style="font-weight: 800; color: #1E293B; text-transform: uppercase; letter-spacing: 0.5px;">Net Total</div>' +
+      '<div style="font-weight: 900; color: #0C831F; font-size: 17px;">&#8377;' + grandTotal + '</div>' +
     '</div>' +
   '</div>';
 
   // 4. Feeding India Donation Card
   var donationHtml = '<div class="b-cart-card" style="display: flex; align-items: center; gap: 12px;">' +
-    '<div style="width: 40px; height: 40px; border-radius: 10px; background: #FEF3C7; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">' +
-      '🍲' +
+    '<div style="width: 36px; height: 36px; border-radius: 8px; background: #FEF3C7; color: #92400E; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; flex-shrink: 0;">' +
+      'CARE' +
     '</div>' +
     '<div style="flex: 1; min-width: 0;">' +
-      '<div style="font-size: 13.5px; font-weight: 800; color: #1E293B;">Feeding India donation</div>' +
+      '<div style="font-size: 13px; font-weight: 800; color: #1E293B;">Feeding India Donation</div>' +
       '<div style="font-size: 11.5px; color: #64748B; margin-top: 2px; line-height: 1.35;">' +
-        'Working towards a malnutrition free India. Feeding India...<span style="color: #0C831F; font-weight: 600; cursor: pointer;" onclick=\"alert(\'Under100 partners with hunger relief initiatives across Bengaluru and India.\')\">read more</span>' +
+        'Supporting local malnutrition relief initiatives across Bengaluru.' +
       '</div>' +
     '</div>' +
     '<div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">' +
@@ -6360,23 +7248,15 @@ function renderCart() {
 
   // 5. Tip Your Delivery Partner Card
   var tipHtml = '<div class="b-cart-card">' +
-    '<div style="font-size: 14px; font-weight: 800; color: #1E293B;">Tip your delivery partner</div>' +
+    '<div style="font-size: 13.5px; font-weight: 800; color: #1E293B; text-transform: uppercase; letter-spacing: 0.4px;">Tip Your Delivery Partner</div>' +
     '<div style="font-size: 12px; color: #64748B; margin: 4px 0 12px 0; line-height: 1.4;">' +
-      'Your kindness means a lot! 100% of your tip will go directly to your delivery partner.' +
+      '100% of your optional tip is settled directly to your delivery partner.' +
     '</div>' +
     '<div style="display: flex; gap: 8px; flex-wrap: wrap;">' +
-      '<button type="button" class="b-tip-pill ' + (selectedTip === 20 ? 'active' : '') + '" onclick="selectTipAmount(20)">' +
-        '<span>🤞</span> <span>&#8377;20</span>' +
-      '</button>' +
-      '<button type="button" class="b-tip-pill ' + (selectedTip === 30 ? 'active' : '') + '" onclick="selectTipAmount(30)">' +
-        '<span>💌</span> <span>&#8377;30</span>' +
-      '</button>' +
-      '<button type="button" class="b-tip-pill ' + (selectedTip === 50 ? 'active' : '') + '" onclick="selectTipAmount(50)">' +
-        '<span>❤️</span> <span>&#8377;50</span>' +
-      '</button>' +
-      '<button type="button" class="b-tip-pill ' + (selectedTip > 0 && selectedTip !== 20 && selectedTip !== 30 && selectedTip !== 50 ? 'active' : '') + '" onclick="selectCustomTip()">' +
-        '<span>👏</span> <span>' + (selectedTip > 0 && selectedTip !== 20 && selectedTip !== 30 && selectedTip !== 50 ? '&#8377;' + selectedTip : 'Custom') + '</span>' +
-      '</button>' +
+      '<button type="button" class="b-tip-pill ' + (selectedTip === 20 ? 'active' : '') + '" onclick="selectTipAmount(20)">&#8377;20</button>' +
+      '<button type="button" class="b-tip-pill ' + (selectedTip === 30 ? 'active' : '') + '" onclick="selectTipAmount(30)">&#8377;30</button>' +
+      '<button type="button" class="b-tip-pill ' + (selectedTip === 50 ? 'active' : '') + '" onclick="selectTipAmount(50)">&#8377;50</button>' +
+      '<button type="button" class="b-tip-pill ' + (selectedTip > 0 && selectedTip !== 20 && selectedTip !== 30 && selectedTip !== 50 ? 'active' : '') + '" onclick="selectCustomTip()">' + (selectedTip > 0 && selectedTip !== 20 && selectedTip !== 30 && selectedTip !== 50 ? '&#8377;' + selectedTip : 'Custom') + '</button>' +
     '</div>' +
   '</div>';
 
@@ -6415,39 +7295,276 @@ function toggleCartDrawer() {
   }
 }
 
+var currentPaymentTab = 'upi';
+var currentUpiApp = 'Google Pay';
+var currentBank = 'HDFC Bank';
+var currentGrandTotal = 0;
+var pgTimerInterval = null;
+
 function checkoutOrder() {
-  if (activeDelivery.forSomeoneElse) {
-    var recMsg = 'Order Placed Successfully for ' + activeDelivery.recipientName + '!' +
-      '\n\nDelivering to: ' + activeDelivery.recipientAddress + ', ' + activeDelivery.locality +
-      '\nRecipient Phone: ' + activeDelivery.recipientPhone +
-      (activeDelivery.recipientNote ? ('\nNote: ' + activeDelivery.recipientNote) : '') +
-      '\nGuaranteed 8-15 min delivery dispatched from nearest kitchens in Bengaluru.';
-    alert(recMsg);
-  } else {
-    var selfMsg = 'Order Placed Successfully!' +
-      '\n\nDelivering to: ' + activeDelivery.displayLabel +
-      '\nGuaranteed 8-15 min delivery dispatched from nearest kitchens in Bengaluru.';
-    alert(selfMsg);
-  }
+  openPaymentModal();
+}
+
+function openPaymentModal() {
   var ids = Object.keys(cartItems);
-  cartItems = {};
-  selectedTip = 0;
-  renderCart();
-  toggleCartDrawer();
+  if (ids.length === 0) {
+    alert('Your cart is empty! Please add some delicious meals under ₹100.');
+    return;
+  }
+
+  // Calculate bill values
+  var totalCount = 0;
+  var itemsTotal = 0;
+  var miniItemsHtml = '';
+
   ids.forEach(function(id) {
-    updateProductCardControls(id);
+    var it = cartItems[id];
+    totalCount += it.qty;
+    var lineTotal = it.qty * it.price;
+    itemsTotal += lineTotal;
+    miniItemsHtml += '<div class="pg-ledger-row">' +
+      '<div class="pg-ledger-item-info">' +
+        '<div class="pg-ledger-item-name">' + it.name + '</div>' +
+        '<div class="pg-ledger-item-meta">' + (it.restaurant || 'Bengaluru Kitchen') + '</div>' +
+      '</div>' +
+      '<div class="pg-ledger-qty-wrap">' +
+        '<span class="pg-qty-tag">QTY: ' + it.qty + '</span>' +
+        '<span class="pg-unit-price">&#8377;' + it.price + ' ea</span>' +
+        '<span class="pg-row-total">&#8377;' + lineTotal + '</span>' +
+      '</div>' +
+    '</div>';
   });
-  document.querySelectorAll('.qty-counter-pill').forEach(function(pill) {
-    var parent = pill.parentElement;
-    if (parent) {
-      var cid = parent.id ? parent.id.replace('add-btn-', '') : '';
-      if (cid) {
-        updateProductCardControls(cid);
-      } else {
-        parent.innerHTML = '<button type="button" class="btn-add-pill" onclick="addToCart(\'f1\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>ADD</span></button>';
-      }
+
+  var ledgerBadge = document.getElementById('pgLedgerTotalQty');
+  if (ledgerBadge) {
+    ledgerBadge.innerText = totalCount + (totalCount === 1 ? ' ITEM' : ' ITEMS');
+  }
+
+  var deliveryCharge = 15;
+  var handlingCharge = 4;
+  var smallCartCharge = (itemsTotal > 0 && itemsTotal < 99) ? 15 : 0;
+  var donationAmount = includeDonation ? 1 : 0;
+  currentGrandTotal = itemsTotal + deliveryCharge + handlingCharge + smallCartCharge + donationAmount + selectedTip;
+
+  // Populate Right Pane Summary
+  document.getElementById('pgMiniItemsList').innerHTML = miniItemsHtml;
+  document.getElementById('pgBillItemsTotal').innerHTML = '&#8377;' + itemsTotal;
+  document.getElementById('pgBillDelivery').innerHTML = '&#8377;' + deliveryCharge;
+  document.getElementById('pgBillHandling').innerHTML = '&#8377;' + handlingCharge;
+  
+  var smallRow = document.getElementById('pgBillSmallCartRow');
+  if (smallRow) {
+    if (smallCartCharge > 0) {
+      smallRow.style.display = 'flex';
+      document.getElementById('pgBillSmallCart').innerHTML = '&#8377;' + smallCartCharge;
+    } else {
+      smallRow.style.display = 'none';
+    }
+  }
+
+  var tipRow = document.getElementById('pgBillTipRow');
+  if (tipRow) {
+    if (selectedTip > 0) {
+      tipRow.style.display = 'flex';
+      document.getElementById('pgBillTip').innerHTML = '+&#8377;' + selectedTip;
+    } else {
+      tipRow.style.display = 'none';
+    }
+  }
+
+  var donRow = document.getElementById('pgBillDonationRow');
+  if (donRow) {
+    donRow.style.display = includeDonation ? 'flex' : 'none';
+  }
+
+  document.getElementById('pgGrandTotalVal').innerHTML = '&#8377;' + currentGrandTotal;
+
+  // Set destination address
+  var destLabel = activeDelivery.forSomeoneElse ? 
+    (activeDelivery.recipientName + ' (' + activeDelivery.locality + ')') : 
+    activeDelivery.displayLabel;
+  var destEl = document.getElementById('pgDestSummary');
+  if (destEl) destEl.innerText = destLabel;
+
+  // Reset to initial payment view
+  document.getElementById('pgMainBody').style.display = 'flex';
+  document.getElementById('pgHeaderBar').style.display = 'flex';
+  document.getElementById('pgFooterBar').style.display = 'flex';
+  document.getElementById('pgSuccessView').style.display = 'none';
+
+  updatePaymentButtonLabel();
+  startPgQrTimer();
+
+  // Show modal
+  var modal = document.getElementById('paymentGatewayModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closePaymentModal() {
+  var modal = document.getElementById('paymentGatewayModal');
+  if (modal) modal.style.display = 'none';
+  if (pgTimerInterval) clearInterval(pgTimerInterval);
+}
+
+function selectPaymentTab(tab) {
+  currentPaymentTab = tab;
+  var tabs = ['upi', 'card', 'net', 'wallet', 'cod'];
+  tabs.forEach(function(t) {
+    var btn = document.getElementById('pgTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    var pane = document.getElementById('pane' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (t === tab) {
+      if (btn) btn.classList.add('active');
+      if (pane) pane.style.display = 'block';
+    } else {
+      if (btn) btn.classList.remove('active');
+      if (pane) pane.style.display = 'none';
     }
   });
+  updatePaymentButtonLabel();
+}
+
+function selectUpiApp(el, appName) {
+  document.querySelectorAll('.pg-upi-app').forEach(function(a) { a.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  currentUpiApp = appName;
+  updatePaymentButtonLabel();
+}
+
+function selectQuickBank(el, bankName) {
+  document.querySelectorAll('.pg-bank-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  currentBank = bankName;
+  updatePaymentButtonLabel();
+}
+
+function updatePaymentButtonLabel() {
+  var btnText = document.getElementById('pgPayBtnText');
+  if (!btnText) return;
+
+  if (currentPaymentTab === 'upi') {
+    btnText.innerHTML = 'Pay &#8377;' + currentGrandTotal + ' via ' + currentUpiApp;
+  } else if (currentPaymentTab === 'card') {
+    btnText.innerHTML = 'Pay &#8377;' + currentGrandTotal + ' with Card';
+  } else if (currentPaymentTab === 'net') {
+    btnText.innerHTML = 'Pay &#8377;' + currentGrandTotal + ' via ' + currentBank;
+  } else if (currentPaymentTab === 'wallet') {
+    var selectedWallet = 'Wallet';
+    var checked = document.querySelector('input[name="pgWallet"]:checked');
+    if (checked) selectedWallet = checked.value;
+    btnText.innerHTML = 'Pay &#8377;' + currentGrandTotal + ' with ' + selectedWallet;
+  } else if (currentPaymentTab === 'cod') {
+    btnText.innerHTML = 'Place Order (Cash on Delivery &#8226; &#8377;' + currentGrandTotal + ')';
+  }
+}
+
+function verifyUpiVpa() {
+  var input = document.getElementById('pgUpiVpaInput');
+  var status = document.getElementById('pgVpaStatus');
+  if (!input || !status) return;
+  var val = input.value.trim();
+  if (!val || val.indexOf('@') === -1) {
+    status.style.display = 'block';
+    status.style.color = '#DC2626';
+    status.innerText = 'Please enter a valid UPI VPA (e.g. mobile@upi or name@oksbi)';
+    return;
+  }
+  status.style.display = 'block';
+  status.style.color = '#166534';
+  status.innerHTML = '✓ VPA verified: <strong>' + val + '</strong> (Ready for instant intent pay)';
+  currentUpiApp = val;
+  updatePaymentButtonLabel();
+}
+
+function formatCardNumber(input) {
+  var v = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+  var matches = v.match(/\d{4,16}/g);
+  var match = matches && matches[0] || '';
+  var parts = [];
+  for (var i = 0, len = match.length; i < len; i += 4) {
+    parts.push(match.substring(i, i + 4));
+  }
+  if (parts.length) {
+    input.value = parts.join(' ');
+  } else {
+    input.value = v;
+  }
+
+  // Detect Brand
+  var badge = document.getElementById('pgCardBrand');
+  if (badge) {
+    if (v.startsWith('4')) { badge.innerText = 'VISA'; badge.style.color = '#1D4ED8'; }
+    else if (v.startsWith('5')) { badge.innerText = 'MASTERCARD'; badge.style.color = '#B91C1C'; }
+    else if (v.startsWith('6')) { badge.innerText = 'RUPAY'; badge.style.color = '#15803D'; }
+    else { badge.innerText = 'CARD'; badge.style.color = '#64748B'; }
+  }
+}
+
+function formatCardExpiry(input) {
+  var v = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+  if (v.length >= 2) {
+    input.value = v.substring(0, 2) + '/' + v.substring(2, 4);
+  } else {
+    input.value = v;
+  }
+}
+
+function startPgQrTimer() {
+  if (pgTimerInterval) clearInterval(pgTimerInterval);
+  var duration = 300; // 5 minutes
+  var display = document.getElementById('pgQrTimer');
+  pgTimerInterval = setInterval(function() {
+    var minutes = parseInt(duration / 60, 10);
+    var seconds = parseInt(duration % 60, 10);
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    if (display) display.textContent = minutes + ":" + seconds;
+    if (--duration < 0) {
+      clearInterval(pgTimerInterval);
+      if (display) display.textContent = "Expired";
+    }
+  }, 1000);
+}
+
+function processPaymentGateway() {
+  var payBtn = document.getElementById('pgPayButton');
+  var btnText = document.getElementById('pgPayBtnText');
+  if (payBtn) payBtn.disabled = true;
+
+  if (btnText) btnText.innerHTML = 'Authorizing with Gateway...';
+
+  setTimeout(function() {
+    if (btnText) btnText.innerHTML = 'Confirming Bank Settlement...';
+    
+    setTimeout(function() {
+      // Transition to Success Screen
+      document.getElementById('pgMainBody').style.display = 'none';
+      document.getElementById('pgHeaderBar').style.display = 'none';
+      document.getElementById('pgFooterBar').style.display = 'none';
+      
+      var orderNum = Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('pgSuccessOrderId').innerText = 'ORDER REF: BITE-2026-' + orderNum;
+      document.getElementById('pgSuccessAmount').innerHTML = '&#8377;' + currentGrandTotal;
+
+      var methodLabel = 'UPI / ' + currentUpiApp;
+      if (currentPaymentTab === 'card') methodLabel = 'Credit/Debit Card (Tokenized)';
+      else if (currentPaymentTab === 'net') methodLabel = 'NetBanking (' + currentBank + ')';
+      else if (currentPaymentTab === 'wallet') methodLabel = 'Digital Wallet';
+      else if (currentPaymentTab === 'cod') methodLabel = 'Pay on Delivery (Doorstep)';
+      document.getElementById('pgSuccessMethod').innerText = methodLabel;
+
+      document.getElementById('pgSuccessView').style.display = 'flex';
+
+      // Clear Cart after successful payment
+      var ids = Object.keys(cartItems);
+      cartItems = {};
+      selectedTip = 0;
+      renderCart();
+      ids.forEach(function(id) {
+        updateProductCardControls(id);
+      });
+      if (payBtn) payBtn.disabled = false;
+    }, 1000);
+  }, 800);
 }
 
 function handleGlobalSearch(q) {
@@ -8399,9 +9516,24 @@ func RenderRestaurantModal(
 			itemDeliveryBadge = `<span style="background: #dcfce7; color: #166534; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">🚚 Deliverable</span>`
 		}
 
+		addBtnHtml := ""
+		if !f.Available {
+			addBtnHtml = `<span style="background: #fee2e2; color: #991b1b; font-size: 0.72rem; font-weight: 800; padding: 4px 8px; border-radius: 6px;">UNAVAILABLE</span>`
+		} else {
+			cleanName := strings.ReplaceAll(f.Name, "'", "\\'")
+			cleanRest := strings.ReplaceAll(rest.Name, "'", "\\'")
+			addBtnHtml = fmt.Sprintf(`
+				<div class="add-btn-wrap add-btn-wrap-rf%d" id="add-btn-rf%d" style="min-width: 76px;">
+					<button type="button" class="btn-add-pill" onclick="addToCart('rf%d', '%s', %d, '%s', '/static/crispy_dosa.jpg')">
+						ADD
+					</button>
+				</div>
+			`, f.ID, f.ID, f.ID, cleanName, int(f.Price), cleanRest)
+		}
+
 		sb.WriteString(fmt.Sprintf(`
-			<div class="modal-food-item modal-item-%s" style="opacity: %s;">
-				<div style="display: flex; align-items: center; gap: 0.65rem;">
+			<div class="modal-food-item modal-item-%s" style="opacity: %s; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+				<div style="display: flex; align-items: center; gap: 0.65rem; flex: 1; min-width: 0;">
 					%s
 					<div>
 						<div style="font-weight: 700; font-size: 0.92rem; color: var(--text-dark); display: flex; align-items: center; flex-wrap: wrap;">
@@ -8410,18 +9542,32 @@ func RenderRestaurantModal(
 						<div style="font-size: 0.78rem; color: var(--text-muted);">%s</div>
 					</div>
 				</div>
-				<div style="text-align: right;">
-					<div style="font-weight: 800; font-size: 1rem; color: %s;">
-						₹%.0f
+				<div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+					<div style="text-align: right;">
+						<div style="font-weight: 800; font-size: 1rem; color: %s;">
+							₹%.0f
+						</div>
+						%s
 					</div>
 					%s
 				</div>
 			</div>
-		`, dietType, itemOpacity, dietBox, escapeHTML(f.Name), soldOutBadge, itemDeliveryBadge, escapeHTML(f.Category), priceColor, f.Price, unavailSubtitle))
+		`, dietType, itemOpacity, dietBox, escapeHTML(f.Name), soldOutBadge, itemDeliveryBadge, escapeHTML(f.Category), priceColor, f.Price, unavailSubtitle, addBtnHtml))
 	}
 
 	sb.WriteString(`
 		</div>
+		<script>
+			setTimeout(function() {
+				if (typeof cartItems === 'object') {
+					Object.keys(cartItems).forEach(function(k) {
+						if (typeof updateProductCardControls === 'function') {
+							updateProductCardControls(k);
+						}
+					});
+				}
+			}, 50);
+		</script>
 		<script>
 			function filterModalDiet(type, btn) {
 				document.querySelectorAll('.modal-diet-tab').forEach(b => b.classList.remove('active'));

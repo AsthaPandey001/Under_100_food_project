@@ -78,46 +78,80 @@ Before running the application locally, ensure the following software is install
 
 ---
 
-## 5. Local Setup & How to Start
+## 5. Rebuilding & Running from this Git Repository
 
-### Step 1: Start PostgreSQL
-If running standalone PostgreSQL binary:
+### 5.1 Clone & Verify Dependencies
+```bash
+git clone <repo-url> food-discovery
+cd food-discovery
+go mod download
+go mod verify
+```
+
+### 5.2 Start Dependencies (PostgreSQL 16 & Redis)
+You can run the required database and cache services using Docker Compose or standalone services:
+
+**Option A — Using Docker Compose (Recommended):**
+```bash
+docker compose up -d
+```
+This spins up PostgreSQL 16 on port `5432` (`goship_db`), Redis on port `6379`, and Mailpit on port `8025`.
+
+**Option B — Using Local Standalone Services (Windows):**
 ```powershell
+# Start PostgreSQL
 & "C:\Users\astha\pgsql\bin\pg_ctl.exe" start -D "C:\Users\astha\pgdata" -l "C:\Users\astha\pgsql\logfile.log"
-```
 
-Verify connection:
-```powershell
-& "C:\Users\astha\pgsql\bin\psql.exe" -U admin -d goship_db -c "SELECT count(*) FROM food_items;"
-```
-
-### Step 2: Start Redis
-```powershell
+# Start Redis
 Start-Process -FilePath "C:\Users\astha\redis-server.exe" -WindowStyle Hidden
 ```
 
-### Step 3: Build & Launch Web Server
-Compile the server binary:
-```powershell
+### 5.3 Initialize Database Schema & Seed Data
+Run the seeder once to apply Ent ORM schema migrations and seed all restaurants, menus, and accounts:
+```bash
+go run ./cmd/seed
+```
+
+### 5.4 Build the Application Targets
+All 3 binaries compile cleanly directly from the repository source code:
+
+**1. Web Application Server (`cmd/web`):**
+```bash
+# Windows
 go build -o under100_server.exe ./cmd/web
+
+# Linux / macOS
+go build -o under100_server ./cmd/web
 ```
 
-Run the server:
+**2. Asynchronous Background Worker (`cmd/worker`):**
+```bash
+# Windows
+go build -o under100_worker.exe ./cmd/worker
+
+# Linux / macOS
+go build -o under100_worker ./cmd/worker
+```
+
+**3. Linux Deployment Cross-Compilation (from Windows/macOS):**
 ```powershell
+$env:CGO_ENABLED="0"; $env:GOOS="linux"; $env:GOARCH="amd64"
+go build -ldflags="-s -w" -o ./build_tmp/under100_web_linux ./cmd/web
+go build -ldflags="-s -w" -o ./build_tmp/under100_worker_linux ./cmd/worker
+go build -ldflags="-s -w" -o ./build_tmp/under100_seed_linux ./cmd/seed
+```
+
+### 5.5 Launch & Verify
+Start the compiled web server:
+```bash
+# Windows
 .\under100_server.exe
+
+# Linux
+./under100_server
 ```
 
-The web server will start and bind to `http://127.0.0.1:8000`.
-
-### Step 4: Launch in Browser
-Open your browser and navigate to:
-```text
-http://127.0.0.1:8000
-```
-Or from PowerShell:
-```powershell
-Start-Process "http://127.0.0.1:8000"
-```
+Open your browser at `http://127.0.0.1:8000`.
 
 ---
 
