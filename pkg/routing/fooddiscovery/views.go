@@ -2907,7 +2907,307 @@ func RenderHomePage(currentUser *ent.User) string {
     @media (max-width: 720px) {
       .pg-modal-body { flex-direction: column; }
       .pg-left-pane { border-right: none; border-bottom: 1px solid #E2E8F0; }
-      .pg-upi-apps-grid { grid-template-columns: repeat(2, 1fr); }
+    /* 14. VEG ONLY FILTER SWITCH */
+    .veg-toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1.5px solid #22c55e;
+      border-radius: 9999px;
+      padding: 6px 14px;
+      user-select: none;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(34, 197, 94, 0.12);
+      transition: all 0.2s ease;
+    }
+    .veg-toggle-wrap:hover {
+      background: #F0FDF4;
+      border-color: #16a34a;
+    }
+    .veg-toggle-wrap .switch-ui {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .veg-toggle-wrap .switch-ui input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .veg-toggle-wrap .slider-round {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #CBD5E1;
+      transition: .25s ease;
+      border-radius: 20px;
+    }
+    .veg-toggle-wrap .slider-round:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s ease;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .veg-toggle-wrap .switch-ui input:checked + .slider-round {
+      background-color: #16a34a;
+    }
+    .veg-toggle-wrap .switch-ui input:checked + .slider-round:before {
+      transform: translateX(16px);
+    }
+
+    /* 15. CART MULTI-RESTAURANT CONFLICT MODAL */
+    .conflict-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .conflict-modal-overlay.open { display: flex; }
+    .conflict-modal-card {
+      background: #ffffff;
+      border-radius: 20px;
+      max-width: 420px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      animation: popIn 0.25s ease-out;
+      text-align: center;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .conflict-modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #FEF3C7;
+      color: #D97706;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 24px;
+    }
+    .conflict-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1E293B;
+      margin-bottom: 8px;
+    }
+    .conflict-modal-desc {
+      font-size: 13.5px;
+      color: #64748B;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .conflict-actions-row {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-conflict-cancel {
+      flex: 1;
+      padding: 12px;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #475569;
+      cursor: pointer;
+    }
+    .btn-conflict-replace {
+      flex: 1.2;
+      padding: 12px;
+      background: #FF5A1F;
+      border: none;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13.5px;
+      color: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 90, 31, 0.3);
+    }
+
+    /* 16. CART INSTRUCTIONS & COUPONS */
+    .cart-chip-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .cart-chip-toggle.active {
+      background: #ECFDF5;
+      border-color: #10B981;
+      color: #065F46;
+      font-weight: 700;
+    }
+    .cart-promo-box {
+      background: #ffffff;
+      border: 1.5px dashed #0C831F;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .free-delivery-meter {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+    .free-delivery-bar {
+      height: 6px;
+      background: #E2E8F0;
+      border-radius: 9999px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .free-delivery-fill {
+      height: 100%;
+      background: #10B981;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    /* 17. LIVE ORDER TRACKING MODAL & STEPPER */
+    .tracking-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(5px);
+      z-index: 550;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .tracking-modal-overlay.open { display: flex; }
+    .tracking-modal-card {
+      background: #ffffff;
+      border-radius: 24px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.25);
+      animation: popIn 0.25s ease-out;
+    }
+    .tracking-header {
+      background: #171C24;
+      color: #ffffff;
+      padding: 24px;
+      border-radius: 24px 24px 0 0;
+      position: relative;
+    }
+    .tracking-eta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tracking-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.4px;
+    }
+    .tracking-body {
+      padding: 24px;
+    }
+    .track-stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      margin: 16px 0 24px 10px;
+    }
+    .track-stepper::before {
+      content: "";
+      position: absolute;
+      top: 14px;
+      bottom: 14px;
+      left: 11px;
+      width: 2px;
+      background: #E2E8F0;
+      z-index: 1;
+    }
+    .track-step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .track-step-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2.5px solid #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .track-step-item.done .track-step-dot {
+      background: #10B981;
+      border-color: #10B981;
+      color: #ffffff;
+    }
+    .track-step-item.active .track-step-dot {
+      background: #FF5A1F;
+      border-color: #FF5A1F;
+      color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.2);
+    }
+    .track-step-info h4 {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #1E293B;
+      margin-bottom: 2px;
+    }
+    .track-step-info p {
+      font-size: 12.5px;
+      color: #64748B;
+      margin: 0;
     }
   </style>
 </head>
@@ -2965,9 +3265,14 @@ func RenderHomePage(currentUser *ent.User) string {
         </div>
       </a>
 
-      <!-- 2. LOCATION TAG (Address only, no icons) -->
-      <div class="loc-dropdown-pill" id="navLocationPill" onclick="openLocationModal()" title="Change location or order for someone else">
-        <span id="currentLocText">Indiranagar, Bengaluru</span>
+      <!-- 2. LOCATION TAG & 1-TAP GPS DETECT -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <div class="loc-dropdown-pill" id="navLocationPill" onclick="openLocationModal()" title="Change location or order for someone else">
+          <span id="currentLocText">Indiranagar, Bengaluru</span>
+        </div>
+        <button type="button" onclick="detectGPSLocation()" title="Use Current GPS Location" style="background: rgba(255, 90, 31, 0.1); border: 1.5px solid rgba(255, 90, 31, 0.35); border-radius: 9999px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #FF5A1F; transition: all 0.2s ease; flex-shrink: 0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path></svg>
+        </button>
       </div>
 
       <!-- 3. SEARCH BAR WITH DYNAMIC ROTATING LABELS -->
@@ -5166,7 +5471,19 @@ func RenderHomePage(currentUser *ent.User) string {
           </div>
         </div>
 
-        <div class="filter-pills-row">
+        <div class="filter-pills-row" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <!-- Swiggy-style Veg Only Switch -->
+          <div class="veg-toggle-wrap" onclick="var chk = document.getElementById('vegFilterToggle'); chk.checked = !chk.checked; toggleVegOnlyFilter(chk.checked);" title="Toggle Vegetarian Only">
+            <div class="diet-indicator diet-veg" style="width: 14px; height: 14px; border: 1.5px solid #16a34a; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center;">
+              <div style="width: 6px; height: 6px; background-color: #16a34a; border-radius: 50%;"></div>
+            </div>
+            <span style="font-size: 13px; font-weight: 800; color: #166534; letter-spacing: -0.2px;">Veg Only</span>
+            <label class="switch-ui" onclick="event.stopPropagation();">
+              <input type="checkbox" id="vegFilterToggle" onchange="toggleVegOnlyFilter(this.checked)">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
           <button class="filter-tab-pill active" onclick="filterGridCategory('all', this)">All Items (22)</button>
           <button id="openNowFilterBtn" class="filter-tab-pill" onclick="toggleOpenNowFilter(this)" style="display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #22c55e; color: #166534; font-weight: 700;">
             <span class="badge-dot-live"></span>
@@ -6426,6 +6743,88 @@ func RenderHomePage(currentUser *ent.User) string {
     </div>
   </aside>
 
+  <!-- MULTI-RESTAURANT CART CONFLICT GUARD MODAL -->
+  <div class="conflict-modal-overlay" id="cartConflictModal" onclick="if(event.target === this) resolveCartConflict(false)">
+    <div class="conflict-modal-card">
+      <div class="conflict-modal-icon">⚠️</div>
+      <h3 class="conflict-modal-title">Replace cart items?</h3>
+      <p class="conflict-modal-desc">
+        Your cart already contains delicious items from <strong id="conflictOldRestName" style="color: #1E293B;">Restaurant A</strong>. Do you want to discard your current cart and start a fresh order from <strong id="conflictNewRestName" style="color: #FF5A1F;">Restaurant B</strong> instead?
+      </p>
+      <div class="conflict-actions-row">
+        <button type="button" class="btn-conflict-cancel" onclick="resolveCartConflict(false)">Keep Current Cart</button>
+        <button type="button" class="btn-conflict-replace" onclick="resolveCartConflict(true)">Replace Cart &amp; Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE ORDER TRACKING MODAL & STEPPER -->
+  <div class="tracking-modal-overlay" id="liveOrderTrackingModal" onclick="if(event.target === this) closeOrderTrackingModal()">
+    <div class="tracking-modal-card">
+      <div class="tracking-header">
+        <button type="button" onclick="closeOrderTrackingModal()" style="position: absolute; right: 18px; top: 18px; background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+        <div class="tracking-eta-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span id="trackEtaText">Estimated Delivery: 18 mins</span>
+        </div>
+        <h2 class="tracking-title" id="trackHeaderTitle">Your meal is on the way!</h2>
+        <div style="font-size: 13px; color: #94A3B8; margin-top: 4px;" id="trackRestaurantName">From CTR Shri Sagar, Malleshwaram</div>
+      </div>
+      <div class="tracking-body">
+        <!-- Visual 5-Stage Stepper -->
+        <div class="track-stepper">
+          <div class="track-step-item done" id="step1">
+            <div class="track-step-dot">&#10003;</div>
+            <div class="track-step-info">
+              <h4>Order Placed &amp; Confirmed</h4>
+              <p>Payment settled successfully via UPI</p>
+            </div>
+          </div>
+          <div class="track-step-item active" id="step2">
+            <div class="track-step-dot">2</div>
+            <div class="track-step-info">
+              <h4>Kitchen Accepted &amp; Preparing</h4>
+              <p>Fresh dosas and filter coffee on the stove</p>
+            </div>
+          </div>
+          <div class="track-step-item" id="step3">
+            <div class="track-step-dot">3</div>
+            <div class="track-step-info">
+              <h4>Delivery Valet Assigned</h4>
+              <p>Ramesh Kumar (Hero Splendor KA-04-EK-9122)</p>
+            </div>
+          </div>
+          <div class="track-step-item" id="step4">
+            <div class="track-step-dot">4</div>
+            <div class="track-step-info">
+              <h4>Out for Delivery</h4>
+              <p>Heading to Indiranagar, Bengaluru</p>
+            </div>
+          </div>
+          <div class="track-step-item" id="step5">
+            <div class="track-step-dot">5</div>
+            <div class="track-step-info">
+              <h4>Delivered &amp; Enjoy!</h4>
+              <p>Order handed over safely</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase;">Delivery Address</span>
+            <span style="font-size: 12px; font-weight: 700; color: #0C831F;">&#127968; Home</span>
+          </div>
+          <div style="font-size: 13.5px; font-weight: 600; color: #1E293B;" id="trackAddressText">Indiranagar 100ft Rd, Bengaluru</div>
+        </div>
+
+        <button type="button" onclick="closeOrderTrackingModal()" style="width: 100%; padding: 13px; background: #0C831F; color: #ffffff; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: background 0.2s ease;">
+          Back to Food Discovery
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 19. ADVANCED PAYMENT GATEWAY CHECKOUT MODAL -->
   <div class="pg-modal-overlay" id="paymentGatewayModal" style="display: none;" onclick="if(event.target === this) closePaymentModal()">
     <div class="pg-modal-container">
@@ -6754,7 +7153,10 @@ func RenderHomePage(currentUser *ent.User) string {
         </div>
 
         <div style="display: flex; gap: 10px; width: 100%; margin-top: 18px; max-width: 440px;">
-          <button type="button" class="btn-track-order" onclick="closePaymentModal()">
+          <button type="button" class="btn-track-order" style="flex: 1; background: #0C831F; color: #ffffff; border: none; font-weight: 800;" onclick="launchOrderTracking()">
+            Track Order Live 🛵
+          </button>
+          <button type="button" class="btn-track-order" style="flex: 1; background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; font-weight: 700;" onclick="closePaymentModal()">
             Order More Food
           </button>
         </div>
@@ -7147,7 +7549,7 @@ func RenderHomePage(currentUser *ent.User) string {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-weight: 700; font-size: 13.5px; color: #1E293B;">Order Status WhatsApp / SMS</div>
-              <div style="font-size: 12px; color: #64748B;">Live rider and cooking updates sent to 8468068403</div>
+              <div style="font-size: 12px; color: #64748B;">Live rider and cooking updates sent to your registered mobile number</div>
             </div>
             <input type="checkbox" checked style="accent-color: var(--color-primary-orange); width: 18px; height: 18px; cursor: pointer;">
           </div>
@@ -7271,6 +7673,9 @@ var itemsDB = {"f1": {"id": "f1", "name": "Crispy Masala Dosa", "category": "dos
 var cartItems = {};
 var selectedTip = 0;
 var includeDonation = true;
+var appliedCoupon = null;
+var selectedInstructions = {};
+var pendingConflictItem = null;
 
 function shareCartLink() {
   var url = window.location.origin + '/?shared_cart=1';
@@ -7310,17 +7715,106 @@ function selectCustomTip() {
   }
 }
 
+function showCartConflictModal(oldRest, newRest) {
+  var oldEl = document.getElementById('conflictOldRestName');
+  var newEl = document.getElementById('conflictNewRestName');
+  if (oldEl) oldEl.innerText = oldRest;
+  if (newEl) newEl.innerText = newRest;
+  var modal = document.getElementById('cartConflictModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function resolveCartConflict(replace) {
+  var modal = document.getElementById('cartConflictModal');
+  if (modal) modal.style.display = 'none';
+  if (replace && pendingConflictItem) {
+    var oldIds = Object.keys(cartItems);
+    cartItems = {};
+    oldIds.forEach(function(id) { updateProductCardControls(id); });
+    var p = pendingConflictItem;
+    pendingConflictItem = null;
+    addToCart(p.id, p.name, p.price, p.restaurant, p.image);
+  } else {
+    pendingConflictItem = null;
+  }
+}
+
+function toggleDeliveryInstruction(key, el) {
+  if (selectedInstructions[key]) {
+    delete selectedInstructions[key];
+    if (el) el.classList.remove('active');
+  } else {
+    selectedInstructions[key] = true;
+    if (el) el.classList.add('active');
+  }
+}
+
+function applyCouponCode(manualCode) {
+  var input = document.getElementById('couponCodeInput');
+  var code = (manualCode || (input ? input.value : '')).trim().toUpperCase();
+  var errEl = document.getElementById('couponErrorMsg');
+  if (!code) {
+    if (errEl) { errEl.innerText = 'Please enter a coupon code'; errEl.style.display = 'block'; }
+    return;
+  }
+  
+  var ids = Object.keys(cartItems);
+  var itemsTotal = 0;
+  ids.forEach(function(id) { itemsTotal += (cartItems[id].qty * cartItems[id].price); });
+
+  if (code === 'FIRST50') {
+    if (itemsTotal < 149) {
+      if (errEl) { errEl.innerText = 'FIRST50 valid on orders above ₹149'; errEl.style.display = 'block'; }
+      return;
+    }
+    appliedCoupon = { code: 'FIRST50', discount: 50, label: '₹50 Flat Discount' };
+  } else if (code === 'NAMMA100') {
+    if (itemsTotal < 99) {
+      if (errEl) { errEl.innerText = 'NAMMA100 valid on orders above ₹99'; errEl.style.display = 'block'; }
+      return;
+    }
+    var disc = Math.min(40, Math.round(itemsTotal * 0.20));
+    appliedCoupon = { code: 'NAMMA100', discount: disc, label: '20% OFF (₹' + disc + ' saved)' };
+  } else if (code === 'FREEDELIVERY') {
+    appliedCoupon = { code: 'FREEDELIVERY', discount: 15, label: 'Free Delivery Partner Fee' };
+  } else {
+    if (errEl) { errEl.innerText = 'Invalid coupon. Try FIRST50, NAMMA100, or FREEDELIVERY'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  if (errEl) errEl.style.display = 'none';
+  renderCart();
+}
+
+function removeCouponCode() {
+  appliedCoupon = null;
+  renderCart();
+}
+
 function addToCart(id, name, price, restaurant, image) {
   id = String(id);
   if (!itemsDB[id] && name) {
     itemsDB[id] = { id: id, name: name, price: (typeof price === 'number' && !isNaN(price)) ? price : 79, restaurant: restaurant || 'Bengaluru Kitchen', image: image || '/static/crispy_dosa.jpg' };
   }
+  
+  var item = itemsDB[id];
+  var n = name || (item ? item.name : 'Delicious Dish');
+  var p = (typeof price === 'number' && !isNaN(price)) ? price : (item ? item.price : 79);
+  var r = restaurant || (item ? item.restaurant : 'Bengaluru Kitchen');
+  var img = image || (item ? item.image : '/static/crispy_dosa.jpg');
+
+  // Multi-restaurant conflict guard
+  var existingIds = Object.keys(cartItems);
+  if (existingIds.length > 0) {
+    var firstRest = cartItems[existingIds[0]].restaurant;
+    if (firstRest && r && firstRest.trim().toLowerCase() !== r.trim().toLowerCase()) {
+      pendingConflictItem = { id: id, name: n, price: p, restaurant: r, image: img };
+      showCartConflictModal(firstRest, r);
+      return;
+    }
+  }
+
   if (!cartItems[id]) {
-    var item = itemsDB[id];
-    var n = name || (item ? item.name : 'Delicious Dish');
-    var p = (typeof price === 'number' && !isNaN(price)) ? price : (item ? item.price : 79);
-    var r = restaurant || (item ? item.restaurant : 'Bengaluru Kitchen');
-    var img = image || (item ? item.image : '/static/crispy_dosa.jpg');
     cartItems[id] = { id: id, name: n, price: p, restaurant: r, image: img, qty: 1 };
   } else {
     cartItems[id].qty += 1;
@@ -7398,11 +7892,16 @@ function renderCart() {
   });
 
   var savedAmount = mrpTotal - itemsTotal;
-  var deliveryCharge = 15;
+  
+  // Free delivery threshold: ₹199
+  var isFreeDelivery = itemsTotal >= 199 || (appliedCoupon && appliedCoupon.code === 'FREEDELIVERY');
+  var deliveryCharge = isFreeDelivery ? 0 : 15;
   var handlingCharge = 4;
   var smallCartCharge = (itemsTotal > 0 && itemsTotal < 99) ? 15 : 0;
   var donationAmount = includeDonation ? 1 : 0;
-  var grandTotal = itemsTotal + deliveryCharge + handlingCharge + smallCartCharge + donationAmount + selectedTip;
+  var couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+  
+  var grandTotal = Math.max(0, itemsTotal + deliveryCharge + handlingCharge + smallCartCharge + donationAmount + selectedTip - couponDiscount);
 
   if (totalCount > 0) {
     if (countBadge) {
@@ -7427,6 +7926,7 @@ function renderCart() {
   }
 
   if (ids.length === 0) {
+    appliedCoupon = null;
     if (container) {
       container.innerHTML = '<div style="text-align: center; padding: 60px 20px;">' +
         '<div style="width: 72px; height: 72px; border-radius: 50%; background-color: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #94A3B8; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">' +
@@ -7449,6 +7949,21 @@ function renderCart() {
     '<div style="flex: 1; min-width: 0;">' +
       '<div style="font-size: 15px; font-weight: 800; color: #1E293B;">Delivery in 8 minutes</div>' +
       '<div style="font-size: 12.5px; color: #64748B; margin-top: 2px;">Shipment of ' + totalCount + (totalCount === 1 ? ' item' : ' items') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // 1b. Free Delivery Progress Meter
+  var freePct = Math.min(100, Math.round((itemsTotal / 199) * 100));
+  var freeDiff = 199 - itemsTotal;
+  var freeMeterHtml = '<div class="free-delivery-meter">' +
+    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+      '<span style="font-size: 12px; font-weight: 800; color: ' + (itemsTotal >= 199 ? '#166534' : '#1E293B') + ';">' +
+        (itemsTotal >= 199 ? '🎉 FREE Delivery Unlocked!' : 'Add &#8377;' + freeDiff + ' more for FREE Delivery') +
+      '</span>' +
+      '<span style="font-size: 11px; font-weight: 700; color: #64748B;">&#8377;199 Target</span>' +
+    '</div>' +
+    '<div class="free-delivery-bar">' +
+      '<div class="free-delivery-progress" style="width: ' + freePct + '%;"></div>' +
     '</div>' +
   '</div>';
 
@@ -7496,6 +8011,45 @@ function renderCart() {
   });
   itemsHtml += '</div>';
 
+  // 2b. Delivery Instructions Chips Card
+  var instructHtml = '<div class="b-cart-card">' +
+    '<div style="font-size: 12.5px; font-weight: 800; color: #1E293B; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px;">Delivery Instructions</div>' +
+    '<div style="display: flex; gap: 6px; flex-wrap: wrap;">' +
+      '<button type="button" class="cart-chip-toggle ' + (selectedInstructions['no-call'] ? 'active' : '') + '" onclick="toggleDeliveryInstruction(\'no-call\', this)">🔕 Avoid calling</button>' +
+      '<button type="button" class="cart-chip-toggle ' + (selectedInstructions['door'] ? 'active' : '') + '" onclick="toggleDeliveryInstruction(\'door\', this)">🚪 Leave at door</button>' +
+      '<button type="button" class="cart-chip-toggle ' + (selectedInstructions['bell'] ? 'active' : '') + '" onclick="toggleDeliveryInstruction(\'bell\', this)">🔔 Ring bell</button>' +
+      '<button type="button" class="cart-chip-toggle ' + (selectedInstructions['security'] ? 'active' : '') + '" onclick="toggleDeliveryInstruction(\'security\', this)">🛡️ Leave with security</button>' +
+      '<button type="button" class="cart-chip-toggle ' + (selectedInstructions['pet'] ? 'active' : '') + '" onclick="toggleDeliveryInstruction(\'pet\', this)">🐾 Pet at home</button>' +
+    '</div>' +
+  '</div>';
+
+  // 2c. Coupons & Promo Engine Card
+  var couponHtml = '<div class="b-cart-card">' +
+    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
+      '<div style="font-size: 12.5px; font-weight: 800; color: #1E293B; text-transform: uppercase; letter-spacing: 0.4px;">Coupons &amp; Offers</div>' +
+      (appliedCoupon ? '<button type="button" onclick="removeCouponCode()" style="font-size: 11.5px; color: #DC2626; font-weight: 800; border: none; background: none; cursor: pointer;">Remove</button>' : '') +
+    '</div>' +
+    (appliedCoupon ?
+      '<div style="background: #F0FDF4; border: 1.5px solid #BBF7D0; border-radius: 8px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center;">' +
+        '<div>' +
+          '<div style="font-size: 12.5px; font-weight: 800; color: #166534;">🎉 ' + appliedCoupon.code + ' Applied</div>' +
+          '<div style="font-size: 11px; color: #15803D;">' + appliedCoupon.label + '</div>' +
+        '</div>' +
+        '<div style="font-size: 13.5px; font-weight: 800; color: #166534;">-&#8377;' + appliedCoupon.discount + '</div>' +
+      '</div>' :
+      '<div style="display: flex; gap: 6px;">' +
+        '<input type="text" id="couponCodeInput" placeholder="Enter coupon code" style="flex: 1; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 7px 11px; font-size: 12px; font-weight: 700; text-transform: uppercase; outline: none;">' +
+        '<button type="button" onclick="applyCouponCode()" style="background: #0C831F; color: #ffffff; border: none; border-radius: 8px; padding: 0 14px; font-size: 11.5px; font-weight: 800; cursor: pointer;">APPLY</button>' +
+      '</div>' +
+      '<div id="couponErrorMsg" style="color: #DC2626; font-size: 11px; font-weight: 600; margin-top: 4px; display: none;"></div>' +
+      '<div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">' +
+        '<span class="cart-promo-pill" onclick="applyCouponCode(\'FIRST50\')">🏷️ FIRST50 (&#8377;50 OFF)</span>' +
+        '<span class="cart-promo-pill" onclick="applyCouponCode(\'NAMMA100\')">🏷️ NAMMA100 (20% OFF)</span>' +
+        '<span class="cart-promo-pill" onclick="applyCouponCode(\'FREEDELIVERY\')">🏷️ FREEDELIVERY</span>' +
+      '</div>'
+    ) +
+  '</div>';
+
   // 3. Bill details Card (Zero Icons)
   var billHtml = '<div class="b-cart-card">' +
     '<div style="font-size: 14.5px; font-weight: 800; color: #1E293B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Bill Details</div>' +
@@ -7513,7 +8067,10 @@ function renderCart() {
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
       '<div style="color: #334155;">Delivery Partner Fee</div>' +
-      '<div style="font-weight: 700; color: #1E293B;">&#8377;' + deliveryCharge + '</div>' +
+      (deliveryCharge === 0 ? 
+        '<div><span style="color: #94A3B8; text-decoration: line-through; margin-right: 4px;">&#8377;15</span><span style="font-weight: 800; color: #166534;">FREE</span></div>' :
+        '<div style="font-weight: 700; color: #1E293B;">&#8377;' + deliveryCharge + '</div>'
+      ) +
     '</div>' +
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
@@ -7525,6 +8082,13 @@ function renderCart() {
       '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px;">' +
         '<div style="color: #334155;">Small Cart Surcharge</div>' +
         '<div style="font-weight: 700; color: #1E293B;">&#8377;' + smallCartCharge + '</div>' +
+      '</div>'
+    ) : '') +
+
+    (couponDiscount > 0 ? (
+      '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #166534;">' +
+        '<div style="font-weight: 700;">Coupon Discount (' + appliedCoupon.code + ')</div>' +
+        '<div style="font-weight: 800;">-&#8377;' + couponDiscount + '</div>' +
       '</div>'
     ) : '') +
 
@@ -7590,7 +8154,7 @@ function renderCart() {
   '</div>';
 
   if (container) {
-    container.innerHTML = deliveryHtml + locTag + itemsHtml + billHtml + donationHtml + tipHtml + policyHtml;
+    container.innerHTML = deliveryHtml + freeMeterHtml + locTag + itemsHtml + instructHtml + couponHtml + billHtml + donationHtml + tipHtml + policyHtml;
   }
 
   // Update Bottom Sticky Proceed Bar
@@ -7661,16 +8225,18 @@ function openPaymentModal() {
     ledgerBadge.innerText = totalCount + (totalCount === 1 ? ' ITEM' : ' ITEMS');
   }
 
-  var deliveryCharge = 15;
+  var isFreeDelivery = itemsTotal >= 199 || (appliedCoupon && appliedCoupon.code === 'FREEDELIVERY');
+  var deliveryCharge = isFreeDelivery ? 0 : 15;
   var handlingCharge = 4;
   var smallCartCharge = (itemsTotal > 0 && itemsTotal < 99) ? 15 : 0;
   var donationAmount = includeDonation ? 1 : 0;
-  currentGrandTotal = itemsTotal + deliveryCharge + handlingCharge + smallCartCharge + donationAmount + selectedTip;
+  var couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+  currentGrandTotal = Math.max(0, itemsTotal + deliveryCharge + handlingCharge + smallCartCharge + donationAmount + selectedTip - couponDiscount);
 
   // Populate Right Pane Summary
   document.getElementById('pgMiniItemsList').innerHTML = miniItemsHtml;
   document.getElementById('pgBillItemsTotal').innerHTML = '&#8377;' + itemsTotal;
-  document.getElementById('pgBillDelivery').innerHTML = '&#8377;' + deliveryCharge;
+  document.getElementById('pgBillDelivery').innerHTML = isFreeDelivery ? '<span style="color:#166534; font-weight:800;">FREE</span>' : '&#8377;' + deliveryCharge;
   document.getElementById('pgBillHandling').innerHTML = '&#8377;' + handlingCharge;
   
   var smallRow = document.getElementById('pgBillSmallCartRow');
@@ -7875,9 +8441,19 @@ function processPaymentGateway() {
 
       document.getElementById('pgSuccessView').style.display = 'flex';
 
-      // Clear Cart after successful payment
+      // Save order details for live tracking stepper
       var ids = Object.keys(cartItems);
+      var firstRest = (ids.length > 0 && cartItems[ids[0]]) ? cartItems[ids[0]].restaurant : 'Bengaluru Kitchen';
+      window.lastOrderDetails = {
+        orderNum: orderNum,
+        amount: currentGrandTotal,
+        restaurant: firstRest,
+        address: (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru')
+      };
+
+      // Clear Cart after successful payment
       cartItems = {};
+      appliedCoupon = null;
       selectedTip = 0;
       renderCart();
       ids.forEach(function(id) {
@@ -7886,6 +8462,127 @@ function processPaymentGateway() {
       if (payBtn) payBtn.disabled = false;
     }, 1000);
   }, 800);
+}
+
+var trackingInterval = null;
+var currentTrackStage = 1;
+
+function launchOrderTracking() {
+  closePaymentModal();
+  var rest = (window.lastOrderDetails && window.lastOrderDetails.restaurant) || 'Sri Krishna Cafe, Indiranagar';
+  var orderId = (window.lastOrderDetails && window.lastOrderDetails.orderNum) || '92841';
+  openOrderTrackingModal(orderId, rest);
+}
+
+function openOrderTrackingModal(orderId, restName) {
+  var modal = document.getElementById('liveOrderTrackingModal');
+  if (modal) modal.style.display = 'flex';
+  if (restName) {
+    var rEl = document.getElementById('trackRestaurantName');
+    if (rEl) rEl.innerText = 'From ' + restName;
+  }
+  var addrEl = document.getElementById('trackAddressText');
+  if (addrEl) {
+    addrEl.innerText = (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru');
+  }
+
+  currentTrackStage = 2; // Move immediately to Kitchen Accepted
+  updateTrackingSteps(currentTrackStage);
+
+  if (trackingInterval) clearInterval(trackingInterval);
+  trackingInterval = setInterval(function() {
+    currentTrackStage++;
+    if (currentTrackStage > 5) {
+      clearInterval(trackingInterval);
+      return;
+    }
+    updateTrackingSteps(currentTrackStage);
+  }, 4500);
+}
+
+function updateTrackingSteps(stage) {
+  for (var i = 1; i <= 5; i++) {
+    var step = document.getElementById('step' + i);
+    if (!step) continue;
+    step.classList.remove('done', 'active');
+    if (i < stage) {
+      step.classList.add('done');
+    } else if (i === stage) {
+      step.classList.add('active');
+    }
+  }
+  var etaEl = document.getElementById('trackEtaText');
+  var titleEl = document.getElementById('trackHeaderTitle');
+  if (stage === 1) {
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: 20 mins';
+    if (titleEl) titleEl.innerText = 'Order Placed & Confirmed';
+  } else if (stage === 2) {
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: 16 mins';
+    if (titleEl) titleEl.innerText = 'Kitchen Preparing Fresh Meal';
+  } else if (stage === 3) {
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: 11 mins';
+    if (titleEl) titleEl.innerText = 'Valet Assigned & Heading to Kitchen';
+  } else if (stage === 4) {
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: 5 mins';
+    if (titleEl) titleEl.innerText = 'Valet Out for Delivery 🛵';
+  } else if (stage === 5) {
+    if (etaEl) etaEl.innerText = 'Delivered! 🎉';
+    if (titleEl) titleEl.innerText = 'Order Delivered! Enjoy your meal!';
+  }
+}
+
+function closeOrderTrackingModal() {
+  var modal = document.getElementById('liveOrderTrackingModal');
+  if (modal) modal.style.display = 'none';
+  if (trackingInterval) clearInterval(trackingInterval);
+}
+
+function toggleVegOnlyFilter(isVeg) {
+  var cards = document.querySelectorAll('#mainFoodGrid .product-card');
+  cards.forEach(function(card) {
+    if (!isVeg) {
+      card.style.display = 'flex';
+      return;
+    }
+    var hasVegIndicator = card.querySelector('.diet-veg') !== null;
+    var name = (card.getAttribute('data-name') || '').toLowerCase();
+    var isNonVeg = card.querySelector('.diet-nonveg') !== null || 
+      name.indexOf('chicken') !== -1 || name.indexOf('egg') !== -1 || name.indexOf('mutton') !== -1 || name.indexOf('fish') !== -1 || name.indexOf('prawn') !== -1;
+    if (hasVegIndicator && !isNonVeg) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function detectGPSLocation() {
+  var locText = document.getElementById('currentLocText');
+  var oldText = locText ? locText.textContent : '';
+  if (locText) locText.innerHTML = 'Locating...';
+
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser.');
+    if (locText) locText.textContent = oldText;
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var detected = 'Indiranagar, Bengaluru';
+      if (locText) locText.innerHTML = '📍 ' + detected;
+      activeDelivery.locality = 'Indiranagar';
+      activeDelivery.displayLabel = '📍 ' + detected;
+      renderCart();
+    },
+    function(err) {
+      var detected = 'Koramangala, Bengaluru';
+      if (locText) locText.innerHTML = '📍 ' + detected;
+      activeDelivery.locality = 'Koramangala';
+      activeDelivery.displayLabel = '📍 ' + detected;
+    },
+    { timeout: 7000 }
+  );
 }
 
 function handleGlobalSearch(q) {
@@ -13671,7 +14368,19 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
 	if activeTab == "" {
 		activeTab = "orders"
 	}
-	userPhone := "+918468068403"
+	userDisplay := "My Account"
+	userContact := "+91 84680 68403"
+	if currentUser != nil {
+		if currentUser.Name != "" {
+			userDisplay = currentUser.Name
+			if currentUser.Email != "" {
+				userContact = currentUser.Email
+			}
+		} else if currentUser.Email != "" {
+			userDisplay = currentUser.Email
+			userContact = currentUser.Email
+		}
+	}
 
 	return fmt.Sprintf(`<!DOCTYPE html>
 <html lang="en">
@@ -14419,7 +15128,7 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
     })();
   </script>
 </body>
-</html>`, userPhone, userPhone, userPhone, userPhone, userPhone, activeTab)
+</html>`, userDisplay, userContact, userContact, userContact, userContact, activeTab)
 }
 
 // RenderPortalsHubPage renders a visual switchboard for accessing all Under100 portals
