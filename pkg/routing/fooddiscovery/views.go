@@ -2907,6 +2907,8 @@ func RenderHomePage(currentUser *ent.User) string {
     @media (max-width: 720px) {
       .pg-modal-body { flex-direction: column; }
       .pg-left-pane { border-right: none; border-bottom: 1px solid #E2E8F0; }
+    }
+
     /* 14. VEG ONLY FILTER SWITCH */
     .veg-toggle-wrap {
       display: inline-flex;
@@ -2968,15 +2970,15 @@ func RenderHomePage(currentUser *ent.User) string {
     .conflict-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 500;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 99999;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
     }
-    .conflict-modal-overlay.open { display: flex; }
+    .conflict-modal-overlay.open { display: flex !important; }
     .conflict-modal-card {
       background: #ffffff;
       border-radius: 20px;
@@ -3089,9 +3091,10 @@ func RenderHomePage(currentUser *ent.User) string {
       margin-top: 6px;
       overflow: hidden;
     }
+    .free-delivery-progress,
     .free-delivery-fill {
       height: 100%;
-      background: #10B981;
+      background: linear-gradient(90deg, #10B981, #059669);
       border-radius: 9999px;
       transition: width 0.3s ease;
     }
@@ -3100,15 +3103,15 @@ func RenderHomePage(currentUser *ent.User) string {
     .tracking-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(5px);
-      z-index: 550;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 99999;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
     }
-    .tracking-modal-overlay.open { display: flex; }
+    .tracking-modal-overlay.open { display: flex !important; }
     .tracking-modal-card {
       background: #ffffff;
       border-radius: 24px;
@@ -6744,7 +6747,7 @@ func RenderHomePage(currentUser *ent.User) string {
   </aside>
 
   <!-- MULTI-RESTAURANT CART CONFLICT GUARD MODAL -->
-  <div class="conflict-modal-overlay" id="cartConflictModal" onclick="if(event.target === this) resolveCartConflict(false)">
+  <div class="conflict-modal-overlay" id="cartConflictModal" style="display: none;" onclick="if(event.target === this) resolveCartConflict(false)">
     <div class="conflict-modal-card">
       <div class="conflict-modal-icon">⚠️</div>
       <h3 class="conflict-modal-title">Replace cart items?</h3>
@@ -6759,7 +6762,7 @@ func RenderHomePage(currentUser *ent.User) string {
   </div>
 
   <!-- LIVE ORDER TRACKING MODAL & STEPPER -->
-  <div class="tracking-modal-overlay" id="liveOrderTrackingModal" onclick="if(event.target === this) closeOrderTrackingModal()">
+  <div class="tracking-modal-overlay" id="liveOrderTrackingModal" style="display: none;" onclick="if(event.target === this) closeOrderTrackingModal()">
     <div class="tracking-modal-card">
       <div class="tracking-header">
         <button type="button" onclick="closeOrderTrackingModal()" style="position: absolute; right: 18px; top: 18px; background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
