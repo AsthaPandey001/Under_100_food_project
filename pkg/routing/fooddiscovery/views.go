@@ -5585,23 +5585,7 @@ func RenderHomePage(currentUser *ent.User) string {
           <button class="filter-tab-pill" onclick="filterGridCategory('momos', this)">Momos</button>
         </div>
 
-        <!-- ACTIVE RESTAURANT FILTER BANNER -->
-        <div id="activeRestaurantBanner" class="restaurant-banner-view" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="background: #FF5A1F; color: #ffffff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px;">RESTAURANT MENU</span>
-                <span id="restBannerRating" style="background: #166534; color: #DCFCE7; font-size: 11.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">⭐ 4.6</span>
-                <span style="background: #0C831F; color: #ffffff; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">UNDER &#8377;100 GUARANTEE</span>
-              </div>
-              <h2 id="restBannerName" style="font-size: 24px; font-weight: 800; margin: 4px 0 3px; color: #ffffff;">Sri Krishna Cafe</h2>
-              <p id="restBannerMeta" style="font-size: 13.5px; color: #94A3B8; margin: 0;">📍 Indiranagar &bull; 🕒 20 mins delivery &bull; 💯 All dishes &#8377;100 or less</p>
-            </div>
-            <button type="button" onclick="clearRestaurantFilter()" style="background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
-              &times; View All Restaurants
-            </button>
-          </div>
-        </div>
+
 
         <div class="food-grid-container" id="mainFoodGrid">
           
@@ -8979,10 +8963,7 @@ function handleGlobalSearch(q) {
     return;
   }
 
-  // Otherwise, filter grid by dish name OR restaurant name OR neighbourhood
-  var banner = document.getElementById('activeRestaurantBanner');
-  if (banner && currentActiveRestaurantFilter) {
-    banner.style.display = 'none';
+  if (currentActiveRestaurantFilter) {
     currentActiveRestaurantFilter = null;
   }
 
@@ -9013,37 +8994,6 @@ function filterByRestaurant(restName, doScroll) {
   var dropdown = document.getElementById('searchSuggestionsDropdown');
   if (dropdown) dropdown.style.display = 'none';
 
-  // Find restaurant metadata
-  var rating = '4.6';
-  var neighbourhood = 'Bengaluru';
-  var deliveryMinutes = '20';
-  var itemCount = 0;
-
-  if (typeof itemsDB === 'object') {
-    Object.keys(itemsDB).forEach(function(id) {
-      var itm = itemsDB[id];
-      if ((itm.restaurant || '').trim().toLowerCase() === restName.trim().toLowerCase()) {
-        rating = itm.rating || rating;
-        neighbourhood = itm.neighbourhood || neighbourhood;
-        deliveryMinutes = itm.deliveryMinutes || deliveryMinutes;
-        itemCount++;
-      }
-    });
-  }
-
-  // Update & display #activeRestaurantBanner
-  var banner = document.getElementById('activeRestaurantBanner');
-  var bName = document.getElementById('restBannerName');
-  var bRating = document.getElementById('restBannerRating');
-  var bMeta = document.getElementById('restBannerMeta');
-
-  if (bName) bName.innerText = restName;
-  if (bRating) bRating.innerText = '⭐ ' + rating;
-  if (bMeta) {
-    bMeta.innerHTML = '📍 ' + escapeSafe(neighbourhood) + ' &bull; 🕒 ' + deliveryMinutes + ' mins delivery &bull; 💯 All dishes &#8377;100 or less (' + (itemCount > 0 ? itemCount + ' items' : 'Full Menu') + ')';
-  }
-  if (banner) banner.style.display = 'block';
-
   // Filter food grid cards to only this restaurant
   var cards = document.querySelectorAll('#mainFoodGrid .product-card');
   var rTarget = restName.trim().toLowerCase();
@@ -9058,20 +9008,13 @@ function filterByRestaurant(restName, doScroll) {
   });
 
   if (doScroll) {
-    if (banner) {
-      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      var grid = document.getElementById('mainFoodGrid');
-      if (grid) grid.scrollIntoView({ behavior: 'smooth' });
-    }
+    var grid = document.getElementById('mainFoodGrid') || document.getElementById('food-discovery');
+    if (grid) grid.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
 function clearRestaurantFilter(skipInputClear) {
   currentActiveRestaurantFilter = null;
-  var banner = document.getElementById('activeRestaurantBanner');
-  if (banner) banner.style.display = 'none';
-
   var dropdown = document.getElementById('searchSuggestionsDropdown');
   if (dropdown) dropdown.style.display = 'none';
 
