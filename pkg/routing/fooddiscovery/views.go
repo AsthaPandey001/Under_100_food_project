@@ -15325,7 +15325,10 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
 
   <!-- Top Navigation Header -->
   <header class="account-top-navbar">
-    <div class="brand-group">
+    <div class="brand-group" style="display: flex; align-items: center; gap: 8px;">
+      <button type="button" class="btn-account-back" onclick="goAccountBack()" title="Back to previous page" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 8px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B; transition: all 0.2s ease; flex-shrink: 0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
       <a href="/" class="nav-brand-logo">Under<span>100</span></a>
       <div class="nav-location-pill" onclick="window.location.href='/'" title="Change delivery location">
         <div class="nav-loc-title">Delivery in 8 minutes</div>
@@ -15595,7 +15598,22 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
   </div>
 
   <script>
-    function switchAccountTab(tabName) {
+    var currentAccountTab = null;
+
+    function goAccountBack() {
+      if (window.history && window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/';
+      }
+    }
+
+    function switchAccountTab(tabName, updateHistory) {
+      if (updateHistory === undefined) {
+        updateHistory = true;
+      }
+      if (!tabName) tabName = 'orders';
+
       // 1. Remove active from all nav items
       var navItems = document.querySelectorAll('.account-nav-item');
       navItems.forEach(function(item) {
@@ -15620,15 +15638,37 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
         targetPane.classList.add('active');
       }
 
-      // 5. Update browser URL history
-      if (window.history && window.history.pushState) {
-        window.history.pushState(null, '', '/account/' + tabName);
+      currentAccountTab = tabName;
+
+      // 5. Update browser URL history only when explicitly requested (not on back/forward popstate)
+      if (updateHistory && window.history && window.history.pushState) {
+        var targetUrl = '/account/' + tabName;
+        if (window.location.pathname !== targetUrl) {
+          window.history.pushState({ tab: tabName }, '', targetUrl);
+        }
       }
 
       if (tabName === 'addresses') {
         renderAccountAddresses();
       }
     }
+
+    // Handle browser Back / Forward history events
+    window.addEventListener('popstate', function(event) {
+      var targetTab = '';
+      if (event && event.state && event.state.tab) {
+        targetTab = event.state.tab;
+      } else {
+        var path = window.location.pathname;
+        var m = path.match(/\/account\/([a-zA-Z0-9_-]+)/);
+        if (m && m[1]) {
+          targetTab = m[1];
+        } else {
+          targetTab = 'orders';
+        }
+      }
+      switchAccountTab(targetTab, false);
+    });
 
     function renderAccountAddresses() {
       var container = document.getElementById('accountSavedAddressesList');
@@ -15692,11 +15732,18 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // Initialize with active tab from server param
+    // Initialize with active tab from server param or URL
     (function() {
       var initialTab = "%s";
+      if (!initialTab) {
+        var m = window.location.pathname.match(/\/account\/([a-zA-Z0-9_-]+)/);
+        initialTab = (m && m[1]) ? m[1] : 'orders';
+      }
       if (initialTab && document.getElementById('pane-' + initialTab)) {
-        switchAccountTab(initialTab);
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({ tab: initialTab }, '', '/account/' + initialTab);
+        }
+        switchAccountTab(initialTab, false);
       }
       renderAccountAddresses();
     })();
