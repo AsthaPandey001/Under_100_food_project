@@ -10204,7 +10204,7 @@ function sendModalOTP() {
       modalOtpDispatched = true;
       var inp = document.getElementById('modalOtpCodeInput');
       if (inp) {
-        inp.value = data.demo_otp || '';
+        inp.value = '';
         inp.focus();
       }
       var wrap = document.getElementById('modalOtpInputWrap');
@@ -10217,11 +10217,7 @@ function sendModalOTP() {
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#166534';
-        if (data.demo_otp) {
-          statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: #DCFCE7; color: #166534; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #4B5563;">(Code auto-filled &mdash; click "Verify & Sign In" to complete login)</span>';
-        } else {
-          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-        }
+        statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
       }
       var count = 60;
       var timer = setInterval(function() {
@@ -12857,16 +12853,12 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
         if (data.success) {
           var inp = document.getElementById('custOtpInput');
           if (inp) {
-            inp.value = data.demo_otp || '';
+            inp.value = '';
             inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#166534';
-          if (data.demo_otp) {
-            statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: #DCFCE7; color: #166534; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #4B5563;">(Code auto-filled &mdash; click "Verify & Sign In" to complete login)</span>';
-          } else {
-            statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-          }
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -12975,16 +12967,12 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
         if (data.success) {
           var inp = document.getElementById('custRegOtpInput');
           if (inp) {
-            inp.value = data.demo_otp || '';
+            inp.value = '';
             inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#166534';
-          if (data.demo_otp) {
-            statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: #DCFCE7; color: #166534; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #4B5563;">(Code auto-filled &mdash; click "Create Account" to continue)</span>';
-          } else {
-            statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-          }
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -13519,16 +13507,12 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         if (data.success) {
           var inp = document.getElementById('merchOtpInput');
           if (inp) {
-            inp.value = data.demo_otp || '';
+            inp.value = '';
             inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#065f36';
-          if (data.demo_otp) {
-            statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: #ecfdf5; color: #065f36; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #4B5563;">(Code auto-filled &mdash; click "Verify & Sign In" to complete login)</span>';
-          } else {
-            statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-          }
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -13635,16 +13619,12 @@ func RenderMerchantLoginPage(flashMsg, errMsg string) string {
         if (data.success) {
           var inp = document.getElementById('merchRegOtpInput');
           if (inp) {
-            inp.value = data.demo_otp || '';
+            inp.value = '';
             inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#065f36';
-          if (data.demo_otp) {
-            statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: #ecfdf5; color: #065f36; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #4B5563;">(Code auto-filled &mdash; click "Register Partner" to complete)</span>';
-          } else {
-            statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || phoneVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-          }
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || phoneVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;
@@ -14127,16 +14107,12 @@ func RenderAdminLoginPage(flashMsg, errMsg string) string {
         if (data.success) {
           var inp = document.getElementById('adminOtpInput');
           if (inp) {
-            inp.value = data.demo_otp || '';
+            inp.value = '';
             inp.focus();
           }
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#34d399';
-          if (data.demo_otp) {
-            statusDiv.innerHTML = '<div style="margin-bottom: 5px;">Verification code: <strong style="font-size: 16px; background: rgba(52,211,153,0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-family: monospace; letter-spacing: 2px;">' + data.demo_otp + '</strong></div><span style="font-size: 12px; color: #94a3b8;">(Code auto-filled &mdash; click "Verify & Access" to complete login)</span>';
-          } else {
-            statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
-          }
+          statusDiv.innerHTML = 'Verification code sent to <strong>' + (data.target || idVal) + '</strong> via SMS. Please enter the 6-digit code received on your phone.';
           var count = 60;
           var timer = setInterval(function() {
             count--;

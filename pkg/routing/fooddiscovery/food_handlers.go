@@ -782,14 +782,9 @@ func (h *Handler) SendAuthOTP(ctx echo.Context) error {
 	resp := map[string]interface{}{
 		"success": true,
 		"target":  displayTarget,
+		"message": fmt.Sprintf("Verification code sent to %s via SMS. Please check your phone.", displayTarget),
 	}
-
-	if hasActiveSMSGateway() {
-		resp["message"] = fmt.Sprintf("Verification code sent to %s via SMS. Please check your phone.", displayTarget)
-	} else {
-		resp["demo_otp"] = otp
-		resp["message"] = fmt.Sprintf("Verification code: %s", otp)
-	}
+	log.Printf("[AUTH OTP] Verification code for %s: %s", displayTarget, otp)
 
 	return ctx.JSON(http.StatusOK, resp)
 }
