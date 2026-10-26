@@ -15353,7 +15353,8 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
   <div class="account-main-wrapper">
     <!-- Left Navigation Sidebar -->
     <aside class="account-sidebar-card">
-      <div class="account-sidebar-phone">%s</div>
+      <div class="account-sidebar-name" style="font-size: 15px; font-weight: 800; color: #1E293B; margin-bottom: 3px;">%s</div>
+      <div class="account-sidebar-phone" style="font-size: 12.5px; color: #64748B; margin-bottom: 14px;">%s</div>
 
       <nav class="account-nav-list">
         <a href="javascript:void(0)" class="account-nav-item" id="navItem-addresses" onclick="switchAccountTab('addresses')">
@@ -15482,44 +15483,8 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
             </button>
           </div>
 
-          <!-- Address Card 1 -->
-          <div class="address-card-item">
-            <div>
-              <span class="address-badge-tag">&#127968; Home</span>
-              <div class="address-text">#42, 12th Main, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038</div>
-              <div class="address-phone">Phone number: %s</div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" style="padding: 6px 12px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;">Edit</button>
-              <button type="button" style="padding: 6px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">Deliver Here</button>
-            </div>
-          </div>
-
-          <!-- Address Card 2 -->
-          <div class="address-card-item">
-            <div>
-              <span class="address-badge-tag">&#127970; Work</span>
-              <div class="address-text">Level 4, Embassy Golf Links Business Park, Domlur, Bengaluru, Karnataka 560071</div>
-              <div class="address-phone">Phone number: %s</div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" style="padding: 6px 12px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;">Edit</button>
-              <button type="button" style="padding: 6px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">Deliver Here</button>
-            </div>
-          </div>
-
-          <!-- Address Card 3 -->
-          <div class="address-card-item">
-            <div>
-              <span class="address-badge-tag">&#128205; Friend's Place</span>
-              <div class="address-text">Flat 302, Green Glen Layout, Bellandur, Bengaluru, Karnataka 560103</div>
-              <div class="address-phone">Phone number: %s</div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" style="padding: 6px 12px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;">Edit</button>
-              <button type="button" style="padding: 6px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">Deliver Here</button>
-            </div>
-          </div>
+          <!-- Dynamic Saved Addresses Container (No default/mock addresses) -->
+          <div id="accountSavedAddressesList"></div>
         </div>
       </section>
 
@@ -15659,6 +15624,72 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
       if (window.history && window.history.pushState) {
         window.history.pushState(null, '', '/account/' + tabName);
       }
+
+      if (tabName === 'addresses') {
+        renderAccountAddresses();
+      }
+    }
+
+    function renderAccountAddresses() {
+      var container = document.getElementById('accountSavedAddressesList');
+      if (!container) return;
+      var list = [];
+      try {
+        var raw = localStorage.getItem('under100_user_saved_addresses');
+        if (raw) list = JSON.parse(raw) || [];
+      } catch(e) {}
+
+      if (!Array.isArray(list) || list.length === 0) {
+        container.innerHTML = '<div style="background-color: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 16px; padding: 40px 20px; text-align: center; margin-top: 10px;">' +
+          '<div style="width: 48px; height: 48px; border-radius: 9999px; background-color: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 22px;">📍</div>' +
+          '<div style="font-size: 15px; font-weight: 800; color: #1E293B; margin-bottom: 5px;">No saved addresses yet</div>' +
+          '<div style="font-size: 13px; color: #64748B; max-width: 360px; margin: 0 auto 18px; line-height: 1.5;">You have not saved any addresses yet. Add delivery locations for home, work, or friends for 1-click delivery.</div>' +
+          '<button type="button" onclick="window.location.href=\'/?add_address=1\'" style="padding: 10px 22px; background: #0C831F; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">+ Add New Address</button>' +
+        '</div>';
+        return;
+      }
+
+      var html = '';
+      list.forEach(function(item, idx) {
+        var isWork = item.type === 'Work' || (item.title && item.title.toLowerCase() === 'work');
+        var isOther = item.forSomeoneElse || item.type === 'Other' || !!item.recipientName;
+        var badge = isWork ? '🏢 Work' : (isOther ? '📍 Friend\'s Place' : '🏠 Home');
+        var title = escapeSafe(item.title || (isOther ? item.recipientName : (isWork ? 'Work' : 'Home')));
+        var address = escapeSafe(item.address || '');
+        var phone = escapeSafe(item.recipientPhone || '');
+
+        html += '<div class="address-card-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 16px; background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 12px;">' +
+          '<div>' +
+            '<span class="address-badge-tag" style="display: inline-block; background: #F1F5F9; color: #334155; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin-bottom: 6px;">' + badge + '</span>' +
+            '<div class="address-text" style="font-size: 13.5px; font-weight: 700; color: #1E293B; margin-bottom: 4px;">' + title + '</div>' +
+            '<div style="font-size: 12.5px; color: #64748B;">' + address + '</div>' +
+            (phone ? '<div class="address-phone" style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Phone number: ' + phone + '</div>' : '') +
+          '</div>' +
+          '<div style="display: flex; gap: 8px;">' +
+            '<button type="button" onclick="deleteAccountAddress(' + idx + ')" style="padding: 6px 12px; background: #FEF2F2; border: 1px solid #FEE2E2; color: #DC2626; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">Delete</button>' +
+            '<button type="button" onclick="window.location.href=\'/\'" style="padding: 6px 12px; background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer;">Deliver Here</button>' +
+          '</div>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function deleteAccountAddress(idx) {
+      if (!confirm('Are you sure you want to delete this address?')) return;
+      try {
+        var raw = localStorage.getItem('under100_user_saved_addresses');
+        if (raw) {
+          var list = JSON.parse(raw) || [];
+          list.splice(idx, 1);
+          localStorage.setItem('under100_user_saved_addresses', JSON.stringify(list));
+          renderAccountAddresses();
+        }
+      } catch(e) {}
+    }
+
+    function escapeSafe(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     // Initialize with active tab from server param
@@ -15667,10 +15698,11 @@ func RenderAccountDashboardPage(currentUser *ent.User, activeTab string) string 
       if (initialTab && document.getElementById('pane-' + initialTab)) {
         switchAccountTab(initialTab);
       }
+      renderAccountAddresses();
     })();
   </script>
 </body>
-</html>`, userDisplay, userContact, userContact, userContact, userContact, activeTab)
+</html>`, userDisplay, userContact, userContact, activeTab)
 }
 
 // RenderPortalsHubPage renders a visual switchboard for accessing all Under100 portals
