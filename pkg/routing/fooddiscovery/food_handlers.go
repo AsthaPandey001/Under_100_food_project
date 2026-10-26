@@ -558,6 +558,14 @@ func normalizeAuthIdentifier(id string) string {
 	return clean
 }
 
+// hasActiveSMSGateway returns true if real SMS provider credentials are configured
+func hasActiveSMSGateway() bool {
+	return strings.TrimSpace(os.Getenv("FAST2SMS_API_KEY")) != "" ||
+		(strings.TrimSpace(os.Getenv("TWILIO_ACCOUNT_SID")) != "" && strings.TrimSpace(os.Getenv("TWILIO_AUTH_TOKEN")) != "" && strings.TrimSpace(os.Getenv("TWILIO_FROM_NUMBER")) != "") ||
+		strings.TrimSpace(os.Getenv("MSG91_AUTH_KEY")) != "" ||
+		strings.TrimSpace(os.Getenv("SMS_GATEWAY_URL")) != ""
+}
+
 // dispatchCarrierSMS delivers real SMS text messages to the recipient's phone number via configured SMS provider APIs.
 func dispatchCarrierSMS(phone, otp, portal string) error {
 	cleanPhone := normalizeAuthIdentifier(phone)
@@ -771,11 +779,19 @@ func (h *Handler) SendAuthOTP(ctx echo.Context) error {
 		displayTarget = normID
 	}
 
-	return ctx.JSON(http.StatusOK, map[string]interface{}{
+	resp := map[string]interface{}{
 		"success": true,
-		"message": fmt.Sprintf("Verification code sent to %s via SMS. Please check your phone.", displayTarget),
 		"target":  displayTarget,
-	})
+	}
+
+	if hasActiveSMSGateway() {
+		resp["message"] = fmt.Sprintf("Verification code sent to %s via SMS. Please check your phone.", displayTarget)
+	} else {
+		resp["demo_otp"] = otp
+		resp["message"] = fmt.Sprintf("Verification code: %s", otp)
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
 }
 
 // VerifyAuthOTP validates the OTP code and logs the user into their respective portal
