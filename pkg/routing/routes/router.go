@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -42,12 +44,62 @@ func BuildRouter(c *services.Container) {
 	// TODO: add option to log to file
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	// Static files with proper cache control
-	// funcmap.File() should be used in templates to append a cache key to the URL in order to break cache
-	// after each server restart
-	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
+	// Static files with proper cache control, WebP content negotiation, and binary-safe gzip
+	staticCacheAge := c.Config.Cache.Expiration.StaticFile
+	if staticCacheAge <= 0 {
+		// Provide 7 days default cache for static assets to avoid repeated large downloads
+		staticCacheAge = 7 * 24 * time.Hour
+	}
+
+	// Gzip middleware with skipper for already compressed binary media (images, fonts, video)
+	gzipStatic := echomw.GzipWithConfig(echomw.GzipConfig{
+		Skipper: func(ctx echo.Context) bool {
+			p := strings.ToLower(ctx.Request().URL.Path)
+			return strings.HasSuffix(p, ".jpg") ||
+				strings.HasSuffix(p, ".jpeg") ||
+				strings.HasSuffix(p, ".png") ||
+				strings.HasSuffix(p, ".gif") ||
+				strings.HasSuffix(p, ".webp") ||
+				strings.HasSuffix(p, ".ico") ||
+				strings.HasSuffix(p, ".mp4") ||
+				strings.HasSuffix(p, ".mp3") ||
+				strings.HasSuffix(p, ".woff") ||
+				strings.HasSuffix(p, ".woff2")
+		},
+	})
+
+	// WebP content negotiation middleware: serve lightweight WebP to supporting modern browsers
+	webpNegotiator := func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+			reqPath := ctx.Request().URL.Path
+			if strings.Contains(ctx.Request().Header.Get("Accept"), "image/webp") {
+				lower := strings.ToLower(reqPath)
+				if strings.HasSuffix(lower, ".jpg") || strings.HasSuffix(lower, ".jpeg") || strings.HasSuffix(lower, ".png") {
+					rel := reqPath
+					if strings.HasPrefix(rel, "/"+config.StaticPrefix+"/") {
+						rel = strings.TrimPrefix(rel, "/"+config.StaticPrefix+"/")
+					} else if strings.HasPrefix(rel, "/static/") {
+						rel = strings.TrimPrefix(rel, "/static/")
+					} else if strings.HasPrefix(rel, "/") {
+						rel = strings.TrimPrefix(rel, "/")
+					}
+					ext := filepath.Ext(rel)
+					base := strings.TrimSuffix(rel, ext)
+					webpFile := filepath.Join(config.StaticDir, base+".webp")
+					if _, err := os.Stat(webpFile); err == nil {
+						ctx.Response().Header().Set("Vary", "Accept")
+						ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%.0f, stale-while-revalidate=86400", staticCacheAge.Seconds()))
+						return ctx.File(webpFile)
+					}
+				}
+			}
+			return next(ctx)
+		}
+	}
+
+	c.Web.Group("", middleware.CacheControl(staticCacheAge), gzipStatic, webpNegotiator).
 		Static(config.StaticPrefix, config.StaticDir)
-	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
+	c.Web.Group("", middleware.CacheControl(staticCacheAge), gzipStatic, webpNegotiator).
 		Static("static", config.StaticDir)
 
 	// Direct root static assets mapping for images and svg
@@ -61,8 +113,32 @@ func BuildRouter(c *services.Container) {
 	for _, img := range imageFiles {
 		imgName := img
 		c.Web.GET("/"+imgName, func(ctx echo.Context) error {
+			ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%.0f, stale-while-revalidate=86400", staticCacheAge.Seconds()))
+			if strings.Contains(ctx.Request().Header.Get("Accept"), "image/webp") {
+				ext := filepath.Ext(imgName)
+				base := strings.TrimSuffix(imgName, ext)
+				webpFile := filepath.Join(config.StaticDir, base+".webp")
+				if _, err := os.Stat(webpFile); err == nil {
+					ctx.Response().Header().Set("Vary", "Accept")
+					return ctx.File(webpFile)
+				}
+			}
 			return ctx.File("static/" + imgName)
 		})
+
+		// Also register direct root WebP route if present
+		ext := filepath.Ext(imgName)
+		if ext == ".jpg" || ext == ".png" {
+			base := strings.TrimSuffix(imgName, ext)
+			webpName := base + ".webp"
+			if _, err := os.Stat(filepath.Join(config.StaticDir, webpName)); err == nil {
+				wName := webpName
+				c.Web.GET("/"+wName, func(ctx echo.Context) error {
+					ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%.0f, stale-while-revalidate=86400", staticCacheAge.Seconds()))
+					return ctx.File("static/" + wName)
+				})
+			}
+		}
 	}
 
 	// Custom handler for serving the service worker script with specific headers
@@ -145,8 +221,18 @@ func BuildRouter(c *services.Container) {
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			Skipper: func(ctx echo.Context) bool {
 				p := ctx.Path()
+				reqPath := ""
+				if ctx.Request() != nil && ctx.Request().URL != nil {
+					reqPath = ctx.Request().URL.Path
+				}
 				// Skip health probes and external Stripe webhooks
 				if p == "/live" || p == "/ready" || p == "/up" || strings.Contains(p, "/payments/webhooks") {
+					return true
+				}
+				// Skip API auth endpoints (protected by rate limiters & tokens)
+				if strings.HasPrefix(p, "/api/auth/") || strings.HasPrefix(reqPath, "/api/auth/") ||
+					strings.HasPrefix(p, "/api/phone-login") || strings.HasPrefix(reqPath, "/api/phone-login") ||
+					strings.HasPrefix(p, "/api/quick-login") || strings.HasPrefix(reqPath, "/api/quick-login") {
 					return true
 				}
 				// Safe read-only HTTP methods do not mutate state

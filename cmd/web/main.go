@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/mikestefanello/pagoda/pkg/routing/routes"
@@ -17,12 +18,25 @@ import (
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check if the request is an SSE request
-		if r.Header.Get("Accept") == "text/event-stream" {
-			// SSE request, set indefinite write timeout
+		path := r.URL.Path
+		isStatic := strings.HasPrefix(path, "/static/") ||
+			strings.HasPrefix(path, "/files/") ||
+			strings.HasSuffix(path, ".jpg") ||
+			strings.HasSuffix(path, ".jpeg") ||
+			strings.HasSuffix(path, ".png") ||
+			strings.HasSuffix(path, ".svg") ||
+			strings.HasSuffix(path, ".webp") ||
+			strings.HasSuffix(path, ".css") ||
+			strings.HasSuffix(path, ".js") ||
+			strings.HasSuffix(path, ".woff") ||
+			strings.HasSuffix(path, ".woff2") ||
+			strings.HasSuffix(path, ".ico")
+
+		// SSE requests and static assets must not be prematurely canceled by short request timeout
+		if r.Header.Get("Accept") == "text/event-stream" || isStatic {
 			next.ServeHTTP(w, r)
 		} else {
-			// For non-SSE requests, set a standard write timeout
+			// For non-SSE dynamic requests, set standard write timeout
 			ctx, cancel := context.WithTimeout(r.Context(), writeTimeout) // Adjust timeout as needed
 			defer cancel()
 

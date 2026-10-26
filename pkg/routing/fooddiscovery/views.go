@@ -137,7 +137,7 @@ func RenderHomePage(currentUser *ent.User) string {
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: auto; }
     body {
       font-family: var(--font-body);
       background-color: var(--color-main-bg);
@@ -246,6 +246,8 @@ func RenderHomePage(currentUser *ent.User) string {
       border-bottom: 1px solid #ECEAE5;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
       z-index: 90;
+      transform: translateZ(0);
+      will-change: transform;
     }
     .navbar-inner {
       display: flex;
@@ -1387,7 +1389,6 @@ func RenderHomePage(currentUser *ent.User) string {
       object-fit: cover;
       object-position: center;
       display: block;
-      image-rendering: -webkit-optimize-contrast;
     }
     .cat-name {
       font-size: 13px;
@@ -1453,7 +1454,6 @@ func RenderHomePage(currentUser *ent.User) string {
       object-fit: cover;
       object-position: center;
       display: block;
-      image-rendering: -webkit-optimize-contrast;
       transition: transform 0.3s ease;
     }
     .product-card:hover .product-card-img {
@@ -3327,7 +3327,7 @@ func RenderHomePage(currentUser *ent.User) string {
                 </a>
               </div>
               <div class="slide-right-img-wrap">
-                <img src="/static/crispy_dosa.jpg" alt="Get Extra 20% Off On Your First" class="slide-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+                <img src="/static/crispy_dosa.jpg" alt="Get Extra 20% Off On Your First" class="slide-img" fetchpriority="high" decoding="async">
                 <div class="slide-floating-tag">🔥 20% OFF Extra</div>
               </div>
             </div>
@@ -3351,7 +3351,7 @@ func RenderHomePage(currentUser *ent.User) string {
                 </a>
               </div>
               <div class="slide-right-img-wrap">
-                <img src="/static/veg_pulao.jpg" alt="Under100 Daily Office Tiffin" class="slide-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+                <img src="/static/veg_pulao.jpg" alt="Under100 Daily Office Tiffin" class="slide-img" loading="lazy" decoding="async">
                 <div class="slide-floating-tag">🍱 Just ₹79/Day</div>
               </div>
             </div>
@@ -3375,7 +3375,7 @@ func RenderHomePage(currentUser *ent.User) string {
                 </a>
               </div>
               <div class="slide-right-img-wrap">
-                <img src="/static/samosa_plate.jpg" alt="Zero Delivery Fee Club for" class="slide-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+                <img src="/static/samosa_plate.jpg" alt="Zero Delivery Fee Club for" class="slide-img" loading="lazy" decoding="async">
                 <div class="slide-floating-tag">🚀 ₹0 Delivery Always</div>
               </div>
             </div>
@@ -3399,7 +3399,7 @@ func RenderHomePage(currentUser *ent.User) string {
                 </a>
               </div>
               <div class="slide-right-img-wrap">
-                <img src="/static/kathi_roll.jpg" alt="Midnight Hunger Runs:" class="slide-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+                <img src="/static/kathi_roll.jpg" alt="Midnight Hunger Runs:" class="slide-img" loading="lazy" decoding="async">
                 <div class="slide-floating-tag">🌙 11 PM - 3 AM Night</div>
               </div>
             </div>
@@ -3423,7 +3423,7 @@ func RenderHomePage(currentUser *ent.User) string {
                 </a>
               </div>
               <div class="slide-right-img-wrap">
-                <img src="/static/hero_food.jpg" alt="Saturday & Sunday Under ₹99" class="slide-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+                <img src="/static/hero_food.jpg" alt="Saturday & Sunday Under ₹99" class="slide-img" loading="lazy" decoding="async">
                 <div class="slide-floating-tag">🍲 Under ₹99 Handi</div>
               </div>
             </div>
@@ -3457,7 +3457,7 @@ func RenderHomePage(currentUser *ent.User) string {
           
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('south-indian', this)">
           <div class="cat-img-circle">
-            <img src="/static/hero_food.jpg" alt="South Indian" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/hero_food.jpg" alt="South Indian" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">South Indian</div>
           <div class="cat-price-pill">From &#8377;39</div>
@@ -3465,7 +3465,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('dosa-idli', this)">
           <div class="cat-img-circle">
-            <img src="/static/crispy_dosa.jpg" alt="Dosa & Idli" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/crispy_dosa.jpg" alt="Dosa & Idli" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Dosa & Idli</div>
           <div class="cat-price-pill">From &#8377;49</div>
@@ -3473,7 +3473,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('rice-biryani', this)">
           <div class="cat-img-circle">
-            <img src="/static/veg_pulao.jpg" alt="Rice & Biryani" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/veg_pulao.jpg" alt="Rice & Biryani" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Rice & Biryani</div>
           <div class="cat-price-pill">From &#8377;79</div>
@@ -3481,7 +3481,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('rolls-wraps', this)">
           <div class="cat-img-circle">
-            <img src="/static/kathi_roll.jpg" alt="Rolls & Wraps" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/kathi_roll.jpg" alt="Rolls & Wraps" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Rolls & Wraps</div>
           <div class="cat-price-pill">From &#8377;69</div>
@@ -3489,7 +3489,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('snacks-chaat', this)">
           <div class="cat-img-circle">
-            <img src="/static/samosa_plate.jpg" alt="Snacks & Chaat" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/samosa_plate.jpg" alt="Snacks & Chaat" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Snacks & Chaat</div>
           <div class="cat-price-pill">From &#8377;39</div>
@@ -3497,7 +3497,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('north-indian', this)">
           <div class="cat-img-circle">
-            <img src="/static/aloo_paratha.jpg" alt="North Indian Meals" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/aloo_paratha.jpg" alt="North Indian Meals" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">North Indian Meals</div>
           <div class="cat-price-pill">From &#8377;89</div>
@@ -3505,7 +3505,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('momos', this)">
           <div class="cat-img-circle">
-            <img src="/static/steamed_momos.jpg" alt="Momos" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/steamed_momos.jpg" alt="Momos" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Momos</div>
           <div class="cat-price-pill">From &#8377;69</div>
@@ -3513,7 +3513,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('sandwiches', this)">
           <div class="cat-img-circle">
-            <img src="/static/bombay_sandwich.jpg" alt="Sandwiches" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/bombay_sandwich.jpg" alt="Sandwiches" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Sandwiches</div>
           <div class="cat-price-pill">From &#8377;59</div>
@@ -3521,7 +3521,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('parathas', this)">
           <div class="cat-img-circle">
-            <img src="/static/aloo_paratha.jpg" alt="Parathas" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/aloo_paratha.jpg" alt="Parathas" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Parathas</div>
           <div class="cat-price-pill">From &#8377;49</div>
@@ -3529,7 +3529,7 @@ func RenderHomePage(currentUser *ent.User) string {
         
         <button type="button" class="cat-pill-btn" onclick="selectCategoryFilter('beverages', this)">
           <div class="cat-img-circle">
-            <img src="/static/filter_coffee.jpg" alt="Beverages" loading="lazy" class="cat-img" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">
+            <img src="/static/filter_coffee.jpg" alt="Beverages" loading="lazy" class="cat-img" onerror="this.onerror=null;this.src='/static/crispy_dosa.jpg';">
           </div>
           <div class="cat-name">Beverages</div>
           <div class="cat-price-pill">From &#8377;29</div>
@@ -9705,6 +9705,11 @@ function switchModalAuth(mode) {
 
 
 
+function getCsrfToken() {
+  var match = document.cookie.match(new RegExp('(^| )_csrf=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : '';
+}
+
 function sendModalOTP() {
   var idInput = document.getElementById('loginIdentifierInput');
   var idVal = idInput ? idInput.value.trim() : '';
@@ -9723,18 +9728,31 @@ function sendModalOTP() {
   btnSend.innerText = 'Sending...';
   if (statusDiv) statusDiv.style.display = 'none';
 
+  var csrf = getCsrfToken();
   var body = new URLSearchParams();
   body.append('identifier', idVal);
   body.append('portal', 'customer');
+  if (csrf) body.append('csrf', csrf);
 
   fetch('/api/auth/send-otp', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRF-Token': csrf
+    },
     body: body.toString()
   })
-  .then(function(r) { return r.json(); })
+  .then(function(r) {
+    return r.text().then(function(text) {
+      try {
+        return JSON.parse(text);
+      } catch(e) {
+        return { success: false, error: text || ('Server error (' + r.status + ')') };
+      }
+    });
+  })
   .then(function(data) {
-    if (data.success) {
+    if (data && data.success) {
       modalOtpDispatched = true;
       var inp = document.getElementById('modalOtpCodeInput');
       if (inp) {
@@ -9744,7 +9762,10 @@ function sendModalOTP() {
       var wrap = document.getElementById('modalOtpInputWrap');
       if (wrap) wrap.style.display = 'block';
       var contBtn = document.getElementById('btnLoginContinue');
-      if (contBtn) contBtn.innerText = 'Verify & Sign In';
+      if (contBtn) {
+        contBtn.innerText = 'Verify & Sign In';
+        contBtn.disabled = false;
+      }
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#166534';
@@ -9767,17 +9788,17 @@ function sendModalOTP() {
       if (statusDiv) {
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#DC2626';
-        statusDiv.innerText = data.error || 'Failed to send OTP.';
+        statusDiv.innerText = (data && data.error) ? data.error : 'Failed to send OTP.';
       }
     }
   })
-  .catch(function() {
+  .catch(function(err) {
     btnSend.disabled = false;
     btnSend.innerText = 'Get OTP';
     if (statusDiv) {
       statusDiv.style.display = 'block';
       statusDiv.style.color = '#DC2626';
-      statusDiv.innerText = 'Network error while requesting OTP.';
+      statusDiv.innerText = (err && err.message) ? err.message : 'Network error while requesting OTP.';
     }
   });
 }
@@ -9801,19 +9822,32 @@ function handleModalOtpSubmit() {
     }
     var statusDiv = document.getElementById('modalOtpStatus');
 
+    var csrf = getCsrfToken();
     var body = new URLSearchParams();
     body.append('identifier', idVal);
     body.append('otp', otpVal);
     body.append('portal', 'customer');
+    if (csrf) body.append('csrf', csrf);
 
     fetch('/api/auth/verify-otp', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRF-Token': csrf
+      },
       body: body.toString()
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      return r.text().then(function(text) {
+        try {
+          return JSON.parse(text);
+        } catch(e) {
+          return { success: false, error: text || ('Server error (' + r.status + ')') };
+        }
+      });
+    })
     .then(function(data) {
-      if (data.success) {
+      if (data && data.success) {
         if (statusDiv) {
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#16A34A';
@@ -9829,15 +9863,28 @@ function handleModalOtpSubmit() {
         if (statusDiv) {
           statusDiv.style.display = 'block';
           statusDiv.style.color = '#DC2626';
-          statusDiv.innerText = data.error || 'Invalid OTP code.';
+          statusDiv.innerText = (data && data.error) ? data.error : 'Invalid OTP code.';
         }
       }
     })
     .catch(function() {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Verify & Sign In';
+      }
       quickPhoneLogin(idVal);
     });
+  } else if (!modalOtpDispatched) {
+    sendModalOTP();
   } else {
-    quickPhoneLogin(idVal);
+    var inp = document.getElementById('modalOtpCodeInput');
+    if (inp) inp.focus();
+    var statusDiv = document.getElementById('modalOtpStatus');
+    if (statusDiv) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#DC2626';
+      statusDiv.innerText = 'Please enter the 6-digit OTP code sent to your phone.';
+    }
   }
 }
 
@@ -9903,28 +9950,48 @@ function quickPhoneLogin(identifier) {
     btn.textContent = 'Logging in...';
     btn.disabled = true;
   }
+  var csrf = getCsrfToken();
   var formData = new FormData();
   formData.append('phone', identifier);
+  if (csrf) formData.append('csrf', csrf);
   fetch('/api/phone-login', {
     method: 'POST',
     body: formData,
     credentials: 'same-origin',
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-Token': csrf
+    }
   }).then(function(res) {
-    return res.json();
+    return res.text().then(function(text) {
+      try {
+        return JSON.parse(text);
+      } catch(e) {
+        return { success: false, error: text || ('Server error (' + res.status + ')') };
+      }
+    });
   }).then(function(data) {
-    if (data.success) {
+    if (data && data.success) {
       localStorage.setItem('under100_user_phone', identifier);
       closeLoginModal();
       window.location.reload();
     } else {
-      alert('Login error: ' + (data.error || 'Please enter a valid mobile number or email.'));
       if (btn) {
-        btn.textContent = 'Continue';
+        btn.textContent = modalOtpDispatched ? 'Verify & Sign In' : 'Continue';
         btn.disabled = false;
+      }
+      var statusDiv = document.getElementById('modalOtpStatus');
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#DC2626';
+        statusDiv.innerText = (data && data.error) ? data.error : 'Please enter a valid mobile number or email.';
       }
     }
   }).catch(function() {
+    if (btn) {
+      btn.textContent = modalOtpDispatched ? 'Verify & Sign In' : 'Continue';
+      btn.disabled = false;
+    }
     window.location.href = '/login';
   });
 }
