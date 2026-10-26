@@ -1535,7 +1535,16 @@ func RenderHomePage(currentUser *ent.User) string {
       font-size: 12px;
       color: var(--color-secondary-text);
       margin-bottom: 4px;
-      font-weight: 500;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s ease;
+    }
+    .product-card-restaurant:hover {
+      color: var(--color-primary-orange);
+      text-decoration: underline;
     }
     .product-card-meta {
       display: flex;
@@ -2307,6 +2316,81 @@ func RenderHomePage(currentUser *ent.User) string {
       .search-bar-wrap { max-width: 100%; order: 3; margin-top: 10px; }
       .navbar-inner { flex-wrap: wrap; }
       .slide-right-img-wrap { width: 100%; height: 180px; }
+    /* SEARCH DROPDOWN MENU */
+    .search-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+      z-index: 1000;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .search-drop-group-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 6px 16px 4px;
+    }
+    .search-drop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      gap: 12px;
+    }
+    .search-drop-item:hover {
+      background: #F1F5F9;
+    }
+
+    /* RESTAURANT BANNER VIEW */
+    .restaurant-banner-view {
+      background: linear-gradient(135deg, #171C24, #262F3D);
+      border: 1.5px solid #334155;
+      border-radius: 16px;
+      padding: 18px 22px;
+      color: #ffffff;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    /* MULTI-ORDER TRACKING TABS */
+    .multi-track-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 16px;
+      background: #0F172A;
+      border-bottom: 1px solid #334155;
+    }
+    .multi-track-tab-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #334155;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94A3B8;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .multi-track-tab-btn.active {
+      background: #0C831F;
+      border-color: #22C55E;
+      color: #ffffff;
     }
 
     /* PAYMENT GATEWAY MODAL STYLES - ZERO ICONS, CORPORATE FINTECH DASHBOARD */
@@ -3278,12 +3362,14 @@ func RenderHomePage(currentUser *ent.User) string {
         </button>
       </div>
 
-      <!-- 3. SEARCH BAR WITH DYNAMIC ROTATING LABELS -->
-      <div class="search-bar-wrap">
+      <!-- 3. SEARCH BAR WITH DYNAMIC ROTATING LABELS & INSTANT RESTAURANT DROPDOWN -->
+      <div class="search-bar-wrap" style="position: relative;">
         <div class="search-input-box">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="globalSearchInput" placeholder="Search 'Pav Bhaji'..." onkeyup="handleGlobalSearch(this.value)" autocomplete="off">
+          <input type="text" id="globalSearchInput" placeholder="Search dishes, restaurants under &#8377;100..." oninput="handleGlobalSearch(this.value)" onfocus="handleGlobalSearch(this.value)" autocomplete="off">
+          <button type="button" id="clearSearchBtn" onclick="clearGlobalSearch()" style="display: none; background: none; border: none; font-size: 16px; color: #94A3B8; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
         </div>
+        <div id="searchSuggestionsDropdown" class="search-dropdown-menu" style="display: none;"></div>
       </div>
 
       <!-- 4. ACCOUNT -->
@@ -5497,7 +5583,24 @@ func RenderHomePage(currentUser *ent.User) string {
           <button class="filter-tab-pill" onclick="filterGridCategory('rice-biryani', this)">Rice &amp; Biryani</button>
           <button class="filter-tab-pill" onclick="filterGridCategory('snacks-chaat', this)">Snacks &amp; Chaat</button>
           <button class="filter-tab-pill" onclick="filterGridCategory('momos', this)">Momos</button>
-          <button class="filter-tab-pill" onclick="filterGridCategory('beverages', this)">Beverages</button>
+        </div>
+
+        <!-- ACTIVE RESTAURANT FILTER BANNER -->
+        <div id="activeRestaurantBanner" class="restaurant-banner-view" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="background: #FF5A1F; color: #ffffff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px;">RESTAURANT MENU</span>
+                <span id="restBannerRating" style="background: #166534; color: #DCFCE7; font-size: 11.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">⭐ 4.6</span>
+                <span style="background: #0C831F; color: #ffffff; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">UNDER &#8377;100 GUARANTEE</span>
+              </div>
+              <h2 id="restBannerName" style="font-size: 24px; font-weight: 800; margin: 4px 0 3px; color: #ffffff;">Sri Krishna Cafe</h2>
+              <p id="restBannerMeta" style="font-size: 13.5px; color: #94A3B8; margin: 0;">📍 Indiranagar &bull; 🕒 20 mins delivery &bull; 💯 All dishes &#8377;100 or less</p>
+            </div>
+            <button type="button" onclick="clearRestaurantFilter()" style="background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+              &times; View All Restaurants
+            </button>
+          </div>
         </div>
 
         <div class="food-grid-container" id="mainFoodGrid">
@@ -6761,7 +6864,7 @@ func RenderHomePage(currentUser *ent.User) string {
     </div>
   </div>
 
-  <!-- LIVE ORDER TRACKING MODAL & STEPPER -->
+  <!-- LIVE ORDER TRACKING MODAL & STEPPER (SUPPORTS MULTI-RESTAURANT SEPARATE TRACKING) -->
   <div class="tracking-modal-overlay" id="liveOrderTrackingModal" style="display: none;" onclick="if(event.target === this) closeOrderTrackingModal()">
     <div class="tracking-modal-card">
       <div class="tracking-header">
@@ -6773,7 +6876,19 @@ func RenderHomePage(currentUser *ent.User) string {
         <h2 class="tracking-title" id="trackHeaderTitle">Your meal is on the way!</h2>
         <div style="font-size: 13px; color: #94A3B8; margin-top: 4px;" id="trackRestaurantName">From CTR Shri Sagar, Malleshwaram</div>
       </div>
+
+      <!-- Multi-Restaurant Order Tabs (shown when order has multiple kitchens) -->
+      <div id="multiTrackTabsWrap" class="multi-track-tabs" style="display: none;"></div>
+
       <div class="tracking-body">
+        <div id="trackOrderItemsSummary" style="display: none; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #1E293B; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 800; color: #64748B; text-transform: uppercase;">SHIPMENT CONTENTS</div>
+            <div id="trackItemsListText" style="font-weight: 700; color: #1E293B; margin-top: 2px;">1x Crispy Masala Dosa</div>
+          </div>
+          <div id="trackLegSubtotal" style="font-weight: 800; font-size: 14px; color: #0C831F;">&#8377;79</div>
+        </div>
+
         <!-- Visual 5-Stage Stepper -->
         <div class="track-stepper">
           <div class="track-step-item done" id="step1">
@@ -6787,14 +6902,14 @@ func RenderHomePage(currentUser *ent.User) string {
             <div class="track-step-dot">2</div>
             <div class="track-step-info">
               <h4>Kitchen Accepted &amp; Preparing</h4>
-              <p>Fresh dosas and filter coffee on the stove</p>
+              <p id="trackKitchenDetail">Fresh meals prepared with clean ingredients</p>
             </div>
           </div>
           <div class="track-step-item" id="step3">
             <div class="track-step-dot">3</div>
             <div class="track-step-info">
               <h4>Delivery Valet Assigned</h4>
-              <p>Ramesh Kumar (Hero Splendor KA-04-EK-9122)</p>
+              <p id="trackRiderDetail">Ramesh Kumar (Hero Splendor KA-04-EK-9122)</p>
             </div>
           </div>
           <div class="track-step-item" id="step4">
@@ -7806,16 +7921,9 @@ function addToCart(id, name, price, restaurant, image) {
   var r = restaurant || (item ? item.restaurant : 'Bengaluru Kitchen');
   var img = image || (item ? item.image : '/static/crispy_dosa.jpg');
 
-  // Multi-restaurant conflict guard
-  var existingIds = Object.keys(cartItems);
-  if (existingIds.length > 0) {
-    var firstRest = cartItems[existingIds[0]].restaurant;
-    if (firstRest && r && firstRest.trim().toLowerCase() !== r.trim().toLowerCase()) {
-      pendingConflictItem = { id: id, name: n, price: p, restaurant: r, image: img };
-      showCartConflictModal(firstRest, r);
-      return;
-    }
-  }
+  // Multi-restaurant support: items from same or different restaurants can be freely added
+  // Grouping and separate tracking will be handled seamlessly in cart & live tracking
+
 
   if (!cartItems[id]) {
     cartItems[id] = { id: id, name: n, price: p, restaurant: r, image: img, qty: 1 };
@@ -7991,28 +8099,79 @@ function renderCart() {
     '</div>';
   }
 
-  // 2. Items List Card
-  var itemsHtml = '<div class="b-cart-card" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 14px;">';
-  ids.forEach(function(id, idx) {
-    var item = cartItems[id];
-    var borderStyle = idx > 0 ? 'border-top: 1px solid #F1F5F9; padding-top: 14px;' : '';
-    itemsHtml += '<div style="display: flex; align-items: center; gap: 12px; ' + borderStyle + '">' +
-      '<img src="' + item.image + '" alt="' + item.name + '" style="width: 58px; height: 58px; border-radius: 10px; object-fit: cover; border: 1px solid #E2E8F0; background: #F8FAFC;" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">' +
-      '<div style="flex: 1; min-width: 0;">' +
-        '<div style="font-size: 13.5px; font-weight: 700; color: #1E293B; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + item.name + '</div>' +
-        '<div style="font-size: 11.5px; color: #64748B; margin-top: 2px;">' + item.restaurant + '</div>' +
-        '<div style="font-size: 14px; font-weight: 800; color: #1E293B; margin-top: 4px;">' +
-          '&#8377;' + item.price + ' <span style="font-size: 12px; color: #94A3B8; text-decoration: line-through; font-weight: 500; margin-left: 4px;">&#8377;' + (item.price + 20) + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="b-cart-stepper">' +
-        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', -1)">&minus;</button>' +
-        '<span class="b-cart-stepper-val">' + item.qty + '</span>' +
-        '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', 1)">&#43;</button>' +
+  // 2. Multi-Restaurant Grouped Items List
+  var restGroups = {};
+  ids.forEach(function(id) {
+    var itm = cartItems[id];
+    var rName = (itm.restaurant || 'Bengaluru Kitchen').trim();
+    if (!restGroups[rName]) {
+      restGroups[rName] = {
+        name: rName,
+        items: [],
+        subtotal: 0
+      };
+    }
+    restGroups[rName].items.push(itm);
+    restGroups[rName].subtotal += (itm.qty * itm.price);
+  });
+  var restNames = Object.keys(restGroups);
+  var isMultiRest = restNames.length > 1;
+
+  var itemsHtml = '';
+  if (isMultiRest) {
+    itemsHtml += '<div style="background: linear-gradient(135deg, rgba(255, 90, 31, 0.12), rgba(255, 140, 0, 0.08)); border: 1.5px solid rgba(255, 90, 31, 0.35); border-radius: 12px; padding: 11px 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">' +
+      '<span style="font-size: 22px;">🛍️</span>' +
+      '<div>' +
+        '<div style="font-size: 12px; font-weight: 800; color: #EA580C; letter-spacing: 0.4px; text-transform: uppercase;">MULTI-RESTAURANT ORDER (' + restNames.length + ' KITCHENS)</div>' +
+        '<div style="font-size: 11.5px; color: #475569; margin-top: 1px; line-height: 1.35;">Items will be dispatched simultaneously from each restaurant with separate live tracking!</div>' +
       '</div>' +
     '</div>';
+  }
+
+  restNames.forEach(function(rName, rIdx) {
+    var group = restGroups[rName];
+    itemsHtml += '<div class="b-cart-card" style="padding: 13px 15px; margin-bottom: 12px; border-radius: 12px; border: 1.5px solid #E2E8F0;">';
+    
+    // Restaurant Kitchen Header
+    itemsHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; padding-bottom: 8px; border-bottom: 1px dashed #E2E8F0;">' +
+      '<div style="display: flex; align-items: center; gap: 6px; min-width: 0;">' +
+        '<span style="font-size: 14px;">🏪</span>' +
+        '<span style="font-size: 13px; font-weight: 800; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + escapeSafe(rName) + '</span>' +
+        (isMultiRest ? '<span style="background: #F1F5F9; color: #475569; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">KITCHEN ' + (rIdx + 1) + '</span>' : '') +
+      '</div>' +
+      '<span style="font-size: 11px; font-weight: 700; color: #0C831F; background: #F0FDF4; padding: 2px 7px; border-radius: 4px; flex-shrink: 0;">' + (rIdx === 0 ? '⚡ 15-20m' : '⚡ 20-25m') + '</span>' +
+    '</div>';
+
+    // Kitchen Items
+    itemsHtml += '<div style="display: flex; flex-direction: column; gap: 12px;">';
+    group.items.forEach(function(item, idx) {
+      var id = item.id;
+      var borderStyle = idx > 0 ? 'border-top: 1px solid #F1F5F9; padding-top: 12px;' : '';
+      itemsHtml += '<div style="display: flex; align-items: center; gap: 12px; ' + borderStyle + '">' +
+        '<img src="' + item.image + '" alt="' + escapeSafe(item.name) + '" style="width: 52px; height: 52px; border-radius: 9px; object-fit: cover; border: 1px solid #E2E8F0; background: #F8FAFC;" onerror=\"this.onerror=null;this.src=\'/static/crispy_dosa.jpg\';\">' +
+        '<div style="flex: 1; min-width: 0;">' +
+          '<div style="font-size: 13px; font-weight: 700; color: #1E293B; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + escapeSafe(item.name) + '</div>' +
+          '<div style="font-size: 13.5px; font-weight: 800; color: #1E293B; margin-top: 3px;">' +
+            '&#8377;' + item.price + ' <span style="font-size: 11px; color: #94A3B8; text-decoration: line-through; font-weight: 500; margin-left: 4px;">&#8377;' + (item.price + 20) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="b-cart-stepper">' +
+          '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', -1)">&minus;</button>' +
+          '<span class="b-cart-stepper-val">' + item.qty + '</span>' +
+          '<button type="button" class="b-cart-stepper-btn" onclick="updateQty(\'' + id + '\', 1)">&#43;</button>' +
+        '</div>' +
+      '</div>';
+    });
+    itemsHtml += '</div>';
+
+    if (isMultiRest) {
+      itemsHtml += '<div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 9px; padding-top: 7px; border-top: 1px solid #F1F5F9; font-size: 11.5px; color: #64748B;">' +
+        'Kitchen Subtotal: <strong style="color: #1E293B; margin-left: 5px; font-weight: 800; font-size: 12.5px;">&#8377;' + group.subtotal + '</strong>' +
+      '</div>';
+    }
+
+    itemsHtml += '</div>';
   });
-  itemsHtml += '</div>';
 
   // 2b. Delivery Instructions Chips Card
   var instructHtml = '<div class="b-cart-card">' +
@@ -8444,13 +8603,57 @@ function processPaymentGateway() {
 
       document.getElementById('pgSuccessView').style.display = 'flex';
 
-      // Save order details for live tracking stepper
+      // Save order details for live multi-restaurant tracking stepper
       var ids = Object.keys(cartItems);
-      var firstRest = (ids.length > 0 && cartItems[ids[0]]) ? cartItems[ids[0]].restaurant : 'Bengaluru Kitchen';
+      var restMap = {};
+      var riderList = [
+        { name: 'Ramesh Kumar', vehicle: 'Hero Splendor KA-04-EK-9122', rating: '4.9 ⭐', phone: '+91 98765 43210' },
+        { name: 'Suresh Gowda', vehicle: 'TVS Apache KA-05-MN-4412', rating: '4.8 ⭐', phone: '+91 98765 88123' },
+        { name: 'Manjunath K', vehicle: 'Bajaj Pulsar KA-01-AB-1904', rating: '4.9 ⭐', phone: '+91 98765 71920' },
+        { name: 'Pradeep R', vehicle: 'Ather 450X KA-03-EV-8821', rating: '4.7 ⭐', phone: '+91 98765 33214' }
+      ];
+
+      ids.forEach(function(id) {
+        var itm = cartItems[id];
+        var r = (itm.restaurant || 'Bengaluru Kitchen').trim();
+        if (!restMap[r]) {
+          restMap[r] = {
+            restaurant: r,
+            items: [],
+            subtotal: 0
+          };
+        }
+        restMap[r].items.push(itm);
+        restMap[r].subtotal += (itm.qty * itm.price);
+      });
+
+      var multiOrders = [];
+      var rKeys = Object.keys(restMap);
+      rKeys.forEach(function(rName, idx) {
+        var legSubId = 'BITE-2026-' + orderNum + (rKeys.length > 1 ? ('-K' + (idx + 1)) : '');
+        var rider = riderList[idx % riderList.length];
+        var itemsSummary = restMap[rName].items.map(function(it) {
+          return it.qty + 'x ' + it.name;
+        }).join(', ');
+
+        multiOrders.push({
+          orderId: legSubId,
+          restaurant: rName,
+          itemsSummary: itemsSummary,
+          subtotal: restMap[rName].subtotal,
+          rider: rider,
+          etaMinutes: 16 + (idx * 5),
+          stage: 2,
+          address: (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru')
+        });
+      });
+
+      window.lastMultiOrders = multiOrders;
+      window.activeTrackOrderIndex = 0;
       window.lastOrderDetails = {
         orderNum: orderNum,
         amount: currentGrandTotal,
-        restaurant: firstRest,
+        restaurant: rKeys[0] || 'Bengaluru Kitchen',
         address: (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru')
       };
 
@@ -8468,42 +8671,110 @@ function processPaymentGateway() {
 }
 
 var trackingInterval = null;
-var currentTrackStage = 1;
+var activeTrackOrderIndex = 0;
 
 function launchOrderTracking() {
   closePaymentModal();
-  var rest = (window.lastOrderDetails && window.lastOrderDetails.restaurant) || 'Sri Krishna Cafe, Indiranagar';
-  var orderId = (window.lastOrderDetails && window.lastOrderDetails.orderNum) || '92841';
-  openOrderTrackingModal(orderId, rest);
+  openOrderTrackingModal();
 }
 
 function openOrderTrackingModal(orderId, restName) {
   var modal = document.getElementById('liveOrderTrackingModal');
   if (modal) modal.style.display = 'flex';
-  if (restName) {
-    var rEl = document.getElementById('trackRestaurantName');
-    if (rEl) rEl.innerText = 'From ' + restName;
-  }
-  var addrEl = document.getElementById('trackAddressText');
-  if (addrEl) {
-    addrEl.innerText = (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru');
+
+  var orders = window.lastMultiOrders;
+  if (!orders || orders.length === 0) {
+    orders = [{
+      orderId: 'BITE-2026-' + (orderId || '92841'),
+      restaurant: restName || 'Sri Krishna Cafe, Indiranagar',
+      itemsSummary: '1x Crispy Masala Dosa',
+      subtotal: 79,
+      rider: { name: 'Ramesh Kumar', vehicle: 'Hero Splendor KA-04-EK-9122', rating: '4.9 ⭐', phone: '+91 98765 43210' },
+      etaMinutes: 18,
+      stage: 2,
+      address: (activeDelivery.displayLabel || 'Indiranagar 100ft Rd, Bengaluru')
+    }];
+    window.lastMultiOrders = orders;
   }
 
-  currentTrackStage = 2; // Move immediately to Kitchen Accepted
-  updateTrackingSteps(currentTrackStage);
+  activeTrackOrderIndex = 0;
+  renderMultiTrackTabs();
+  displayActiveTrackOrder(0);
 
   if (trackingInterval) clearInterval(trackingInterval);
   trackingInterval = setInterval(function() {
-    currentTrackStage++;
-    if (currentTrackStage > 5) {
+    var anyActive = false;
+    (window.lastMultiOrders || []).forEach(function(ord) {
+      if (ord.stage < 5) {
+        ord.stage++;
+        if (ord.etaMinutes > 4) ord.etaMinutes -= 4;
+        anyActive = true;
+      }
+    });
+    displayActiveTrackOrder(activeTrackOrderIndex);
+    renderMultiTrackTabs();
+    if (!anyActive) {
       clearInterval(trackingInterval);
-      return;
     }
-    updateTrackingSteps(currentTrackStage);
   }, 4500);
 }
 
-function updateTrackingSteps(stage) {
+function renderMultiTrackTabs() {
+  var tabsWrap = document.getElementById('multiTrackTabsWrap');
+  if (!tabsWrap) return;
+  var orders = window.lastMultiOrders || [];
+  if (orders.length <= 1) {
+    tabsWrap.style.display = 'none';
+    return;
+  }
+  tabsWrap.style.display = 'flex';
+  var html = '';
+  orders.forEach(function(ord, idx) {
+    var isActive = (idx === activeTrackOrderIndex);
+    var statusBadge = ord.stage >= 5 ? '✓ Delivered' : ('Stage ' + ord.stage + '/5');
+    html += '<button type="button" class="multi-track-tab-btn ' + (isActive ? 'active' : '') + '" onclick="switchTrackingOrder(' + idx + ')">' +
+      '<span>🏪 ' + escapeSafe(ord.restaurant) + '</span>' +
+      '<span style="font-size: 11px; opacity: 0.85; margin-left: 6px;">(' + statusBadge + ')</span>' +
+    '</button>';
+  });
+  tabsWrap.innerHTML = html;
+}
+
+function switchTrackingOrder(idx) {
+  activeTrackOrderIndex = idx;
+  renderMultiTrackTabs();
+  displayActiveTrackOrder(idx);
+}
+
+function displayActiveTrackOrder(idx) {
+  var orders = window.lastMultiOrders || [];
+  if (!orders[idx]) return;
+  var ord = orders[idx];
+
+  var rEl = document.getElementById('trackRestaurantName');
+  if (rEl) rEl.innerText = 'Ref: ' + ord.orderId + ' • Kitchen: ' + ord.restaurant;
+
+  var addrEl = document.getElementById('trackAddressText');
+  if (addrEl) addrEl.innerText = ord.address;
+
+  var summaryBox = document.getElementById('trackOrderItemsSummary');
+  var itemsEl = document.getElementById('trackItemsListText');
+  var subtotalEl = document.getElementById('trackLegSubtotal');
+  if (summaryBox) {
+    summaryBox.style.display = 'flex';
+    if (itemsEl) itemsEl.innerText = ord.itemsSummary;
+    if (subtotalEl) subtotalEl.innerHTML = '&#8377;' + ord.subtotal;
+  }
+
+  var riderEl = document.getElementById('trackRiderDetail');
+  if (riderEl && ord.rider) {
+    riderEl.innerText = ord.rider.name + ' (' + ord.rider.vehicle + ') • ' + ord.rider.rating;
+  }
+
+  updateTrackingSteps(ord.stage, ord.etaMinutes);
+}
+
+function updateTrackingSteps(stage, etaMinutes) {
   for (var i = 1; i <= 5; i++) {
     var step = document.getElementById('step' + i);
     if (!step) continue;
@@ -8516,17 +8787,18 @@ function updateTrackingSteps(stage) {
   }
   var etaEl = document.getElementById('trackEtaText');
   var titleEl = document.getElementById('trackHeaderTitle');
+  var etaVal = etaMinutes || (stage === 1 ? 20 : stage === 2 ? 16 : stage === 3 ? 11 : stage === 4 ? 5 : 0);
   if (stage === 1) {
-    if (etaEl) etaEl.innerText = 'Estimated Delivery: 20 mins';
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: ' + etaVal + ' mins';
     if (titleEl) titleEl.innerText = 'Order Placed & Confirmed';
   } else if (stage === 2) {
-    if (etaEl) etaEl.innerText = 'Estimated Delivery: 16 mins';
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: ' + etaVal + ' mins';
     if (titleEl) titleEl.innerText = 'Kitchen Preparing Fresh Meal';
   } else if (stage === 3) {
-    if (etaEl) etaEl.innerText = 'Estimated Delivery: 11 mins';
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: ' + etaVal + ' mins';
     if (titleEl) titleEl.innerText = 'Valet Assigned & Heading to Kitchen';
   } else if (stage === 4) {
-    if (etaEl) etaEl.innerText = 'Estimated Delivery: 5 mins';
+    if (etaEl) etaEl.innerText = 'Estimated Delivery: ' + etaVal + ' mins';
     if (titleEl) titleEl.innerText = 'Valet Out for Delivery 🛵';
   } else if (stage === 5) {
     if (etaEl) etaEl.innerText = 'Delivered! 🎉';
@@ -8588,20 +8860,253 @@ function detectGPSLocation() {
   );
 }
 
+// RESTAURANT SEARCH & UNDER ₹100 MENU ENGINE
+var currentActiveRestaurantFilter = null;
+
 function handleGlobalSearch(q) {
   var term = (q || '').toLowerCase().trim();
   var searchInput = document.getElementById('globalSearchInput');
+  var clearBtn = document.getElementById('clearSearchBtn');
+  var dropdown = document.getElementById('searchSuggestionsDropdown');
+
   if (searchInput && searchInput.value !== q) searchInput.value = q;
-  var cards = document.querySelectorAll('.product-card');
+
+  if (!term) {
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (dropdown) dropdown.style.display = 'none';
+    clearRestaurantFilter(true);
+    return;
+  }
+
+  if (clearBtn) clearBtn.style.display = 'block';
+
+  // Gather matching restaurants & dishes from itemsDB and DOM
+  var matchedRestaurants = {};
+  var matchedDishes = [];
+
+  // Inspect itemsDB
+  if (typeof itemsDB === 'object') {
+    Object.keys(itemsDB).forEach(function(id) {
+      var itm = itemsDB[id];
+      var rName = (itm.restaurant || '').trim();
+      var rLower = rName.toLowerCase();
+      var dLower = (itm.name || '').toLowerCase();
+      var cLower = (itm.cuisine || '').toLowerCase();
+
+      if (rLower.indexOf(term) !== -1 || (term.length > 2 && rLower.split(' ').some(function(w){ return w.indexOf(term) !== -1; }))) {
+        if (!matchedRestaurants[rName]) {
+          matchedRestaurants[rName] = {
+            name: rName,
+            neighbourhood: itm.neighbourhood || 'Bengaluru',
+            rating: itm.rating || 4.6,
+            deliveryMinutes: itm.deliveryMinutes || 20,
+            itemCount: 0
+          };
+        }
+        matchedRestaurants[rName].itemCount++;
+      }
+
+      if (dLower.indexOf(term) !== -1 || cLower.indexOf(term) !== -1) {
+        matchedDishes.push(itm);
+      }
+    });
+  }
+
+  // Also check cards in DOM for restaurants
+  var cards = document.querySelectorAll('#mainFoodGrid .product-card');
+  cards.forEach(function(card) {
+    var rEl = card.querySelector('.product-card-restaurant');
+    var rName = rEl ? rEl.textContent.trim().replace(/^🏪\s*/, '') : '';
+    if (rName && rName.toLowerCase().indexOf(term) !== -1) {
+      if (!matchedRestaurants[rName]) {
+        matchedRestaurants[rName] = {
+          name: rName,
+          neighbourhood: card.getAttribute('data-neighbourhood') || 'Bengaluru',
+          rating: card.getAttribute('data-rating') || '4.6',
+          deliveryMinutes: card.getAttribute('data-delivery') || '20',
+          itemCount: 1
+        };
+      }
+    }
+  });
+
+  // Render Suggestions Dropdown
+  var restKeys = Object.keys(matchedRestaurants);
+  if (dropdown) {
+    if (restKeys.length > 0 || matchedDishes.length > 0) {
+      var dHtml = '';
+      if (restKeys.length > 0) {
+        dHtml += '<div class="search-drop-group-title">RESTAURANTS WITH UNDER &#8377;100 MENU (' + restKeys.length + ')</div>';
+        restKeys.slice(0, 4).forEach(function(rKey) {
+          var rInfo = matchedRestaurants[rKey];
+          var safeRName = rKey.replace(/'/g, "\\'");
+          dHtml += '<div class="search-drop-item" onclick="filterByRestaurant(\'' + safeRName + '\')">' +
+            '<span style="font-size: 16px;">🏪</span>' +
+            '<div style="flex: 1; min-width: 0;">' +
+              '<div style="font-size: 13.5px; font-weight: 800; color: #1E293B;">' + escapeSafe(rKey) + '</div>' +
+              '<div style="font-size: 11.5px; color: #64748B;">📍 ' + escapeSafe(rInfo.neighbourhood) + ' &bull; ⭐ ' + rInfo.rating + ' &bull; 💯 All dishes &#8377;100 or less</div>' +
+            '</div>' +
+            '<span style="font-size: 11px; font-weight: 700; color: #FF5A1F; background: rgba(255, 90, 31, 0.08); padding: 3px 8px; border-radius: 6px;">VIEW MENU</span>' +
+          '</div>';
+        });
+      }
+
+      if (matchedDishes.length > 0) {
+        dHtml += '<div class="search-drop-group-title">DISHES UNDER &#8377;100 (' + matchedDishes.length + ')</div>';
+        matchedDishes.slice(0, 5).forEach(function(dish) {
+          var safeName = dish.name.replace(/'/g, "\\'");
+          dHtml += '<div class="search-drop-item" onclick="handleQuickSearch(\'' + safeName + '\')">' +
+            '<span style="font-size: 16px;">🍲</span>' +
+            '<div style="flex: 1; min-width: 0;">' +
+              '<div style="font-size: 13px; font-weight: 700; color: #1E293B;">' + escapeSafe(dish.name) + '</div>' +
+              '<div style="font-size: 11.5px; color: #64748B;">' + escapeSafe(dish.restaurant) + '</div>' +
+            '</div>' +
+            '<span style="font-size: 12.5px; font-weight: 800; color: #0C831F;">&#8377;' + dish.price + '</span>' +
+          '</div>';
+        });
+      }
+
+      dropdown.innerHTML = dHtml;
+      dropdown.style.display = 'block';
+    } else {
+      dropdown.style.display = 'none';
+    }
+  }
+
+  // Check if query exactly or closely matches a single restaurant
+  if (restKeys.length === 1 && (restKeys[0].toLowerCase() === term || restKeys[0].toLowerCase().indexOf(term) === 0)) {
+    filterByRestaurant(restKeys[0], false);
+    return;
+  }
+
+  // Otherwise, filter grid by dish name OR restaurant name OR neighbourhood
+  var banner = document.getElementById('activeRestaurantBanner');
+  if (banner && currentActiveRestaurantFilter) {
+    banner.style.display = 'none';
+    currentActiveRestaurantFilter = null;
+  }
+
   cards.forEach(function(card) {
     var name = (card.getAttribute('data-name') || '').toLowerCase();
-    if (!term || name.indexOf(term) !== -1) {
+    var rEl = card.querySelector('.product-card-restaurant');
+    var rName = rEl ? rEl.textContent.toLowerCase() : '';
+    var neigh = (card.getAttribute('data-neighbourhood') || '').toLowerCase();
+
+    if (name.indexOf(term) !== -1 || rName.indexOf(term) !== -1 || neigh.indexOf(term) !== -1) {
       card.style.display = 'flex';
     } else {
       card.style.display = 'none';
     }
   });
 }
+
+function filterByRestaurant(restName, doScroll) {
+  if (doScroll === undefined) doScroll = true;
+  currentActiveRestaurantFilter = restName;
+
+  var searchInput = document.getElementById('globalSearchInput');
+  if (searchInput) searchInput.value = restName;
+
+  var clearBtn = document.getElementById('clearSearchBtn');
+  if (clearBtn) clearBtn.style.display = 'block';
+
+  var dropdown = document.getElementById('searchSuggestionsDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+
+  // Find restaurant metadata
+  var rating = '4.6';
+  var neighbourhood = 'Bengaluru';
+  var deliveryMinutes = '20';
+  var itemCount = 0;
+
+  if (typeof itemsDB === 'object') {
+    Object.keys(itemsDB).forEach(function(id) {
+      var itm = itemsDB[id];
+      if ((itm.restaurant || '').trim().toLowerCase() === restName.trim().toLowerCase()) {
+        rating = itm.rating || rating;
+        neighbourhood = itm.neighbourhood || neighbourhood;
+        deliveryMinutes = itm.deliveryMinutes || deliveryMinutes;
+        itemCount++;
+      }
+    });
+  }
+
+  // Update & display #activeRestaurantBanner
+  var banner = document.getElementById('activeRestaurantBanner');
+  var bName = document.getElementById('restBannerName');
+  var bRating = document.getElementById('restBannerRating');
+  var bMeta = document.getElementById('restBannerMeta');
+
+  if (bName) bName.innerText = restName;
+  if (bRating) bRating.innerText = '⭐ ' + rating;
+  if (bMeta) {
+    bMeta.innerHTML = '📍 ' + escapeSafe(neighbourhood) + ' &bull; 🕒 ' + deliveryMinutes + ' mins delivery &bull; 💯 All dishes &#8377;100 or less (' + (itemCount > 0 ? itemCount + ' items' : 'Full Menu') + ')';
+  }
+  if (banner) banner.style.display = 'block';
+
+  // Filter food grid cards to only this restaurant
+  var cards = document.querySelectorAll('#mainFoodGrid .product-card');
+  var rTarget = restName.trim().toLowerCase();
+  cards.forEach(function(card) {
+    var rEl = card.querySelector('.product-card-restaurant');
+    var rName = rEl ? rEl.textContent.trim().replace(/^🏪\s*/, '').toLowerCase() : '';
+    if (rName === rTarget || rName.indexOf(rTarget) !== -1 || rTarget.indexOf(rName) !== -1) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  if (doScroll) {
+    if (banner) {
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      var grid = document.getElementById('mainFoodGrid');
+      if (grid) grid.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+}
+
+function clearRestaurantFilter(skipInputClear) {
+  currentActiveRestaurantFilter = null;
+  var banner = document.getElementById('activeRestaurantBanner');
+  if (banner) banner.style.display = 'none';
+
+  var dropdown = document.getElementById('searchSuggestionsDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+
+  if (!skipInputClear) {
+    var searchInput = document.getElementById('globalSearchInput');
+    if (searchInput) searchInput.value = '';
+    var clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+
+  var cards = document.querySelectorAll('#mainFoodGrid .product-card');
+  cards.forEach(function(card) {
+    card.style.display = 'flex';
+  });
+}
+
+function clearGlobalSearch() {
+  clearRestaurantFilter(false);
+}
+
+// Close search dropdown on click outside & setup restaurant clicks
+document.addEventListener('click', function(e) {
+  var dropdown = document.getElementById('searchSuggestionsDropdown');
+  var searchWrap = document.querySelector('.search-bar-wrap');
+  if (dropdown && searchWrap && !searchWrap.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+
+  // Click on any product card restaurant name opens its under 100 menu
+  var rEl = e.target.closest('.product-card-restaurant');
+  if (rEl) {
+    var rName = rEl.textContent.trim().replace(/^🏪\s*/, '');
+    if (rName) filterByRestaurant(rName);
+  }
+});
 
 function handleQuickSearch(dishName) {
   var searchInput = document.getElementById('globalSearchInput');
