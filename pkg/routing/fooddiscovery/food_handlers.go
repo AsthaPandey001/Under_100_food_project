@@ -152,6 +152,7 @@ func (h *Handler) RegisterRoutes(g *echo.Group) {
 
 	// OTP API endpoints protected by rate limiters
 	g.POST("/api/auth/send-otp", h.SendAuthOTP, otpSendLimiter)
+	g.POST("/api/auth/send-whatsapp", h.SendWhatsAppOTP, otpSendLimiter)
 	g.POST("/api/auth/verify-otp", h.VerifyAuthOTP, otpVerifyLimiter)
 
 	// Merchant entry point & registration
@@ -1327,41 +1328,75 @@ func (h *Handler) PhoneOrEmailLogin(ctx echo.Context) error {
 		})
 	}
 
-	password := ctx.FormValue("password")
-	if password == "" {
-		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+	cleanID := normalizeAuthIdentifier(identifier)
+	if cleanID == "" {
+		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
 			"success": false,
-			"error":   "Password or OTP verification code is required to sign in.",
+			"error":   "Invalid phone number or email address.",
 		})
 	}
 
-	cleanID := strings.TrimPrefix(identifier, "+91")
-	cleanID = strings.TrimSpace(cleanID)
+	password := ctx.FormValue("password")
 
 	var targetEmail string
 	if strings.Contains(cleanID, "@") {
 		targetEmail = strings.ToLower(cleanID)
+		if password == "" {
+			return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+				"success": false,
+				"error":   "Password is required for email sign in.",
+			})
+		}
 	} else {
+		// Valid mobile number check
+		if len(cleanID) < 10 {
+			return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+				"success": false,
+				"error":   "Please enter a valid 10-digit mobile number.",
+			})
+		}
 		targetEmail = fmt.Sprintf("phone_%s@fooddiscovery.com", cleanID)
 	}
 
+	ctxReq := ctx.Request().Context()
 	usr, err := h.c.ORM.User.Query().
 		Where(user.EmailEQ(targetEmail)).
-		Only(ctx.Request().Context())
+		Only(ctxReq)
 
-	if err != nil {
+	// If user does not exist yet and it's a mobile number, auto-provision customer account
+	if err != nil && !strings.Contains(cleanID, "@") {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("Customer@123"), bcrypt.DefaultCost)
+		userName := cleanID
+		newUser, cErr := h.c.ORM.User.Create().
+			SetName(userName).
+			SetEmail(targetEmail).
+			SetPassword(string(hash)).
+			SetVerified(true).
+			SetIsAdmin(false).
+			SetRole(user.RoleCustomer).
+			Save(ctxReq)
+		if cErr == nil && newUser != nil {
+			usr = newUser
+			err = nil
+		}
+	}
+
+	if err != nil || usr == nil {
 		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
 			"success": false,
-			"error":   "Invalid credentials. Please register or verify with OTP.",
+			"error":   "Account not found. Please register or verify with mobile number.",
 		})
 	}
 
-	err = h.c.Auth.CheckPassword(password, usr.Password)
-	if err != nil {
-		return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
-			"success": false,
-			"error":   "Invalid password. Please try again.",
-		})
+	// If password provided, verify it (for email or password protected accounts)
+	if password != "" {
+		err = h.c.Auth.CheckPassword(password, usr.Password)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]interface{}{
+				"success": false,
+				"error":   "Invalid password. Please try again.",
+			})
+		}
 	}
 
 	_ = h.c.Auth.Login(ctx, usr.ID)
@@ -1377,15 +1412,44 @@ func (h *Handler) PhoneOrEmailLogin(ctx echo.Context) error {
 		redirectURL = "/"
 	}
 
-	if ctx.Request().Header.Get("X-Requested-With") == "XMLHttpRequest" || ctx.Request().Header.Get("Content-Type") == "application/json" || ctx.QueryParam("json") == "1" {
-		return ctx.JSON(http.StatusOK, map[string]interface{}{
-			"success":  true,
-			"redirect": redirectURL,
-			"phone":    cleanID,
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"success":  true,
+		"redirect": redirectURL,
+		"message":  "Signed in successfully!",
+	})
+}
+
+// SendWhatsAppOTP generates a verification code and returns a WhatsApp deep link
+func (h *Handler) SendWhatsAppOTP(ctx echo.Context) error {
+	phone := strings.TrimSpace(ctx.FormValue("phone"))
+	if phone == "" {
+		phone = strings.TrimSpace(ctx.FormValue("identifier"))
+	}
+	cleanPhone := normalizeAuthIdentifier(phone)
+	if cleanPhone == "" || len(cleanPhone) < 10 {
+		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+			"success": false,
+			"error":   "Please enter a valid 10-digit mobile number.",
 		})
 	}
-	return ctx.Redirect(http.StatusSeeOther, redirectURL)
+	if len(cleanPhone) > 10 {
+		cleanPhone = cleanPhone[len(cleanPhone)-10:]
+	}
+
+	otp := h.generateAndSaveOTP("customer", cleanPhone)
+	waText := fmt.Sprintf("Your Under100 verification code is: %s", otp)
+	waURL := fmt.Sprintf("https://api.whatsapp.com/send?phone=91%s&text=%s", cleanPhone, url.QueryEscape(waText))
+
+	log.Printf("[WHATSAPP OTP] Verification code for +91 %s: %s", cleanPhone, otp)
+
+	return ctx.JSON(http.StatusOK, map[string]interface{}{
+		"success":      true,
+		"target":       "+91 " + cleanPhone,
+		"whatsapp_url": waURL,
+		"message":      "WhatsApp verification ready. Click to open WhatsApp and view your code.",
+	})
 }
+
 
 // AccountPage renders the Blinkit-style 2-column account interface
 func (h *Handler) AccountPage(ctx echo.Context) error {

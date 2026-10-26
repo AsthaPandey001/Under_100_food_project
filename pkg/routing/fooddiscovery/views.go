@@ -7406,29 +7406,36 @@ func RenderHomePage(currentUser *ent.User) string {
           </button>
         </div>
 
-        <!-- Mode 1: OTP Login Form -->
+        <!-- Mode 1: Mobile Login Form -->
         <div id="modalOtpSection" style="display: block;">
 
           <div style="display: flex; border: 1.5px solid #CBD5E1; border-radius: 12px; overflow: hidden; background: #ffffff; margin-bottom: 12px;">
             <div style="padding: 11px 13px; background: #F8FAFC; border-right: 1.5px solid #CBD5E1; font-weight: 700; font-size: 13px; color: #334155; display: flex; align-items: center;">
               +91
             </div>
-            <input type="text" id="loginIdentifierInput" placeholder="10-digit mobile or email" autocomplete="tel" required style="flex: 1; border: none; padding: 11px 13px; font-size: 14px; font-weight: 600; color: #1E293B; outline: none; background: transparent;">
-            <button type="button" id="btnModalSendOtp" onclick="sendModalOTP()" style="background: #0C831F; color: #ffffff; border: none; padding: 0 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap;">
-              Get OTP
-            </button>
+            <input type="text" id="loginIdentifierInput" placeholder="Enter 10-digit mobile number" autocomplete="tel" required style="flex: 1; border: none; padding: 11px 13px; font-size: 14px; font-weight: 600; color: #1E293B; outline: none; background: transparent;" onkeydown="if(event.key==='Enter') handleModalOtpSubmit()">
           </div>
 
           <div id="modalOtpInputWrap" style="display: none; margin-bottom: 12px;">
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Enter 6-Digit OTP</label>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Enter 6-Digit Code / PIN</label>
             <input type="text" id="modalOtpCodeInput" placeholder="••••••" maxlength="6" style="width: 100%; box-sizing: border-box; border: 1.5px solid #CBD5E1; border-radius: 12px; padding: 11px 14px; font-size: 16px; font-weight: 800; letter-spacing: 4px; text-align: center; color: #1E293B; outline: none;">
           </div>
 
           <div id="modalOtpStatus" style="display: none; font-size: 12px; font-weight: 600; margin-bottom: 10px;"></div>
 
-          <button type="button" id="btnLoginContinue" onclick="handleModalOtpSubmit()" style="width: 100%; padding: 13px; background: #0C831F; color: #ffffff; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; transition: background 0.15s ease; box-shadow: 0 4px 14px rgba(12, 131, 31, 0.25);">
-            Continue
+          <button type="button" id="btnLoginContinue" onclick="handleModalOtpSubmit()" style="width: 100%; padding: 13px; background: #0C831F; color: #ffffff; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; transition: background 0.15s ease; box-shadow: 0 4px 14px rgba(12, 131, 31, 0.25); margin-bottom: 10px;">
+            Continue with Mobile
           </button>
+
+          <!-- Alternative Methods: WhatsApp Verification & OTP / PIN -->
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="sendModalWhatsAppOTP()" style="flex: 1; padding: 8px 10px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; color: #166534; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <span>💬 Verify via WhatsApp</span>
+            </button>
+            <button type="button" onclick="toggleOtpInputMode()" id="btnToggleOtpMode" style="flex: 1; padding: 8px 10px; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; color: #334155; font-size: 12px; font-weight: 700; cursor: pointer;">
+              <span>🔑 Use OTP / PIN</span>
+            </button>
+          </div>
         </div>
 
         <!-- Mode 2: Email & Password Login Form -->
@@ -10255,14 +10262,15 @@ function handleModalOtpSubmit() {
   var idInput = document.getElementById('loginIdentifierInput');
   var idVal = idInput ? idInput.value.trim() : '';
   if (!idVal) {
-    alert('Please enter your mobile number or email.');
+    alert('Please enter your 10-digit mobile number.');
     if (idInput) idInput.focus();
     return;
   }
   var otpInput = document.getElementById('modalOtpCodeInput');
   var otpVal = otpInput ? otpInput.value.trim() : '';
 
-  if (modalOtpDispatched && otpVal) {
+  // If OTP / PIN was typed in, verify via OTP verification endpoint
+  if (otpVal) {
     var btn = document.getElementById('btnLoginContinue');
     if (btn) {
       btn.disabled = true;
@@ -10285,15 +10293,7 @@ function handleModalOtpSubmit() {
       },
       body: body.toString()
     })
-    .then(function(r) {
-      return r.text().then(function(text) {
-        try {
-          return JSON.parse(text);
-        } catch(e) {
-          return { success: false, error: text || ('Server error (' + r.status + ')') };
-        }
-      });
-    })
+    .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data && data.success) {
         if (statusDiv) {
@@ -10316,23 +10316,85 @@ function handleModalOtpSubmit() {
       }
     })
     .catch(function() {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = 'Verify & Sign In';
-      }
       quickPhoneLogin(idVal);
     });
-  } else if (!modalOtpDispatched) {
-    sendModalOTP();
-  } else {
-    var inp = document.getElementById('modalOtpCodeInput');
-    if (inp) inp.focus();
-    var statusDiv = document.getElementById('modalOtpStatus');
+    return;
+  }
+
+  // Instant 1-Click Mobile Sign In (Method without requiring carrier SMS)
+  quickPhoneLogin(idVal);
+}
+
+function sendModalWhatsAppOTP() {
+  var idInput = document.getElementById('loginIdentifierInput');
+  var idVal = idInput ? idInput.value.trim() : '';
+  if (!idVal) {
+    alert('Please enter your 10-digit mobile number first.');
+    if (idInput) idInput.focus();
+    return;
+  }
+  var statusDiv = document.getElementById('modalOtpStatus');
+  if (statusDiv) {
+    statusDiv.style.display = 'block';
+    statusDiv.style.color = '#166534';
+    statusDiv.innerText = 'Connecting to WhatsApp verification...';
+  }
+  var body = new URLSearchParams();
+  body.append('phone', idVal);
+  var csrf = getCsrfToken();
+  if (csrf) body.append('csrf', csrf);
+
+  fetch('/api/auth/send-whatsapp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+    body: body.toString()
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data && data.success) {
+      var wrap = document.getElementById('modalOtpInputWrap');
+      if (wrap) wrap.style.display = 'block';
+      modalOtpDispatched = true;
+      var btn = document.getElementById('btnLoginContinue');
+      if (btn) btn.innerText = 'Verify Code & Sign In';
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#166534';
+        statusDiv.innerHTML = 'WhatsApp verification ready! Check your WhatsApp and enter the 6-digit code below.';
+      }
+      if (data.whatsapp_url) {
+        window.open(data.whatsapp_url, '_blank');
+      }
+    } else {
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = '#DC2626';
+        statusDiv.innerText = (data && data.error) ? data.error : 'Failed to launch WhatsApp verification.';
+      }
+    }
+  })
+  .catch(function() {
     if (statusDiv) {
       statusDiv.style.display = 'block';
       statusDiv.style.color = '#DC2626';
-      statusDiv.innerText = 'Please enter the 6-digit OTP code sent to your phone.';
+      statusDiv.innerText = 'Network error during WhatsApp request.';
     }
+  });
+}
+
+function toggleOtpInputMode() {
+  var wrap = document.getElementById('modalOtpInputWrap');
+  if (!wrap) return;
+  if (wrap.style.display === 'none' || wrap.style.display === '') {
+    wrap.style.display = 'block';
+    var inp = document.getElementById('modalOtpCodeInput');
+    if (inp) inp.focus();
+    var btn = document.getElementById('btnLoginContinue');
+    if (btn) btn.innerText = 'Verify Code & Sign In';
+  } else {
+    wrap.style.display = 'none';
+    var btn = document.getElementById('btnLoginContinue');
+    if (btn) btn.innerText = 'Continue with Mobile';
   }
 }
 
@@ -12894,10 +12956,42 @@ func RenderLoginPage(flashMsg, errMsg string, returnTo ...string) string {
       var btnVerify = document.getElementById('custBtnVerify');
       var retTo = document.getElementById('custReturnTo').value || '/';
 
-      if (!idVal || !otpVal) {
+      if (!idVal) {
         statusDiv.style.display = 'block';
         statusDiv.style.color = '#dc2626';
-        statusDiv.innerText = 'Please enter both your identifier and the 6-digit OTP.';
+        statusDiv.innerText = 'Please enter your mobile number or email.';
+        return;
+      }
+
+      if (!otpVal) {
+        btnVerify.disabled = true;
+        btnVerify.innerText = 'Signing in...';
+        var form = new FormData();
+        form.append('phone', idVal);
+        form.append('redirect', retTo);
+        fetch('/api/phone-login', {
+          method: 'POST',
+          body: form
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.success) {
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#16a34a';
+            statusDiv.innerText = 'Signed in successfully!';
+            window.location.href = data.redirect || retTo;
+          } else {
+            btnVerify.disabled = false;
+            btnVerify.innerText = 'Sign In';
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#dc2626';
+            statusDiv.innerText = (data && data.error) ? data.error : 'Please enter the 6-digit OTP code.';
+          }
+        })
+        .catch(function() {
+          btnVerify.disabled = false;
+          btnVerify.innerText = 'Sign In';
+        });
         return;
       }
 
