@@ -1,73 +1,44 @@
 # Stage 1: Build the Go application
-FROM golang:1.24.3-bullseye AS builder
+FROM golang:1.24-bullseye AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# NOTE: Install necessary libraries for SQLite
-RUN apt-get update && apt-get install -y \
-    gcc \
-    musl-dev \
-    sqlite3 \
-    libsqlite3-dev
+# Install build dependencies
+RUN apt-get update && apt-get install -y gcc musl-dev libsqlite3-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Copy Go modules and download dependencies
+# Copy dependency manifests and download
 COPY go.mod go.sum ./
-RUN go mod tidy
 RUN go mod download
 
-# Copy the source code
+# Copy source tree
 COPY . .
 
-ENV CGO_ENABLED=1
+ENV CGO_ENABLED=0
 ENV GOOS=linux
 ENV GOARCH=amd64
 
-# Build the application
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
+# Build the production web binary
+RUN go build -ldflags="-s -w" -o /app/under100-web ./cmd/web
 
-# Install asynq tools
-RUN go install github.com/hibiken/asynq/tools/asynq@latest
+# Stage 2: Lightweight runtime image
+FROM debian:bullseye-slim
 
-################################################
-# Stage 2: Create a smaller runtime image
-################################################
-FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 
-# Install necessary packages
-RUN apt-get update && apt-get install -y \
-    curl
+WORKDIR /app
 
-# Copy the compiled binaries from the builder image
-COPY --from=builder /app/goship-web /goship-web
-COPY --from=builder /app/goship-worker /goship-worker
-COPY --from=builder /app/goship-seed /goship-seed
+# Copy binary from builder
+COPY --from=builder /app/under100-web /app/under100-web
 
-# Copy asynq tool
-COPY --from=builder /go/bin/asynq /usr/local/bin/
-
-# Copy the templates
+# Copy templates, static files, and configuration
 COPY templates/ /app/templates/
+COPY static/ /app/static/
+COPY config/ /app/config/
 
-# Optional: Bind to a TCP port (document the ports the application listens on)
 EXPOSE 8000
-EXPOSE 8080
+EXPOSE 10000
 
-# Define an entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+ENV PAGODA_HTTP_PORT=10000
+ENV PAGODA_HTTP_HOSTNAME=0.0.0.0
 
-COPY config/config.yaml .
-COPY service-worker.js /service-worker.js
-COPY static /static
-
-# Below is only used if you need to use PWABuilder to make a native Android app
-# RUN mkdir pwabuilder-android-wrapper
-# COPY pwabuilder-android-wrapper/assetlinks.json pwabuilder-android-wrapper/assetlinks.json 
-
-ENTRYPOINT ["/entrypoint.sh"]
-
-# Clean up any unnecessary files
-RUN apt-get purge -y gcc musl-dev libsqlite3-dev && apt-get autoremove -y && apt-get clean
+ENTRYPOINT ["/app/under100-web"]
