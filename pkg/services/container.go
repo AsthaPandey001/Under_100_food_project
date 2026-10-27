@@ -36,8 +36,10 @@ import (
 	"github.com/mikestefanello/pagoda/ent/user"
 	"github.com/mikestefanello/pagoda/pkg/repos/authrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/fooddiscovery"
+	"github.com/mikestefanello/pagoda/pkg/services/emailservice"
 	"github.com/mikestefanello/pagoda/pkg/services/sms"
 )
+
 
 type SentryHook struct{}
 
@@ -99,7 +101,11 @@ type Container struct {
 
 	// PhoneOTP handles hashed OTP challenges
 	PhoneOTP *authrepo.PhoneOTPRepo
+
+	// Email provides centralized transactional email delivery via Resend
+	Email emailservice.Service
 }
+
 
 // NewContainer creates and initializes a new Container
 func NewContainer() *Container {
@@ -454,7 +460,18 @@ func (c *Container) initMail() {
 			c.Logger.Errorf("failed to create mail client: %v", err)
 		}
 	}
+
+	appBase := strings.TrimSpace(os.Getenv("APP_BASE_URL"))
+	if appBase == "" && c.Config != nil {
+		appBase = c.Config.HTTP.Domain
+	}
+	if appBase == "" {
+		appBase = "http://localhost:8000"
+	}
+
+	c.Email = emailservice.NewEmailService(c.Mail, appBase)
 }
+
 
 func (c *Container) initPaymentProcessor() {
 	stripe.Key = c.Config.App.PrivateStripeKey

@@ -255,14 +255,74 @@ DROP TABLE IF EXISTS email_verification_tokens;
 ALTER TABLE users DROP COLUMN IF EXISTS phone;
 ```
 
-### 9.3 Production Telecom Configuration
-To switch from simulated development mode to real SMS in production, configure `.env`:
-- **Fast2SMS (Recommended for India):** Set `FAST2SMS_API_KEY=your_key`.
-- **Twilio:** Set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM_NUMBER`.
-- **Resend:** Set `RESEND_API_KEY` with your free API key from [resend.com](https://resend.com).
+### 9.3 Transactional Email Delivery (Resend API)
+The platform uses [Resend](https://resend.com) as its official transactional email delivery provider for:
+- **Registration Confirmation:** Branded welcome email confirming account creation.
+- **Email Verification:** Cryptographically secure 32-byte tokens (SHA-256 hashed in PostgreSQL), 30-minute expiry, and single-use validation.
+- **Forgot & Reset Password:** Anti-enumeration generic responses, single-use reset links, 30-minute expiry, and automatic session invalidation upon password update.
+- **Account Security Alerts:** Immediate email alert sent whenever an account password is changed.
+- **Resend Verification:** 60-second client-side countdown + server-side rate-limiting cooldown.
 
+#### Development / Zero-Cost Mode:
+If `RESEND_API_KEY` is not provided (or in local development), the system automatically uses a `MockMailClient` that logs all outgoing verification links and password reset URLs directly to the terminal, allowing 100% test coverage with zero provider cost.
+
+#### Production Configuration:
+Configure the following environment variables:
+```bash
+# Resend API Key (free tier: 3,000 emails/month free)
+RESEND_API_KEY=re_123456789_abcdef
+
+# Sender address (must match verified domain in Resend)
+EMAIL_FROM="Food Under ₹100 <onboarding@resend.dev>"
+# Or for your custom domain:
+# EMAIL_FROM="Food Under ₹100 <noreply@foodunder100.in>"
+
+# Application Base URL (for link generation in emails; no trailing slash)
+APP_BASE_URL=https://your-food-app.onrender.com
+```
+
+#### Resend Custom Sending Domain & DNS Setup:
+1. Log in to [resend.com/domains](https://resend.com/domains) and click **Add Domain** (e.g., `foodunder100.in` or subdomain `mail.foodunder100.in`).
+2. Add the DNS records provided by Resend to your domain registrar (GoDaddy, Cloudflare, Namecheap):
+   - **DKIM (CNAME or TXT):** Authenticates outgoing emails via cryptographic signature.
+   - **SPF (TXT):** Authorizes Resend mail servers to send emails on behalf of your domain (`v=spf1 include:resend.com ~all`).
+   - **DMARC (TXT):** Specifies email alignment policy (`_dmarc.yourdomain.com`, `v=DMARC1; p=none; rua=mailto:dmarc-reports@yourdomain.com`).
+3. Click **Verify Domain** in Resend dashboard. Once verified (status turns green), set `EMAIL_FROM="Food Under ₹100 <notifications@yourdomain.com>"`.
 
 ---
+
+## 10. Render Deployment Configuration
+
+When deploying the Food Under ₹100 application to [Render](https://render.com):
+
+### 10.1 Service Type & Build Settings:
+- **Service Type:** Web Service
+- **Environment:** Go / Docker
+- **Build Command:** `go build -o under100-web ./cmd/web`
+- **Start Command:** `./under100-web`
+
+### 10.2 Required Environment Variables on Render:
+In the Render Dashboard, navigate to **Environment** > **Environment Variables** and set:
+
+| Variable Name | Description | Example / Recommended Value |
+|---|---|---|
+| `PAGODA_APP_ENVIRONMENT` | Environment mode | `prod` |
+| `APP_BASE_URL` | Canonical public URL (no trailing slash) | `https://under100.onrender.com` |
+| `PAGODA_HTTP_PORT` | HTTP port for Render proxy | `10000` (or Render's `$PORT`) |
+| `PAGODA_APP_ENCRYPTIONKEY` | 32+ char session secret | `openssl rand -base64 32` |
+| `PAGODA_DATABASE_HOSTNAME` | Render PostgreSQL host | `dpg-xxxxxx.oregon-postgres.render.com` |
+| `PAGODA_DATABASE_PORT` | PostgreSQL port | `5432` |
+| `PAGODA_DATABASE_USER` | PostgreSQL user | `goship_db_user` |
+| `PAGODA_DATABASE_PASSWORD` | PostgreSQL password | Strong random password |
+| `PAGODA_DATABASE_DATABASENAMEPROD` | PostgreSQL database name | `goship_db` |
+| `PAGODA_DATABASE_SSLMODE` | SSL Mode for cloud PostgreSQL | `require` |
+| `PAGODA_CACHE_HOSTNAME` | Render Redis host | `red-xxxxxx.oregon-redis.render.com` |
+| `PAGODA_CACHE_PORT` | Redis port | `6379` |
+| `RESEND_API_KEY` | Resend API key | `re_xxxxxxxxxxxxxxxx` |
+| `EMAIL_FROM` | Verified sender address | `Food Under ₹100 <onboarding@resend.dev>` |
+
+> **Security Note:** Never commit `.env` or paste real secrets into the repository. Configure all secrets strictly inside Render's Environment settings.
+
 
 ## 10. Troubleshooting & Gotchas
 

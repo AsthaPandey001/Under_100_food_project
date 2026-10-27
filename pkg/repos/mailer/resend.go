@@ -3,6 +3,8 @@ package mailer
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/resend/resend-go/v2"
 )
@@ -23,16 +25,28 @@ func (r *ResendMailClient) Send(email *mail) error {
 		Subject: email.subject,
 	}
 
-	if email.component != nil {
+	if email.html != "" {
+		params.Html = email.html
+	} else if email.component != nil {
 		params.Html = email.body
-	} else {
+	}
+
+	if email.text != "" {
+		params.Text = email.text
+	} else if params.Html == "" {
 		params.Text = email.body
 	}
 
-	ctx := context.TODO()
-	_, err := r.client.Emails.SendWithContext(ctx, params)
+	// 10-second request timeout for outbound transactional delivery
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	sent, err := r.client.Emails.SendWithContext(ctx, params)
 	if err != nil {
-		return fmt.Errorf("resend mail client failed to send email: %w", err)
+		return fmt.Errorf("resend email delivery rejected: %w", err)
 	}
+
+	log.Printf("[RESEND] Email delivered successfully. Resend ID: %s | To: %s | Subject: %s", sent.Id, email.to, email.subject)
 	return nil
 }
+

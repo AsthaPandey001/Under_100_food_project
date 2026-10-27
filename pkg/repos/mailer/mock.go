@@ -11,6 +11,8 @@ type SentMessage struct {
 	To      string
 	Subject string
 	Body    string
+	HTML    string
+	Text    string
 }
 
 // MockMailClient provides a thread-safe test and development mock email client
@@ -45,9 +47,12 @@ func (m *MockMailClient) Send(email *mail) error {
 		To:      email.to,
 		Subject: email.subject,
 		Body:    email.body,
+		HTML:    email.html,
+		Text:    email.text,
 	})
 	return nil
 }
+
 
 // GetSentCount returns the total count of emails delivered to the mock
 func (m *MockMailClient) GetSentCount() int {

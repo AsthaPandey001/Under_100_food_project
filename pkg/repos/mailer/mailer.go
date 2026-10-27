@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"os"
+	"strings"
 
 	"github.com/a-h/templ"
 
@@ -31,6 +33,8 @@ type (
 		to        string
 		subject   string
 		body      string
+		html      string
+		text      string
 		layout    LayoutComponent
 		component templ.Component
 	}
@@ -50,9 +54,20 @@ func NewMailClient(cfg *config.Config, sender MailClientInterface) (*MailClient,
 
 // Compose creates a new email
 func (m *MailClient) Compose() *mail {
+	from := strings.TrimSpace(os.Getenv("EMAIL_FROM"))
+	if from == "" {
+		from = strings.TrimSpace(os.Getenv("PAGODA_MAIL_FROMADDRESS"))
+	}
+	if from == "" && m.config != nil {
+		from = m.config.Mail.FromAddress
+	}
+	if from == "" {
+		from = "Food Under ₹100 <onboarding@resend.dev>"
+	}
+
 	return &mail{
 		client: m,
-		from:   m.config.Mail.FromAddress,
+		from:   from,
 	}
 }
 
@@ -61,9 +76,10 @@ func (m *MailClient) send(email *mail, ctx context.Context) error {
 	switch {
 	case email.to == "":
 		return errors.New("email cannot be sent without a to address")
-	case email.body == "" && email.component == nil:
-		return errors.New("email cannot be sent without a body or component")
+	case email.body == "" && email.html == "" && email.text == "" && email.component == nil:
+		return errors.New("email cannot be sent without a body, html, or component")
 	}
+
 
 	// Check if a component was supplied
 	if email.component != nil {
@@ -110,6 +126,33 @@ func (m *mail) Body(body string) *mail {
 	m.body = body
 	return m
 }
+
+// HTML sets the HTML formatted body of the email
+func (m *mail) HTML(html string) *mail {
+	m.html = html
+	if m.body == "" {
+		m.body = html
+	}
+	return m
+}
+
+// Text sets the plain-text alternative body of the email
+func (m *mail) Text(text string) *mail {
+	m.text = text
+	if m.body == "" {
+		m.body = text
+	}
+	return m
+}
+
+// Getters for email fields
+func (m *mail) GetTo() string      { return m.to }
+func (m *mail) GetFrom() string    { return m.from }
+func (m *mail) GetSubject() string { return m.subject }
+func (m *mail) GetBody() string    { return m.body }
+func (m *mail) GetHTML() string    { return m.html }
+func (m *mail) GetText() string    { return m.text }
+
 
 // Component sets the template component to be used to produce the body of the email
 func (m *mail) Component(component templ.Component) *mail {

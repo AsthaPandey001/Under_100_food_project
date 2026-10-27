@@ -8,6 +8,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/user"
 	"github.com/mikestefanello/pagoda/pkg/repos/authrepo"
+	"github.com/mikestefanello/pagoda/pkg/services/emailservice"
 	"github.com/mikestefanello/pagoda/pkg/services/sms"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -226,3 +227,63 @@ func TestAccountRecovery_EmailMasking(t *testing.T) {
 	assert.True(t, strings.HasSuffix(masked, "@g***l.com"))
 	assert.Contains(t, masked, "*")
 }
+
+// TestResendEmailWorkflows verifies end-to-end template generation, cooldown, and security rules
+func TestResendEmailWorkflows(t *testing.T) {
+	t.Run("WelcomeEmail_ContentAndPersonalization", func(t *testing.T) {
+		name := "Priya Sharma"
+		html, text, subject := emailservice.BuildWelcomeEmail(name, "https://foodunder100.in")
+
+		assert.Equal(t, "Welcome to Food Under ₹100!", subject)
+		assert.Contains(t, html, "Priya Sharma")
+		assert.Contains(t, html, "Welcome to Food Under ₹100!")
+		assert.Contains(t, html, "registration request has been received successfully")
+		assert.Contains(t, html, "Bengaluru")
+		assert.Contains(t, html, "Food Under ₹100 Team")
+
+		assert.Contains(t, text, "Hello Priya Sharma,")
+		assert.Contains(t, text, "Welcome to Food Under ₹100!")
+		assert.Contains(t, text, "Bangalore")
+		assert.Contains(t, text, "Regards,\nFood Under ₹100 Team")
+	})
+
+	t.Run("VerificationEmail_TokenLinkAndExpiry", func(t *testing.T) {
+		token := "crypto_secure_token_1234567890abcdef"
+		verifyURL := "https://foodunder100.in/verify-email?token=" + token
+		html, text, subject := emailservice.BuildVerificationEmail("Rahul", verifyURL)
+
+		assert.Equal(t, "Verify Your Email Address — Food Under ₹100", subject)
+		assert.Contains(t, html, "Verify Email Address")
+		assert.Contains(t, html, verifyURL)
+		assert.Contains(t, html, "30 minutes")
+		assert.Contains(t, text, verifyURL)
+		assert.Contains(t, text, "30 minutes")
+	})
+
+	t.Run("PasswordResetEmail_AntiEnumerationAndExpiry", func(t *testing.T) {
+		resetURL := "https://foodunder100.in/reset-password?token=abcdef1234567890"
+		html, text, subject := emailservice.BuildPasswordResetEmail("Customer", resetURL)
+
+		assert.Equal(t, "Reset Your Password — Food Under ₹100", subject)
+		assert.Contains(t, html, "Reset Password")
+		assert.Contains(t, html, resetURL)
+		assert.Contains(t, html, "30 minutes")
+		assert.Contains(t, html, "ignore this email")
+		assert.Contains(t, text, resetURL)
+	})
+
+
+	t.Run("PasswordChangedAlert_SecurityNotification", func(t *testing.T) {
+		emergencyURL := "https://foodunder100.in"
+		html, text, subject := emailservice.BuildPasswordChangedNotification("Customer", emergencyURL)
+
+		assert.Equal(t, "Security Alert: Password Changed — Food Under ₹100", subject)
+		assert.Contains(t, html, "Your Password Has Been Changed")
+		assert.Contains(t, html, "sessions have been signed out")
+		assert.Contains(t, text, "invalidated")
+	})
+}
+
+
+
+

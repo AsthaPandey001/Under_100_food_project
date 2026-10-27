@@ -519,8 +519,11 @@ func (h *Handler) RegisterSubmit(ctx echo.Context) error {
 	if tErr == nil && rawToken != "" {
 		verifyURL := fmt.Sprintf("%s/verify-email?token=%s", getAppBaseURL(h.c, ctx), url.QueryEscape(rawToken))
 
-		// Dispatch transactional verification email via configured email service
-		if h.c.Mail != nil {
+		// Dispatch transactional verification and welcome emails via centralized Resend email service
+		if h.c.Email != nil {
+			_ = h.c.Email.SendVerificationEmail(ctxReq, email, name, verifyURL)
+			_ = h.c.Email.SendWelcomeEmail(ctxReq, email, name)
+		} else if h.c.Mail != nil {
 			_ = h.c.Mail.Compose().
 				To(email).
 				Subject("Verify Your Email Address — Food Under ₹100").
@@ -529,6 +532,7 @@ func (h *Handler) RegisterSubmit(ctx echo.Context) error {
 		}
 		log.Printf("[EMAIL VERIFICATION] Verification link created for %s: %s", email, verifyURL)
 	}
+
 
 	// For automated test suites (e.g. final_test_% fixture accounts), establish session
 	if isTestFixture {
@@ -614,7 +618,9 @@ func (h *Handler) ResendEmailVerification(ctx echo.Context) error {
 	}
 
 	verifyURL := fmt.Sprintf("%s/verify-email?token=%s", getAppBaseURL(h.c, ctx), url.QueryEscape(rawToken))
-	if h.c.Mail != nil {
+	if h.c.Email != nil {
+		_ = h.c.Email.SendVerificationEmail(ctxReq, email, usr.Name, verifyURL)
+	} else if h.c.Mail != nil {
 		_ = h.c.Mail.Compose().
 			To(email).
 			Subject("Verify Your Email Address — Food Under ₹100").
@@ -622,6 +628,7 @@ func (h *Handler) ResendEmailVerification(ctx echo.Context) error {
 			Send(ctxReq)
 	}
 	log.Printf("[EMAIL VERIFICATION] Resent verification link for %s: %s", email, verifyURL)
+
 
 	return ctx.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
@@ -2827,9 +2834,15 @@ func (h *Handler) ForgotPasswordSubmit(ctx echo.Context) error {
 	}
 
 	// Deliver reset link using trusted APP_BASE_URL (not untrusted Host header)
-	if h.c.Mail != nil {
-		resetLink := fmt.Sprintf("%s/reset-password?token=%s&user=%d&password_token=%d", getAppBaseURL(h.c, ctx), url.QueryEscape(token), u.ID, pt.ID)
-
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s&user=%d&password_token=%d", getAppBaseURL(h.c, ctx), url.QueryEscape(token), u.ID, pt.ID)
+	if h.c.Email != nil {
+		err := h.c.Email.SendPasswordResetEmail(ctxReq, u.Email, u.Name, resetLink)
+		if err != nil {
+			ctx.Logger().Errorf("failed to deliver password reset email for user %d: %v", u.ID, err)
+		} else {
+			ctx.Logger().Infof("password reset email dispatched successfully for user %d", u.ID)
+		}
+	} else if h.c.Mail != nil {
 		err := h.c.Mail.Compose().
 			To(u.Email).
 			Subject("Password Reset Request — Food Under ₹100").
@@ -2843,6 +2856,7 @@ func (h *Handler) ForgotPasswordSubmit(ctx echo.Context) error {
 	}
 
 	return ctx.HTML(http.StatusOK, RenderForgotPasswordPage(genericSuccessMsg, ""))
+
 }
 
 // ResetPasswordPage validates the reset token and renders new password form
@@ -2951,7 +2965,13 @@ func (h *Handler) ResetPasswordSubmit(ctx echo.Context) error {
 	// Invalidate ALL reset tokens for this user (single-use enforcement)
 	_ = h.c.Auth.DeletePasswordTokens(ctx, userID)
 
+	// Dispatch account security notification (password changed confirmation)
+	if h.c.Email != nil {
+		_ = h.c.Email.SendPasswordChangedNotification(ctxReq, targetUser.Email, targetUser.Name)
+	}
+
 	return ctx.Redirect(http.StatusSeeOther, "/login?msg=password_reset_success")
+
 }
 
 // ==========================================
