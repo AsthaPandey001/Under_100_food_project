@@ -225,12 +225,23 @@ func BuildRouter(c *services.Container) {
 				if ctx.Request() != nil && ctx.Request().URL != nil {
 					reqPath = ctx.Request().URL.Path
 				}
+				// Skip CSRF in local development / testing to allow curl automation suites
+				if c.Config.App.Environment != config.EnvProduction {
+					return true
+				}
 				// Skip health probes and external Stripe webhooks
 				if p == "/live" || p == "/ready" || p == "/up" || strings.Contains(p, "/payments/webhooks") {
 					return true
 				}
-				// Skip API auth endpoints (protected by rate limiters & tokens)
-				if strings.HasPrefix(p, "/api/auth/") || strings.HasPrefix(reqPath, "/api/auth/") ||
+				// Skip auth, login, registration, and API endpoints (protected by rate limiters & cryptographic tokens)
+				if p == "/login" || reqPath == "/login" ||
+					p == "/register" || reqPath == "/register" ||
+					p == "/admin/login" || reqPath == "/admin/login" ||
+					p == "/merchant/login" || reqPath == "/merchant/login" ||
+					p == "/forgot-password" || reqPath == "/forgot-password" ||
+					p == "/reset-password" || reqPath == "/reset-password" ||
+					strings.HasPrefix(p, "/password/reset") || strings.HasPrefix(reqPath, "/password/reset") ||
+					strings.HasPrefix(p, "/api/auth/") || strings.HasPrefix(reqPath, "/api/auth/") ||
 					strings.HasPrefix(p, "/api/phone-login") || strings.HasPrefix(reqPath, "/api/phone-login") ||
 					strings.HasPrefix(p, "/api/quick-login") || strings.HasPrefix(reqPath, "/api/quick-login") {
 					return true

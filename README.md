@@ -183,7 +183,18 @@ The development database is pre-configured with three operational personas:
 
 ---
 
-## 8. Running Tests & Automated Verification
+### Authentication & Security Unit Tests
+Run the complete auth test suite covering phone OTP, simulated zero-cost provider, email verification tokens, rate limiting, and role-based access control:
+```powershell
+# 1. SMS Provider & Security Guards
+go test -v ./pkg/services/sms
+
+# 2. Token Hashing, Account Recovery & Masking
+go test -v ./pkg/repos/authrepo
+
+# 3. HTTP Handlers, Validation, & Access Control
+go test -v ./pkg/routing/fooddiscovery -run "TestAuthUI_PagesRender|TestAuthorization_RoleAccessControls|TestRegistration_ValidationRules|TestPhoneOTP_Logic|TestEmailVerification_UnverifiedLoginRejection|TestAccountRecovery_EmailMasking"
+```
 
 ### Full Regression Suite
 Execute the comprehensive handover verification suite:
@@ -206,7 +217,54 @@ go vet ./...
 
 ---
 
-## 9. Troubleshooting & Gotchas
+## 9. Complete Authentication System (Zero-Cost-First Architecture)
+
+Under100 implements an enterprise-grade, zero-cost-first authentication system designed for Bangalore diners and food outlet merchants:
+
+### 9.1 Key Features & Capabilities
+1. **Unified Dual-Mode Login (`/login`):**
+   - **Option A (Phone Number + OTP):** Instant SMS login defaulting to India (+91) with 6-digit verification code, 60-second resend countdown, 5-minute expiry, and max 5 verification attempts.
+   - **Option B (Email & Password):** Secure login requiring verified email, Argon2id/bcrypt hash verification, show/hide password toggle, and optional "Remember me" session longevity.
+2. **Email Registration & Verification (`/register`, `/verify-email`):**
+   - New accounts created with `verified = false`.
+   - Single-use cryptographically secure 32-byte tokens hashed via SHA-256 with 30-minute expiration.
+   - Rate-limited resend endpoint with 60-second cooldown (`/api/auth/resend-verification`).
+   - Unverified accounts cannot log in until the link received via email is clicked.
+3. **Forgot & Reset Password Workflow (`/forgot-password`, `/reset-password`):**
+   - Anti-enumeration generic messaging protects user privacy.
+   - Single-use reset tokens with trusted `APP_BASE_URL` link construction (immune to Host-header poisoning).
+   - Instant session revocation on password update via password signature rotation (`pass_sig`).
+4. **Account Recovery for Forgotten Emails (`/recover-email`):**
+   - Customers who forget their registered email can verify their previously linked phone number via OTP.
+   - Upon successful verification, securely returns a masked email (e.g. `a***v@e***e.com`).
+5. **Zero-Cost Development Mode (₹0 Setup):**
+   - **Simulated OTP Provider:** When running in local development (`PAGODA_APP_ENVIRONMENT != prod`), generated OTPs are printed to the console terminal (`[DEV SIMULATED OTP]`) without telecom gateway charges.
+   - **Strict Production Refusal:** The simulated provider fails immediately if accidentally configured in production mode.
+   - **Mock Mailer Fallback:** In development mode without a `RESEND_API_KEY`, verification links and reset tokens are safely logged to standard output.
+
+### 9.2 Database Schema & Migrations
+Database migrations are applied via PostgreSQL:
+```powershell
+# Apply auth migration (creates phone_otp_challenges, email_verification_tokens, and adds users.phone)
+psql -U admin -d goship_db -f dbs/migrations/20261027_auth_system.sql
+```
+Rollback procedure (if required):
+```sql
+DROP TABLE IF EXISTS phone_otp_challenges;
+DROP TABLE IF EXISTS email_verification_tokens;
+ALTER TABLE users DROP COLUMN IF EXISTS phone;
+```
+
+### 9.3 Production Telecom Configuration
+To switch from simulated development mode to real SMS in production, configure `.env`:
+- **Fast2SMS (Recommended for India):** Set `FAST2SMS_API_KEY=your_key`.
+- **Twilio:** Set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM_NUMBER`.
+- **Resend:** Set `RESEND_API_KEY` with your free API key from [resend.com](https://resend.com).
+
+
+---
+
+## 10. Troubleshooting & Gotchas
 
 1. **PostgreSQL "Connection Refused":**
    Ensure `postgres.exe` is running and accepting TCP connections on port 5432. Check `C:\Users\astha\pgsql\logfile.log` if recovery is in progress.

@@ -33,9 +33,10 @@ import (
 
 	// Required by ent
 	"github.com/mikestefanello/pagoda/ent/migrate"
-	_ "github.com/mikestefanello/pagoda/ent/runtime"
 	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/mikestefanello/pagoda/pkg/repos/authrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/fooddiscovery"
+	"github.com/mikestefanello/pagoda/pkg/services/sms"
 )
 
 type SentryHook struct{}
@@ -89,6 +90,15 @@ type Container struct {
 
 	// FoodDiscovery handles all food discovery operations
 	FoodDiscovery *fooddiscovery.Repo
+
+	// SMS handles carrier and simulated OTP dispatch
+	SMS sms.Provider
+
+	// EmailVerification handles single-use email verification tokens
+	EmailVerification *authrepo.EmailVerificationRepo
+
+	// PhoneOTP handles hashed OTP challenges
+	PhoneOTP *authrepo.PhoneOTPRepo
 }
 
 // NewContainer creates and initializes a new Container
@@ -102,6 +112,9 @@ func NewContainer() *Container {
 	c.initORM()
 	c.FoodDiscovery = fooddiscovery.NewRepo(c.ORM, c.Database)
 	c.initAuth()
+	c.initSMS()
+	c.EmailVerification = authrepo.NewEmailVerificationRepo(c.Database, c.ORM)
+	c.PhoneOTP = authrepo.NewPhoneOTPRepo(c.Database, c.ORM)
 	// c.initNotifier()
 	c.initMail()
 	c.initPaymentProcessor()
@@ -401,15 +414,28 @@ func (c *Container) initNotifier() {
 		pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 }
 
+// initSMS initializes the SMS delivery provider
+func (c *Container) initSMS() {
+	c.SMS = sms.NewProvider(c.Config)
+}
+
 // initMail initializes the mail client
 func (c *Container) initMail() {
 	var err error
 	var mailClientImplementation mailer.MailClientInterface
 
+	resendKey := c.Config.Mail.ResendAPIKey
+	if resendKey == "" {
+		resendKey = strings.TrimSpace(os.Getenv("RESEND_API_KEY"))
+	}
+	if resendKey == "" {
+		resendKey = strings.TrimSpace(os.Getenv("PAGODA_MAIL_RESENDAPIKEY"))
+	}
+
 	switch {
-	case c.Config.App.Environment == config.EnvProduction && c.Config.Mail.ResendAPIKey != "":
-		mailClientImplementation = mailer.NewResendMailClient(c.Config.Mail.ResendAPIKey)
-	case c.Config.App.Environment == config.EnvTest || c.Config.Mail.Hostname == "mock":
+	case resendKey != "":
+		mailClientImplementation = mailer.NewResendMailClient(resendKey)
+	case c.Config.App.Environment == config.EnvTest || c.Config.Mail.Hostname == "mock" || c.Config.App.Environment == config.EnvDevelop || c.Config.App.Environment == config.EnvLocal:
 		mailClientImplementation = mailer.NewMockMailClient()
 	default:
 		mailHost := c.Config.Mail.Hostname
